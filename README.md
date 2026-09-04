@@ -16,6 +16,6 @@ pnpm run dev
 
 ## GitHub Pages发布
 
-推送到 `main` 后，GitHub Actions 会执行 `site` 下的静态发布构建并部署到 GitHub Pages。发布入口固定使用仓库路径 `/shenzhen-superagent-prototype/`，不随构建产物变化。
+当前版本已发布到 `gh-pages` 分支并由 GitHub Pages 提供服务。后续若补齐 GitHub CLI 的 `workflow` 授权，可启用自动发布工作流；规范访问地址保持不变。发布入口固定使用仓库路径 `/shenzhen-superagent-prototype/`，不随构建产物变化。
 
 静态发布入口位于 `site/static/`，复用同一套 `app/page.tsx` 与全局样式，不维护第二套业务页面。
