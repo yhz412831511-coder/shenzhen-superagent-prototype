@@ -177,6 +177,10 @@ test('任务概览使用限定在右侧工作区的连续清单视觉', () => {
   );
 
   assert.match(css, /\.tw-dock \.fw-monitor\s*\{/);
+  assert.match(
+    css,
+    /\.tw-dock \.fw-monitor\s*\{[^}]*background:\s*var\(--ui-side\)/s,
+  );
   assert.match(css, /summary::after/);
   assert.match(css, /border-bottom:\s*1px dashed/);
   assert.match(css, /\.tw-dock \.fw-monitor \.fw-file-icon/);

@@ -1708,14 +1708,14 @@ html[data-reduced-motion='true'] .fw-task-progress li[data-status='in_progress']
 
 /* QoderWork-inspired task overview: one quiet, continuous working surface. */
 .tw-dock .tw-main:has(> .fw-monitor) {
-  background: var(--ui-canvas);
+  background: var(--ui-side);
 }
 .tw-dock .fw-monitor {
   width: 100%;
   max-width: none;
   padding: 6px 16px 20px;
   border: 0;
-  background: var(--ui-canvas);
+  background: var(--ui-side);
   font-size: var(--ui-font-control);
 }
 .tw-dock .fw-monitor > details {
