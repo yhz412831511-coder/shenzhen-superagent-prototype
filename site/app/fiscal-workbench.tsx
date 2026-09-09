@@ -541,7 +541,7 @@ export function FiscalWorkbench() {
           <footer>
             <button
               className="fw-account-button"
-              aria-label="打开设置"
+              aria-label="打开账户与设置"
               title="账户与设置"
               onClick={() => {
                 setMobileNav(false);
@@ -554,7 +554,10 @@ export function FiscalWorkbench() {
                   <strong>{currentUser.name}</strong>
                   <small>{currentUser.role}</small>
                 </span>
-                <small className="fw-account-role">
+                <small
+                  className="fw-account-role"
+                  title={currentUser.organization}
+                >
                   {currentUser.organization}
                 </small>
               </span>

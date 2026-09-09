@@ -243,6 +243,29 @@ test('工作台抬升控件和纸张预览各自保持正确表面', () => {
   assert.match(refinement, /\.fw-paper\s*\{[^}]*background:\s*#ffffff;/s);
 });
 
+test('账户入口融入侧栏并保留完整单位信息', () => {
+  const workbench = fs.readFileSync(
+    new URL('../app/fiscal-workbench.tsx', import.meta.url),
+    'utf8',
+  );
+  const refinement = fs.readFileSync(
+    new URL('../app/visual-refinement.css', import.meta.url),
+    'utf8',
+  );
+  const accountRule = refinement.match(
+    /\.fw-sidebar footer > button\.fw-account-button\s*\{[^}]*\}/s,
+  )?.[0];
+  assert.ok(accountRule);
+  assert.match(accountRule, /border:\s*0/);
+  assert.match(accountRule, /background:\s*transparent/);
+  assert.match(accountRule, /box-shadow:\s*none/);
+  assert.match(
+    refinement,
+    /\.fw-account-role\s*\{[^}]*text-overflow:\s*ellipsis/s,
+  );
+  assert.match(workbench, /title=\{currentUser\.organization\}/);
+});
+
 test('历史确认请求关联后续执行，显示已确认但保留原始鉴权记录', () => {
   let s = workspaceReducer(initial(), { type: 'replay', kind: 'payment' });
   s = workspaceReducer(s, {
