@@ -736,37 +736,44 @@ export function FiscalWorkbench() {
           {page === 'home' && (
             <div className="fw-home">
               <div className="fw-home-inner">
-                <div className="fw-home-greeting">
-                  <span className="fw-home-icon">
-                    <Bot size={27} />
-                  </span>
-                  <p>你好，林思远</p>
+                <header className="fw-home-intro">
+                  <p className="fw-home-kicker">你好，林思远</p>
                   <h1>{folder || '今天有什么工作需要处理？'}</h1>
-                </div>
+                </header>
                 {!folder && composer(true)}
                 <section className="fw-recents">
-                  <div className="fw-row">
+                  <div className="fw-recents-header">
                     <h2>{folder ? '项目内的工作' : '最近的工作'}</h2>
                     <span className="fw-meta">{filteredTasks.length}项</span>
                   </div>
-                  {filteredTasks.map((t) => (
-                    <button key={t.id} onClick={() => openTask(t.id)}>
-                      <span>
-                        {state.flows[t.id]?.kind === 'payment' ? (
-                          <Workflow size={18} />
-                        ) : (
-                          <FileText size={18} />
-                        )}
-                      </span>
-                      <span>
-                        <strong>{t.title}</strong>
-                        <small>
-                          {state.flows[t.id]?.source || '本人工作记录'}
-                        </small>
-                      </span>
-                      <ChevronRight size={16} />
-                    </button>
-                  ))}
+                  <div className="fw-recents-list">
+                    {filteredTasks.map((t) => (
+                      <button
+                        className="fw-recent-task"
+                        key={t.id}
+                        onClick={() => openTask(t.id)}
+                      >
+                        <span className="fw-recent-icon" aria-hidden="true">
+                          {state.flows[t.id]?.kind === 'payment' ? (
+                            <Workflow size={16} />
+                          ) : (
+                            <FileText size={16} />
+                          )}
+                        </span>
+                        <span className="fw-recent-copy">
+                          <strong>{t.title}</strong>
+                          <small>
+                            {state.flows[t.id]?.source || '本人工作记录'}
+                          </small>
+                        </span>
+                        <ChevronRight
+                          className="fw-recent-chevron"
+                          size={16}
+                          aria-hidden="true"
+                        />
+                      </button>
+                    ))}
+                  </div>
                 </section>
               </div>
             </div>

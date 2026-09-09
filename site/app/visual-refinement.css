@@ -134,8 +134,7 @@ html[data-theme] ::selection {
   ) {
   background: var(--ui-raised);
 }
-.fw-app .fw-catalog-list > button:hover,
-.fw-app .fw-recents > button:hover {
+.fw-app .fw-catalog-list > button:hover {
   background: var(--ui-hover);
 }
 .fw-app :is(.fw-library-layout, .fw-library-detail-pane),
@@ -1030,33 +1029,6 @@ html[data-theme] [data-slot='popover-content'] {
   min-height: var(--ui-tabbar-height);
   padding: 6px 8px;
 }
-.fw-home {
-  padding: 32px 24px 28px;
-}
-.fw-home-inner {
-  max-width: 800px;
-}
-.fw-home-greeting {
-  margin-bottom: 18px;
-}
-.fw-home-icon {
-  padding: 9px;
-  margin-bottom: 6px;
-  border-radius: 12px;
-}
-.fw-home-greeting h1 {
-  margin: 0;
-}
-.fw-recents {
-  margin-top: 22px;
-}
-.fw-recents > button {
-  gap: 10px;
-  padding: 11px 4px;
-}
-.fw-recents > button > span:first-child {
-  padding: 7px;
-}
 .fw-message-column {
   max-width: 848px;
   padding: 20px 24px 28px;
@@ -1504,13 +1476,6 @@ html[data-reduced-motion='true'] .fw-task-progress li[data-status='in_progress']
     animation: none;
   }
 }
-.fw-recents strong {
-  line-height: 1.4;
-}
-.fw-recents small {
-  margin-top: 2px;
-  line-height: 1.35;
-}
 
 @media (max-width: 700px) {
   .fw-app .fw-operation-group,
@@ -1653,6 +1618,140 @@ html[data-reduced-motion='true'] .fw-task-progress li[data-status='in_progress']
   .fw-composer-area {
     padding-right: 12px;
     padding-left: 12px;
+  }
+}
+
+/* Home command surface: task entry first, with a quiet continuous work list. */
+.fw-home {
+  flex: 1;
+  overflow: auto;
+  padding: 32px 24px 40px;
+  background: var(--ui-center);
+}
+.fw-home-inner {
+  width: min(100%, 940px);
+  margin: 0 auto;
+}
+.fw-home-intro {
+  margin: 0 0 12px;
+  text-align: left;
+}
+.fw-home-kicker {
+  margin: 0 0 4px;
+  color: var(--ui-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.fw-home-intro h1 {
+  margin: 0;
+  color: var(--ui-text);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-wrap: pretty;
+}
+.fw-recents {
+  margin-top: 24px;
+}
+.fw-recents-header {
+  display: flex;
+  min-height: 28px;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 4px 6px;
+}
+.fw-recents-header h2 {
+  margin: 0;
+  color: var(--ui-text);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.fw-recents-header .fw-meta {
+  flex: none;
+  color: var(--ui-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.fw-recents-list:not(:empty) {
+  border-top: 1px solid var(--ui-border);
+}
+.fw-recent-task {
+  display: grid;
+  width: 100%;
+  min-height: 54px;
+  grid-template-columns: 28px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 6px;
+  border: 0;
+  border-bottom: 1px solid var(--ui-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ui-text);
+  text-align: left;
+}
+.fw-recent-task:hover,
+.fw-recent-task:focus-visible {
+  background: var(--ui-hover);
+}
+.fw-recent-task:focus-visible {
+  outline-offset: -2px;
+}
+.fw-recent-icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--ui-canvas);
+  color: var(--ui-muted);
+}
+.fw-recent-copy {
+  min-width: 0;
+}
+.fw-recent-copy strong,
+.fw-recent-copy small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fw-recent-copy strong {
+  color: var(--ui-text);
+  font-size: 14px;
+  font-weight: 550;
+  line-height: 1.4;
+}
+.fw-recent-copy small {
+  margin-top: 2px;
+  color: var(--ui-muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+.fw-recent-chevron {
+  color: color-mix(in srgb, var(--ui-muted) 72%, transparent);
+}
+.fw-recent-task:hover .fw-recent-chevron,
+.fw-recent-task:focus-visible .fw-recent-chevron {
+  color: var(--ui-text);
+}
+
+@media (max-width: 700px) {
+  .fw-home {
+    padding: 24px 16px 32px;
+  }
+  .fw-home-intro h1 {
+    font-size: 22px;
+  }
+  .fw-recents {
+    margin-top: 20px;
+  }
+  .fw-recent-task {
+    min-height: 54px;
+    padding-right: 4px;
+    padding-left: 4px;
   }
 }
 

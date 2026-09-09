@@ -431,92 +431,6 @@
   color: var(--ui-muted);
   white-space: nowrap;
 }
-.fw-home {
-  flex: 1;
-  overflow: auto;
-  background: var(--ui-center);
-  padding: 7vh 36px 50px;
-}
-.fw-home-inner {
-  max-width: 780px;
-  margin: auto;
-}
-.fw-home-greeting {
-  text-align: center;
-  margin-bottom: 30px;
-}
-.fw-home-icon {
-  display: inline-flex;
-  padding: 13px;
-  background: var(--ui-brand-soft);
-  color: var(--ui-brand);
-  border-radius: 17px;
-  margin-bottom: 9px;
-}
-.fw-home-greeting p {
-  color: var(--ui-muted);
-  margin: 0 0 7px;
-  font-size: var(--ui-font-control);
-}
-.fw-home-greeting h1 {
-  font-size: 27px;
-  font-weight: 560;
-  color: var(--ui-text);
-}
-.fw-recents {
-  margin-top: 38px;
-}
-.fw-recents h2 {
-  font-size: var(--ui-font-control);
-  color: var(--ui-muted);
-  font-weight: 500;
-  margin: 0;
-}
-.fw-recents .fw-row {
-  justify-content: space-between;
-  padding: 0 4px 10px;
-}
-.fw-recents > button {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  border: 0;
-  border-bottom: 1px solid var(--ui-border);
-  background: transparent;
-  padding: 16px 4px;
-  width: 100%;
-  text-align: left;
-}
-.fw-recents > button:hover {
-  background: var(--ui-surface);
-}
-.fw-recents > button > span:first-child {
-  background: var(--ui-canvas);
-  color: var(--ui-muted);
-  padding: 9px;
-  border-radius: 9px;
-  display: flex;
-}
-.fw-recents > button > span:nth-child(2) {
-  flex: 1;
-  min-width: 0;
-}
-.fw-recents strong {
-  display: block;
-  font-size: var(--ui-font-control);
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.fw-recents small {
-  display: block;
-  margin-top: 4px;
-  font-size: var(--ui-font-meta);
-}
-.fw-recents svg {
-  color: var(--ui-muted);
-}
 .fw-task-tabs {
   display: flex;
   align-items: stretch;
@@ -1515,9 +1429,6 @@
   .fw-sidebar {
     width: 270px;
   }
-  .fw-home {
-    padding-top: 11vh;
-  }
   .fw-message-column {
     padding-top: 40px;
   }
@@ -1572,9 +1483,6 @@
     width: 18px;
     height: 18px;
   }
-  .fw-home {
-    padding: 5vh 24px;
-  }
   .fw-module-title {
     flex-wrap: wrap;
   }
@@ -1613,12 +1521,6 @@
   }
   .fw-top-title {
     font-size: var(--ui-font-control);
-  }
-  .fw-home {
-    padding: 35px 20px;
-  }
-  .fw-home-greeting h1 {
-    font-size: 24px;
   }
   .fw-message-column {
     padding: 22px 20px;
