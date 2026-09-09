@@ -36,6 +36,7 @@ import {
   BrainCircuit,
 } from 'lucide-react';
 import { useWorkspace } from './workspace-store';
+import { useAppearance } from './appearance';
 import {
   current,
   eligible,
@@ -70,6 +71,7 @@ import { MemoryReminders } from './memory-reminders';
 import {
   conversationTurns,
   confirmationResolution,
+  isRoutineOperation,
   operationTitle,
   authorizationLabel,
   turnText,
@@ -265,7 +267,9 @@ export function OperationRow({
 }) {
   const abnormal = op.status !== '成功';
   const statusLabel =
-    op.status === '成功'
+    isRoutineOperation(op)
+      ? `${op.risk}风险 · ${authorizationLabel(op)} · 完成`
+      : op.status === '成功'
       ? '高风险操作 · 已执行'
       : op.status === '待确认'
         ? '需要本人确认'
@@ -313,9 +317,6 @@ export function OperationRow({
         )}
         <SafetyDetail op={op} />
       </details>
-      {['discover-capability', 'read-project-requirements', 'read-resource-assets', 'read-knowledge-plans'].includes(op.cmd) && op.status === '成功' && (
-        <p className="fw-meta">{op.detail}</p>
-      )}
       {abnormal && (
         <p className="fw-operation-alert" data-status={op.status}>
           {op.detail}
@@ -720,6 +721,7 @@ export function Conversation({
 }) {
   const { state, dispatch } = useWorkspace(),
     flow = state.flows[task.id];
+  const { value: appearance } = useAppearance();
   const initialScroll = useRef(task.savedScroll);
   const lastScroll = useRef(task.savedScroll);
   const scroll = useRef<HTMLDivElement>(null),
@@ -759,7 +761,12 @@ export function Conversation({
   }, [task.messages]);
   const arts =
     flow?.artifactIds.map((id) => state.artifacts[id]).filter(Boolean) || [];
-  const turns = conversationTurns(task, flow?.operations, arts);
+  const turns = conversationTurns(
+    task,
+    flow?.operations,
+    arts,
+    appearance.showRoutineOperations ? 'expanded' : 'summary',
+  );
   const lastAssistantTurn = turns.findLast((t) => t.role === 'assistant');
   return (
     <div

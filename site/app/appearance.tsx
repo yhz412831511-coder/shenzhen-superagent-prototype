@@ -10,11 +10,13 @@ export type Appearance = {
   theme: 'light' | 'dark';
   fontSize: 'standard' | 'large';
   reducedMotion: boolean;
+  showRoutineOperations: boolean;
 };
 export const initialAppearance: Appearance = {
   theme: 'light',
   fontSize: 'standard',
   reducedMotion: false,
+  showRoutineOperations: true,
 };
 const AppearanceContext = createContext<{
   value: Appearance;

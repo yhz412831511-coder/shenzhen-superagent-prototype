@@ -174,6 +174,26 @@ test('单个正常操作也使用本轮执行记录入口', () => {
   assert.deepEqual(segments.map((segment) => segment.kind), ['operation-group']);
   assert.deepEqual(segments[0].group.operations, [candidate]);
 });
+test('完整过程模式逐项显示正常操作并保持正文时间顺序', () => {
+  const first = operation({ cmd: 'before', risk: '无', checks: [] });
+  const second = operation({ cmd: 'after', risk: '中' });
+  const text = block(undefined, 1);
+  const segments = conversationSegments(
+    [block(first, 0), text, block(second, 2)],
+    'expanded',
+  );
+  assert.deepEqual(
+    segments.map((segment) => segment.kind),
+    ['operation', 'message', 'operation'],
+  );
+  assert.equal(segments[0].block.operation, first);
+  assert.equal(segments[1].block, text);
+  assert.equal(segments[2].block.operation, second);
+  assert.equal(
+    segments.some((segment) => segment.kind === 'operation-group'),
+    false,
+  );
+});
 test('高风险、待确认、失败、取消和授权不完整的操作保持独立', () => {
   const cases = [
     operation({ cmd: 'high', risk: '高' }),
@@ -185,6 +205,12 @@ test('高风险、待确认、失败、取消和授权不完整的操作保持�
   assert.ok(cases.every((candidate) => !isRoutineOperation(candidate)));
   assert.deepEqual(
     conversationSegments(cases.map(block)).map((segment) => segment.kind),
+    cases.map(() => 'operation'),
+  );
+  assert.deepEqual(
+    conversationSegments(cases.map(block), 'expanded').map(
+      (segment) => segment.kind,
+    ),
     cases.map(() => 'operation'),
   );
 });

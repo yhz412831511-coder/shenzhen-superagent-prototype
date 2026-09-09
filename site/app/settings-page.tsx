@@ -299,6 +299,7 @@ function PermissionSection({
 }: {
   onOpenConnections: () => void;
 }) {
+  const { value: appearance, update: updateAppearance } = useAppearance();
   const [execution, setExecution] = useState<'本地优先' | '智能选择'>(
     '智能选择',
   );
@@ -309,6 +310,18 @@ function PermissionSection({
         description="管理个人可选的默认范围；组织安全策略和任务中的责任确认不可绕过。"
       />
       <div className="mb-5">
+        <SettingRow
+          title="在对话中显示完整执行过程"
+          description="逐项展示操作、风险判断和授权结果；关闭后按每轮汇总。"
+        >
+          <Switch
+            checked={appearance.showRoutineOperations}
+            onCheckedChange={(value) =>
+              updateAppearance({ showRoutineOperations: value })
+            }
+            aria-label="在对话中显示完整执行过程"
+          />
+        </SettingRow>
         <SettingRow
           title="任务执行位置"
           description="涉及本地文件时优先在当前政务终端处理；其他任务由系统按策略选择。"

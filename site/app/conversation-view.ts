@@ -22,6 +22,7 @@ export type ConversationTurn = {
   segments: ConversationSegment[];
   artifacts: Artifact[];
 };
+export type OperationDisplayMode = 'expanded' | 'summary';
 
 const riskOrder: Record<Operation['risk'], number> = {
   无: 0,
@@ -74,11 +75,16 @@ export function summarizeOperationGroup(
 
 export function conversationSegments(
   blocks: ConversationBlock[],
+  operationDisplay: OperationDisplayMode = 'summary',
 ): ConversationSegment[] {
   const segments: ConversationSegment[] = [];
   const routineOperations: Operation[] = [];
   for (const block of blocks) {
     if (block.operation && isRoutineOperation(block.operation)) {
+      if (operationDisplay === 'expanded') {
+        segments.push({ kind: 'operation', block });
+        continue;
+      }
       routineOperations.push(block.operation);
       continue;
     }
@@ -102,6 +108,7 @@ export function conversationTurns(
   task: WorkTask,
   operations: Operation[] = [],
   artifacts: Artifact[] = [],
+  operationDisplay: OperationDisplayMode = 'summary',
 ): ConversationTurn[] {
   const ops = new Map(operations.map((op) => [op.messageId, op]));
   const turns: ConversationTurn[] = [];
@@ -133,7 +140,8 @@ export function conversationTurns(
     )
       turn.artifacts.push(artifact);
   }
-  for (const turn of turns) turn.segments = conversationSegments(turn.blocks);
+  for (const turn of turns)
+    turn.segments = conversationSegments(turn.blocks, operationDisplay);
   return turns;
 }
 
