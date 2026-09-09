@@ -1671,7 +1671,7 @@ export function CatalogPage({
     );
   if (creating)
     return (
-      <div className="fw-module">
+      <div className="fw-module fw-resource-page fw-resource-editor">
         <Btn onClick={() => setCreating(false)}><ArrowLeft size={15} />返回技能</Btn>
         <header className="fw-module-title"><div><h1>自建技能</h1><p>将常用工作方法整理成可复用的技能。</p></div></header>
         <form className="fw-skill-form" onSubmit={(event) => {
@@ -1694,12 +1694,12 @@ export function CatalogPage({
     );
   if (entry)
     return (
-      <div className="fw-module">
+      <div className="fw-module fw-resource-page fw-resource-detail">
         <Btn onClick={() => (onBack ? onBack() : setId(''))}>
           <ArrowLeft size={15} />
           {onBack ? '返回对话' : '返回目录'}
         </Btn>
-        <header className="fw-module-title">
+        <header className="fw-module-title fw-resource-header">
           <span className="fw-large-icon">
             {activeKind === 'Skill' ? <Zap /> : <Bot />}
           </span>
@@ -2007,8 +2007,8 @@ export function CatalogPage({
       </div>
     );
   return (
-    <div className="fw-module">
-      <header className="fw-module-title">
+    <div className="fw-module fw-resource-page fw-resource-catalog">
+      <header className="fw-module-title fw-resource-header">
         <div>
           <h1>{activeKind === '连接器' ? '系统连接' : activeKind}</h1>
           <p>
@@ -2036,7 +2036,7 @@ export function CatalogPage({
           ))}
         </div>
       )}
-      <div className="fw-filter">
+      <div className="fw-filter fw-resource-toolbar">
         <label className="fw-search">
           <Search size={16} />
           <input
@@ -2061,7 +2061,7 @@ export function CatalogPage({
       <p className="fw-meta">共 {results.length} 项</p>
       <div className="fw-catalog-list">
         {results.map((c) => (
-          <button key={c.id} onClick={() => setId(c.id)}>
+          <button key={c.id} title={c.name} onClick={() => setId(c.id)}>
             <span className="fw-catalog-icon">
               {c.kind === '连接器' ? <Globe2 size={21} /> : <Bot size={21} />}
             </span>
@@ -2201,8 +2201,8 @@ export function Library({
         ];
   const hasSelection = Boolean(selectedPersonal || selectedKnowledge);
   return (
-    <div className="fw-module">
-      <header className="fw-module-title">
+    <div className="fw-module fw-resource-page fw-library-page">
+      <header className="fw-module-title fw-resource-header">
         <div>
           <h1>资料库</h1>
           <p>管理本人主动选择的资料，或从已接入知识库中检索。</p>
@@ -2535,8 +2535,8 @@ export function Automations({ onTask }: { onTask: (id: string) => void }) {
     evaluated: [],
   });
   return (
-    <div className="fw-module">
-      <header className="fw-module-title">
+    <div className="fw-module fw-resource-page fw-automation-page">
+      <header className="fw-module-title fw-resource-header">
         <div>
           <h1>自动化</h1>
           <p>定时处理工作，收到反馈时及时跟进。</p>
@@ -2562,19 +2562,19 @@ export function Automations({ onTask }: { onTask: (id: string) => void }) {
       ) : (
         state.automations.map((c) => (
           <section className="fw-auto-item" key={c.id}>
-            <div className="fw-row">
+            <div className="fw-row fw-auto-heading">
               <Clock3 size={19} />
               <h2>{c.name}</h2>
               <Tag tone={c.enabled ? 'green' : 'neutral'}>
                 {c.enabled ? '已启用' : '已暂停'}
               </Tag>
             </div>
-            <p>
+            <p className="fw-auto-schedule">
               {c.cadence === 'event'
                 ? '收到项目审核反馈时'
                 : `${c.cadence === 'weekly' ? '每周' + '日一二三四五六'[c.weekday] : c.cadence === 'weekdays' ? '工作日' : '每天'} ${c.time}（北京时间）`}
             </p>
-            <p>{c.prompt}</p>
+            <p className="fw-auto-prompt">{c.prompt}</p>
             <div className="fw-actions">
               <Btn
                 small

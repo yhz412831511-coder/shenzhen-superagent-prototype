@@ -643,10 +643,10 @@ export function MemoryPage({
     : [];
   return (
     <div
-      className="fw-memory-page flex min-h-0 flex-1 flex-col overflow-y-auto bg-[var(--ui-center)] p-5 lg:p-7"
+      className="fw-memory-page fw-resource-page flex min-h-0 flex-1 flex-col overflow-y-auto bg-[var(--ui-center)] p-5 lg:p-7"
       data-testid="memory-page"
     >
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <div className="fw-memory-header mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
             {onBack && (
@@ -681,7 +681,7 @@ export function MemoryPage({
           保存记忆
         </Button>
       </div>
-      <div className="mb-4 flex items-center gap-1 border-b border-[var(--ui-border)]">
+      <div className="fw-memory-tabs mb-4 flex items-center gap-1 border-b border-[var(--ui-border)]">
         {[
           ['personal', '我的记忆'],
           ['organization', '组织经验'],
@@ -702,7 +702,7 @@ export function MemoryPage({
           </button>
         ))}
       </div>
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="fw-memory-toolbar mb-4 flex flex-wrap gap-2">
         <label className="fw-input-with-icon relative min-w-[180px] flex-1">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[color:var(--ui-muted)]" />
           <input
@@ -751,7 +751,7 @@ export function MemoryPage({
           </select>
         )}
       </div>
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="fw-memory-kinds mb-4 flex flex-wrap gap-2">
         {[['all', '全部'], ...Object.entries(kindLabels)].map(([id, label]) => (
           <button
             key={id}
