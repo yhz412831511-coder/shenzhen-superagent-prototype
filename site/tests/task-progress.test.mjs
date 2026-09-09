@@ -156,7 +156,10 @@ test('任务进度只保留业务步骤并实现三态视觉', () => {
     component.indexOf('export function Monitor'),
     component.indexOf('export function CatalogModal'),
   );
-  assert.doesNotMatch(monitor, /查看此前|提交来源|定位当前待办/);
+  assert.doesNotMatch(
+    monitor,
+    /查看此前|提交来源|定位当前待办|安全与授权|fw-monitor-attention/,
+  );
   assert.match(monitor, /任务进度/);
   assert.match(css, /text-decoration:\s*line-through/);
   assert.match(css, /fw-task-progress-spin/);

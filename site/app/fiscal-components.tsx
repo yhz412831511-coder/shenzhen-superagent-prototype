@@ -1021,21 +1021,12 @@ export function Monitor({
       f?.operations.flatMap((o) => (o.system ? [o.system] : [])) || [],
     ),
   ];
-  const attentionOperations=f?.operations.filter(op=>op.risk==='高'||op.status!=='成功'||(op.risk!=='无'&&(!op.checks.length||op.checks.some(check=>!check.passed))))||[];
-  const operationGroups=conversationTurns(task,f?.operations).flatMap(turn=>turn.segments.flatMap(segment=>segment.kind==='operation-group'?[segment.group]:[]));
   const recentArtifacts=(f?.artifactIds||[]).slice(-3).reverse();
   const progress=taskProgress(task,f);
   const completedProgress=progress.filter(item=>item.status==='completed').length;
-  const securitySection=<details className={attentionOperations.length?'fw-monitor-attention':''} open={attentionOperations.length>0}>
-    <summary>安全与授权 <span>{attentionOperations.length?`${attentionOperations.length} 项需关注`:`${f?.operations.length||0} 项检查已记录`}</span></summary>
-    {attentionOperations.map(op=><button className="fw-detail-link" key={op.id} onClick={()=>onOpen({kind:'operation',id:op.id})}><AlertCircle size={15}/><span>{operationTitle(op)}<small>{op.status==='待确认'?'需要本人确认':op.status==='成功'?'高风险操作已执行':op.status}</small></span><ArrowUpRight size={13}/></button>)}
-    {!attentionOperations.length&&operationGroups.slice(-3).reverse().map(group=><OperationGroupRow key={group.id} group={group} onOpen={onOpen}/>)}
-    {!f?.operations.length&&<p className="fw-meta">尚未发起系统操作。</p>}
-  </details>;
   return (
     <aside className="fw-monitor">
       <h3>任务概览</h3>
-      {!!attentionOperations.length&&securitySection}
       <details open>
         <summary>
           任务进度 <span>{completedProgress}/{progress.length}</span>
@@ -1119,7 +1110,6 @@ export function Monitor({
           </p>
         )}
       </details>
-      {!attentionOperations.length&&securitySection}
     </aside>
   );
 }

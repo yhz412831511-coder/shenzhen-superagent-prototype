@@ -1341,13 +1341,6 @@ html[data-theme] [data-slot='popover-content'] {
   color: var(--ui-brand);
   font-size: var(--ui-font-meta);
 }
-.fw-monitor-attention {
-  margin-bottom: 4px;
-  padding: 5px 8px 7px !important;
-  border: 1px solid var(--ui-warning-border) !important;
-  border-radius: 8px;
-  background: var(--ui-warning-soft);
-}
 .fw-module {
   padding: 24px;
 }
