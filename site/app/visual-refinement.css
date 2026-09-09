@@ -1720,7 +1720,7 @@ html[data-reduced-motion='true'] .fw-task-progress li[data-status='in_progress']
 }
 .tw-dock .fw-monitor > details {
   margin: 0;
-  padding: 6px 0 12px;
+  padding: 2px 0 8px;
   border: 0;
   border-bottom: 1px dashed color-mix(in srgb, var(--ui-border) 68%, transparent);
 }
@@ -1729,7 +1729,7 @@ html[data-reduced-motion='true'] .fw-task-progress li[data-status='in_progress']
 }
 .tw-dock .fw-monitor > details > summary {
   display: flex;
-  min-height: 44px;
+  min-height: 38px;
   align-items: center;
   gap: 8px;
   padding: 0;
@@ -1779,23 +1779,24 @@ html[data-reduced-motion='true'] .fw-task-progress li[data-status='in_progress']
   padding: 0 4px 0 12px;
 }
 .tw-dock .fw-task-progress li {
-  min-height: 32px;
-  gap: 10px;
-  padding: 6px 0;
-  line-height: 1.45;
+  min-height: 26px;
+  margin: 0;
+  gap: 8px;
+  padding: 2px 0;
+  line-height: 1.35;
 }
 .tw-dock .fw-task-progress-icon {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   margin-top: 0;
 }
 .tw-dock .fw-task-progress-title {
   font-size: calc(var(--ui-font-control) - 1px);
 }
 .tw-dock .fw-task-progress-copy small {
-  margin-top: 2px;
+  margin-top: 1px;
   font-size: calc(var(--ui-font-meta) - 1px);
-  line-height: 1.45;
+  line-height: 1.35;
 }
 .tw-dock .fw-task-progress li[data-status='completed'] .fw-task-progress-icon {
   padding: 2px;
@@ -1811,9 +1812,9 @@ html[data-reduced-motion='true'] .fw-task-progress li[data-status='in_progress']
 }
 .tw-dock .fw-monitor .fw-artifact-row,
 .tw-dock .fw-monitor .fw-detail-link {
-  min-height: 42px;
+  min-height: 36px;
   margin: 1px 0;
-  padding: 6px 8px;
+  padding: 4px 8px;
   gap: 10px;
   border: 0;
   border-radius: 8px;

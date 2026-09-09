@@ -187,3 +187,34 @@ test('任务概览使用限定在右侧工作区的连续清单视觉', () => {
   assert.match(workspaceCss, /\.tw-header\s*\{[^}]*min-height:48px/);
   assert.match(workspaceCss, /\.tw-head-actions button\s*\{[^}]*width:32px/);
 });
+
+test('任务概览桌面端采用组内紧凑的纵向节奏', () => {
+  const css = readFileSync(
+    new URL('../app/visual-refinement.css', import.meta.url),
+    'utf8',
+  );
+  const dockStyles = css.slice(
+    css.indexOf('/* QoderWork-inspired task overview'),
+  );
+
+  assert.match(
+    dockStyles,
+    /\.tw-dock \.fw-monitor > details > summary\s*\{[^}]*min-height:\s*38px/s,
+  );
+  assert.match(
+    dockStyles,
+    /\.tw-dock \.fw-task-progress li\s*\{[^}]*min-height:\s*26px[^}]*margin:\s*0[^}]*gap:\s*8px[^}]*padding:\s*2px 0[^}]*line-height:\s*1\.35/s,
+  );
+  assert.match(
+    dockStyles,
+    /\.tw-dock \.fw-task-progress-icon\s*\{[^}]*width:\s*16px[^}]*height:\s*16px/s,
+  );
+  assert.match(
+    dockStyles,
+    /\.tw-dock \.fw-monitor \.fw-artifact-row,[\s\S]*?min-height:\s*36px[^}]*padding:\s*4px 8px/s,
+  );
+  assert.match(
+    dockStyles,
+    /@media \(max-width:\s*700px\)[\s\S]*?\.tw-dock \.fw-monitor > details > summary,[\s\S]*?min-height:\s*44px/s,
+  );
+});
