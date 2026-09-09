@@ -90,6 +90,11 @@ html[data-theme] {
   --ui-font-page-title: 22px;
   --ui-font-section-title: 18px;
   --ui-font-subtitle: 15px;
+  --conversation-font-body: 13px;
+  --conversation-font-heading: 14px;
+  --conversation-font-control: 12px;
+  --conversation-font-meta: 11px;
+  --conversation-line-height: 1.5;
   --ui-space-1: 4px;
   --ui-space-2: 8px;
   --ui-space-3: 12px;
