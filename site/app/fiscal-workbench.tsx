@@ -728,7 +728,7 @@ export function FiscalWorkbench() {
             </div>
           )}
           {page === 'library' && (
-            <Library onOpen={openTarget} onUse={addCatalogToTask} />
+            <Library onOpenTask={openTask} onUse={addContext} />
           )}
           {['agents', 'skills', 'extensions'].includes(page) && (
             <CatalogPage

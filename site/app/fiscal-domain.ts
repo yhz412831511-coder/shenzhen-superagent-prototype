@@ -29,6 +29,11 @@ import {
   type CatalogEntry,
   type SystemId,
 } from './fiscal-catalog.ts';
+import {
+  initialLibraryState,
+  type LibraryState,
+  type PersonalLibraryItem,
+} from './library-domain.ts';
 
 export type Risk = '无' | '低' | '中' | '高';
 export type Command =
@@ -187,6 +192,7 @@ export type WorkspaceState = {
   flows: Record<string, Flow>;
   artifacts: Record<string, Artifact>;
   catalog: CatalogEntry[];
+  library: LibraryState;
   auth: Record<SystemId, Auth>;
   automations: Automation[];
   folders: string[];
@@ -216,6 +222,13 @@ export type WorkspaceAction =
   | { type: 'stop'; taskId: string; stopped: boolean }
   | { type: 'cancel-pending'; taskId: string }
   | { type: 'create-skill'; name: string; category: string; summary: string; instructions: string; publisher: string }
+  | { type: 'library-add-local'; item: PersonalLibraryItem }
+  | {
+      type: 'library-request-cloud';
+      name: string;
+      location: string;
+      access: '本人只读' | '本人可读写';
+    }
   | { type: 'catalog'; id: string; owned?: boolean; enabled?: boolean }
   | { type: 'automation'; item: Automation }
   | { type: 'run-automation'; id: string; slot?: number }
@@ -1470,6 +1483,7 @@ function base(now: number): WorkspaceState {
     flows: {},
     artifacts: {},
     catalog: initialCatalog(),
+    library: initialLibraryState(),
     auth: Object.fromEntries(
       Object.keys(systems).map((k) => [
         k,
@@ -1755,6 +1769,46 @@ export function workspaceReducer(
       if (fields.some(value => !value)) break;
       const [name, category, summary, instructions, publisher] = fields;
       s.catalog.push({ id: nextId(s, 'custom-skill'), kind: 'Skill', name, category, summary, publisher, version: '1.0', owned: true, enabled: true, details: [instructions] });
+      break;
+    }
+    case 'library-add-local': {
+      const existing = s.library.personalItems.findIndex(
+        (item) => item.id === a.item.id,
+      );
+      if (existing >= 0) s.library.personalItems[existing] = a.item;
+      else s.library.personalItems.unshift(a.item);
+      s.notice = `已加入本地资料：${a.item.name}。文件内容未上传。`;
+      break;
+    }
+    case 'library-request-cloud': {
+      const suffix =
+        s.library.personalItems.filter(
+          (item) => item.availability === 'pending',
+        ).length + 1;
+      s.library.personalItems.unshift({
+        id: `cloud-request-${suffix}`,
+        name: a.name,
+        storage: 'cloud',
+        itemType: '文件夹',
+        format: '云端资料目录',
+        location: `个人云空间 / ${a.location}`,
+        source: '本人发起的云空间连接申请',
+        modifiedAt: new Date(s.memory.now).toLocaleString('zh-CN', {
+          timeZone: 'Asia/Shanghai',
+          hour12: false,
+        }),
+        sizeLabel: '等待连接后读取',
+        availability: 'pending',
+        availabilityLabel: '等待授权',
+        access: a.access,
+        recentUses: [],
+        boundaries: [
+          '当前只记录了连接范围，未获得外部云空间授权。',
+          '授权完成前不展示目录内容，也不能加入任务。',
+        ],
+      });
+      s.notice =
+        '已记录个人云空间连接申请，完成授权后才可使用。';
       break;
     }
     case 'catalog': {

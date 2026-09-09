@@ -1,7 +1,13 @@
 'use client';
 import { oaAssignment } from './fiscal-catalog';
 import { currentUser } from './current-user';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type SyntheticEvent,
+} from 'react';
 import {
   AlertCircle,
   Zap,
@@ -12,6 +18,11 @@ import {
   ChevronDown,
   Copy,
   FileText,
+  Folder,
+  HardDrive,
+  Cloud,
+  Database,
+  History,
   Globe2,
   ShieldCheck,
   Plus,
@@ -23,7 +34,13 @@ import {
   BrainCircuit,
 } from 'lucide-react';
 import { useWorkspace } from './workspace-store';
-import { current, eligible, kindLabels, type WorkTask } from './memory-domain';
+import {
+  current,
+  eligible,
+  kindLabels,
+  type SavedContext,
+  type WorkTask,
+} from './memory-domain';
 import {
   assets,
   agentDetailProfiles,
@@ -33,7 +50,6 @@ import {
   projectAgent,
   systems,
   originalRemarks,
-  knowledgeText,
   type CatalogEntry,
   type SystemId,
 } from './fiscal-catalog';
@@ -56,6 +72,14 @@ import {
   authorizationLabel,
   turnText,
 } from './conversation-view';
+import {
+  canUsePersonalItem,
+  formatFileSize,
+  knowledgeBaseContext,
+  knowledgeBaseProfiles,
+  personalItemContext,
+  type PersonalLibraryItem,
+} from './library-domain';
 export type Target = {
   kind: 'system' | 'artifact' | 'operation' | 'capability' | 'file';
   annotationId?: string;
@@ -2112,72 +2136,437 @@ export function CatalogPage({
   );
 }
 export function Library({
-  onOpen,
   onUse,
+  onOpenTask,
 }: {
-  onOpen: (t: Target, taskId: string) => void;
-  onUse: (id: string) => void;
+  onUse: (context: SavedContext) => void;
+  onOpenTask: (taskId: string) => void;
 }) {
-  const { state } = useWorkspace(),
-    [q, setQ] = useState(''),
-    [knowledge, setKnowledge] = useState(false);
-  const arts = Object.values(state.artifacts).filter((a) => a.name.includes(q));
+  const { state, dispatch } = useWorkspace();
+  const [area, setArea] = useState<'personal' | 'knowledge'>('personal');
+  const [personalTab, setPersonalTab] = useState<'local' | 'cloud'>('local');
+  const [queries, setQueries] = useState({ personal: '', knowledge: '' });
+  const [status, setStatus] = useState('all');
+  const [selected, setSelected] = useState({ local: '', cloud: '', knowledge: '' });
+  const [cloudForm, setCloudForm] = useState(false);
+  const [cloudDraft, setCloudDraft] = useState({
+    name: '',
+    location: '',
+    access: '本人只读' as '本人只读' | '本人可读写',
+  });
+  const fileInput = useRef<HTMLInputElement>(null);
+  const query = queries[area];
+  const setAreaQuery = (value: string) =>
+    setQueries((old) => ({ ...old, [area]: value }));
+  const personalItems = state.library.personalItems.filter((item) => {
+    if (item.storage !== personalTab) return false;
+    if (!(item.name + item.location + item.format).includes(query)) return false;
+    if (status === 'usable') return canUsePersonalItem(item);
+    if (status === 'attention') return !canUsePersonalItem(item);
+    return true;
+  });
+  const knowledgeItems = knowledgeBaseProfiles.filter((item) => {
+    if (!(item.name + item.maintainer + item.searchableScope).includes(query))
+      return false;
+    if (status === 'connected') return item.connectionStatus === '已接入';
+    if (status === 'public') return item.connectionStatus.includes('公开');
+    return true;
+  });
+  const selectionKey = area === 'knowledge' ? 'knowledge' : personalTab;
+  const selectedId = selected[selectionKey];
+  const selectedPersonal = personalItems.find((item) => item.id === selectedId);
+  const selectedKnowledge = knowledgeItems.find(
+    (item) => item.catalogId === selectedId,
+  );
+  const choose = (id: string) =>
+    setSelected((old) => ({ ...old, [selectionKey]: id }));
+  const clearSelection = () =>
+    setSelected((old) => ({ ...old, [selectionKey]: '' }));
+  const changeArea = (next: 'personal' | 'knowledge') => {
+    setArea(next);
+    setStatus('all');
+  };
+  const changePersonalTab = (next: 'local' | 'cloud') => {
+    setPersonalTab(next);
+    setStatus('all');
+  };
+  const addLocalFiles = (files: FileList | null) => {
+    if (!files) return;
+    for (const file of files) {
+      const extension = file.name.split('.').pop()?.toUpperCase();
+      const item: PersonalLibraryItem = {
+        id: `local-${file.name}-${file.lastModified}`,
+        name: file.name,
+        storage: 'local',
+        itemType: '文件',
+        format: extension ? `${extension} 文件` : '本地文件',
+        location: '本机 / 本人新选择',
+        source: '本人通过资料库选择',
+        modifiedAt: new Date(file.lastModified).toLocaleString('zh-CN', {
+          hour12: false,
+        }),
+        sizeLabel: formatFileSize(file.size),
+        availability: 'available',
+        availabilityLabel: '本机可用',
+        access: '仅本人当前工作区可读',
+        summary: '已记录文件元数据，文件内容未上传。',
+        recentUses: [],
+        boundaries: [
+          '当前只记录名称、类型、大小和修改时间等元数据。',
+          '加入任务只授权本次使用，不会自动上传、共享或贡献。',
+        ],
+      };
+      dispatch({ type: 'library-add-local', item });
+      choose(item.id);
+    }
+    if (fileInput.current) fileInput.current.value = '';
+  };
+  const submitCloud = (event: SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
+    event.preventDefault();
+    if (!cloudDraft.name.trim() || !cloudDraft.location.trim()) return;
+    const pendingCount = state.library.personalItems.filter(
+      (item) => item.availability === 'pending',
+    ).length;
+    dispatch({
+      type: 'library-request-cloud',
+      name: cloudDraft.name.trim(),
+      location: cloudDraft.location.trim(),
+      access: cloudDraft.access,
+    });
+    setSelected((old) => ({
+      ...old,
+      cloud: `cloud-request-${pendingCount + 1}`,
+    }));
+    setCloudDraft({ name: '', location: '', access: '本人只读' });
+    setCloudForm(false);
+  };
+  const statusOptions =
+    area === 'knowledge'
+      ? [
+          ['all', '全部状态'],
+          ['connected', '已接入'],
+          ['public', '公开来源'],
+        ]
+      : [
+          ['all', '全部状态'],
+          ['usable', '当前可用'],
+          ['attention', '需处理'],
+        ];
+  const hasSelection = Boolean(selectedPersonal || selectedKnowledge);
   return (
     <div className="fw-module">
       <header className="fw-module-title">
         <div>
           <h1>资料库</h1>
-          <p>本次工作材料、系统资料与成果版本。</p>
+          <p>管理本人主动选择的资料，或从已接入知识库中检索。</p>
         </div>
-      </header>
-      <label className="fw-search">
-        <Search size={16} />
-        <input
-          placeholder="搜索资料"
-          aria-label="搜索资料"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-        />
-      </label>
-      <section className="fw-section">
-        <h2>本处室知识</h2>
-        <button
-          className="fw-detail-link"
-          onClick={() => setKnowledge(!knowledge)}
-        >
-          <FileText size={18} />
-          财政局系统与运维资料
-          <ChevronDown size={15} />
-        </button>
-        {knowledge && (
+        {area === 'personal' && personalTab === 'local' && (
           <>
-            <PlainText text={knowledgeText} />
-            <Btn onClick={() => onUse('finance-knowledge')}>用于任务</Btn>
+            <input
+              ref={fileInput}
+              className="fw-visually-hidden"
+              type="file"
+              multiple
+              aria-label="选择本地资料"
+              onChange={(event) => addLocalFiles(event.target.files)}
+            />
+            <Btn primary onClick={() => fileInput.current?.click()}>
+              <Plus size={16} />选择本地资料
+            </Btn>
           </>
         )}
-        <details>
-          <summary>支付审查原始案例</summary>
-          {originalRemarks.map((r) => (
-            <p key={r}>{r}</p>
-          ))}
-          <p className="fw-meta">
-            来源：0709关键字--疑点核实-全部(1).xlsx。原件及全部14张系统截图、记忆框架PDF保存在项目
-            references 中，未覆盖。
-          </p>
-        </details>
-      </section>
-      <section className="fw-section">
-        <h2>
-          工作材料与成果 <span className="fw-meta">{arts.length}份</span>
-        </h2>
-        {arts.map((a) => (
-          <ArtifactRow
-            key={a.id}
-            art={a}
-            onOpen={() => onOpen({ kind: 'artifact', id: a.id }, a.taskId)}
-          />
+        {area === 'personal' && personalTab === 'cloud' && (
+          <Btn primary onClick={() => setCloudForm(true)}>
+            <Cloud size={16} />连接个人云空间
+          </Btn>
+        )}
+      </header>
+      <div className="fw-library-primary-tabs" role="tablist" aria-label="资料库分区">
+        {([
+          ['personal', '个人'],
+          ['knowledge', '知识库'],
+        ] as const).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            role="tab"
+            aria-selected={area === value}
+            className={area === value ? 'active' : ''}
+            onClick={() => changeArea(value)}
+          >
+            {value === 'personal' ? <HardDrive size={17} /> : <Database size={17} />}
+            {label}
+          </button>
         ))}
-      </section>
+      </div>
+
+      {area === 'personal' && (
+        <div className="fw-library-secondary-tabs" role="tablist" aria-label="个人资料来源">
+          {([
+            ['local', '本地资料'],
+            ['cloud', '云资料'],
+          ] as const).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              role="tab"
+              aria-selected={personalTab === value}
+              className={personalTab === value ? 'active' : ''}
+              onClick={() => changePersonalTab(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {cloudForm && area === 'personal' && personalTab === 'cloud' && (
+        <form className="fw-library-connect-form" onSubmit={submitCloud}>
+          <div>
+            <h2>连接个人云空间</h2>
+            <p>只记录本人确认的目录和权限范围，完成外部授权后才可读取。</p>
+          </div>
+          <label>
+            空间或连接名称
+            <input
+              required
+              value={cloudDraft.name}
+              onChange={(event) =>
+                setCloudDraft({ ...cloudDraft, name: event.target.value })
+              }
+              placeholder="例如：个人工作资料"
+            />
+          </label>
+          <label>
+            授权目录
+            <input
+              required
+              value={cloudDraft.location}
+              onChange={(event) =>
+                setCloudDraft({ ...cloudDraft, location: event.target.value })
+              }
+              placeholder="例如：财政工作 / 参考资料"
+            />
+          </label>
+          <label>
+            使用权限
+            <select
+              value={cloudDraft.access}
+              onChange={(event) =>
+                setCloudDraft({
+                  ...cloudDraft,
+                  access: event.target.value as '本人只读' | '本人可读写',
+                })
+              }
+            >
+              <option>本人只读</option>
+              <option>本人可读写</option>
+            </select>
+          </label>
+          <div className="fw-actions">
+            <button className="fw-btn primary" type="submit">记录连接申请</button>
+            <Btn onClick={() => setCloudForm(false)}>取消</Btn>
+          </div>
+        </form>
+      )}
+
+      <div className="fw-library-toolbar">
+        <label className="fw-search">
+          <Search size={16} />
+          <input
+            placeholder={area === 'knowledge' ? '搜索知识库' : '搜索个人资料'}
+            aria-label={area === 'knowledge' ? '搜索知识库' : '搜索个人资料'}
+            value={query}
+            onChange={(event) => setAreaQuery(event.target.value)}
+          />
+        </label>
+        <select
+          aria-label="筛选状态"
+          value={status}
+          onChange={(event) => setStatus(event.target.value)}
+        >
+          {statusOptions.map(([value, label]) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className={`fw-library-layout ${hasSelection ? 'has-selection' : ''}`}>
+        <section className="fw-library-list-pane" aria-label={area === 'knowledge' ? '知识库列表' : '个人资料列表'}>
+          <div className="fw-library-list-heading">
+            <strong>
+              {area === 'knowledge'
+                ? '已配置的外接知识库'
+                : personalTab === 'local'
+                  ? '本地资料'
+                  : '个人云空间'}
+            </strong>
+            <span className="fw-meta">
+              {area === 'knowledge' ? knowledgeItems.length : personalItems.length} 项
+            </span>
+          </div>
+          <div className="fw-library-list">
+            {area === 'personal' && personalItems.map((item) => (
+              <button
+                type="button"
+                key={item.id}
+                className={selectedId === item.id ? 'active' : ''}
+                onClick={() => choose(item.id)}
+              >
+                <span className="fw-library-item-icon">
+                  {item.storage === 'cloud' ? <Cloud size={19} /> : item.itemType === '文件夹' ? <Folder size={19} /> : <FileText size={19} />}
+                </span>
+                <span>
+                  <strong>{item.name}</strong>
+                  <small>{item.format} · {item.modifiedAt}</small>
+                  <small>{item.location}</small>
+                </span>
+                <Tag tone={canUsePersonalItem(item) ? 'green' : 'amber'}>
+                  {item.availabilityLabel}
+                </Tag>
+                <ArrowUpRight size={15} />
+              </button>
+            ))}
+            {area === 'knowledge' && knowledgeItems.map((item) => (
+              <button
+                type="button"
+                key={item.catalogId}
+                className={selectedId === item.catalogId ? 'active' : ''}
+                onClick={() => choose(item.catalogId)}
+              >
+                <span className="fw-library-item-icon"><Database size={19} /></span>
+                <span>
+                  <strong>{item.name}</strong>
+                  <small>{item.level} · {item.sourceType}</small>
+                  <small>{item.maintainer}</small>
+                </span>
+                <Tag tone="green">{item.connectionStatus}</Tag>
+                <ArrowUpRight size={15} />
+              </button>
+            ))}
+            {((area === 'personal' && !personalItems.length) ||
+              (area === 'knowledge' && !knowledgeItems.length)) && (
+              <p className="fw-library-empty">没有符合当前条件的内容。</p>
+            )}
+          </div>
+        </section>
+
+        <section className="fw-library-detail-pane" aria-label="资料详情">
+          {hasSelection && (
+            <button type="button" className="fw-library-mobile-back" onClick={clearSelection}>
+              <ArrowLeft size={16} />返回列表
+            </button>
+          )}
+          {!hasSelection && (
+            <div className="fw-library-detail-empty">
+              {area === 'knowledge' ? <Database size={26} /> : <FileText size={26} />}
+              <strong>选择一项查看详情</strong>
+              <p>可查看来源、权限、最近使用和任务使用边界。</p>
+            </div>
+          )}
+          {selectedPersonal && (
+            <>
+              <header className="fw-library-detail-header">
+                <span className="fw-large-icon">
+                  {selectedPersonal.storage === 'cloud' ? <Cloud /> : selectedPersonal.itemType === '文件夹' ? <Folder /> : <FileText />}
+                </span>
+                <div>
+                  <h2>{selectedPersonal.name}</h2>
+                  <p>{selectedPersonal.source}</p>
+                </div>
+                <Tag tone={canUsePersonalItem(selectedPersonal) ? 'green' : 'amber'}>
+                  {selectedPersonal.availabilityLabel}
+                </Tag>
+              </header>
+              {canUsePersonalItem(selectedPersonal) && selectedPersonal.summary && (
+                <p className="fw-library-summary">{selectedPersonal.summary}</p>
+              )}
+              {!canUsePersonalItem(selectedPersonal) && (
+                <p className="fw-library-unavailable">
+                  当前连接尚不可用，不展示目录内容或文件摘要。
+                </p>
+              )}
+              <dl className="fw-library-facts">
+                <dt>类型</dt><dd>{selectedPersonal.format}</dd>
+                <dt>位置</dt><dd>{selectedPersonal.location}</dd>
+                <dt>修改时间</dt><dd>{selectedPersonal.modifiedAt}</dd>
+                <dt>大小或规模</dt><dd>{selectedPersonal.sizeLabel}</dd>
+                <dt>当前权限</dt><dd>{selectedPersonal.access}</dd>
+              </dl>
+              {canUsePersonalItem(selectedPersonal) && selectedPersonal.preview?.length ? (
+                <div className="fw-library-detail-block">
+                  <h3>内容概览</h3>
+                  {selectedPersonal.preview.map((line) => <p key={line}>{line}</p>)}
+                </div>
+              ) : null}
+              <div className="fw-library-detail-block">
+                <h3><History size={16} />最近任务使用</h3>
+                {selectedPersonal.recentUses.length ? selectedPersonal.recentUses.map((use) => (
+                  <button className="fw-library-task-link" type="button" key={`${use.taskId}-${use.at}`} onClick={() => onOpenTask(use.taskId)}>
+                    <span><strong>{use.title}</strong><small>{use.at}</small></span>
+                    <ArrowUpRight size={15} />
+                  </button>
+                )) : <p className="fw-meta">尚无任务使用记录。</p>}
+              </div>
+              <div className="fw-library-detail-block">
+                <h3><ShieldCheck size={16} />使用边界</h3>
+                <ul>{selectedPersonal.boundaries.map((item) => <li key={item}>{item}</li>)}</ul>
+              </div>
+              <div className="fw-actions">
+                <Btn
+                  primary
+                  disabled={!canUsePersonalItem(selectedPersonal)}
+                  onClick={() => onUse(personalItemContext(selectedPersonal))}
+                >
+                  {canUsePersonalItem(selectedPersonal) ? '在新任务中使用' : '完成授权后可用'}
+                </Btn>
+              </div>
+            </>
+          )}
+          {selectedKnowledge && (
+            <>
+              <header className="fw-library-detail-header">
+                <span className="fw-large-icon"><Database /></span>
+                <div>
+                  <h2>{selectedKnowledge.name}</h2>
+                  <p>{selectedKnowledge.sourceType}</p>
+                </div>
+                <Tag tone="green">{selectedKnowledge.connectionStatus}</Tag>
+              </header>
+              <p className="fw-library-summary">{selectedKnowledge.searchableScope}</p>
+              <dl className="fw-library-facts">
+                <dt>层级与范围</dt><dd>{selectedKnowledge.level}</dd>
+                <dt>维护与来源</dt><dd>{selectedKnowledge.maintainer}</dd>
+                <dt>最近同步／核验</dt><dd>{selectedKnowledge.updatedAt}</dd>
+                <dt>当前账号可用范围</dt><dd>{selectedKnowledge.accessScope}</dd>
+              </dl>
+              <div className="fw-library-detail-block">
+                <h3>支持的检索能力</h3>
+                <div className="fw-library-capabilities">
+                  {selectedKnowledge.capabilities.map((item) => <Tag key={item} tone="blue">{item}</Tag>)}
+                </div>
+              </div>
+              <div className="fw-library-detail-block">
+                <h3>来源说明</h3>
+                {selectedKnowledge.sourceUrl ? (
+                  <a className="fw-library-source-link" href={selectedKnowledge.sourceUrl} target="_blank" rel="noreferrer">
+                    {selectedKnowledge.sourceLabel}<ArrowUpRight size={15} />
+                  </a>
+                ) : <p>{selectedKnowledge.sourceLabel}</p>}
+              </div>
+              <div className="fw-library-detail-block">
+                <h3><ShieldCheck size={16} />使用边界</h3>
+                <ul>{selectedKnowledge.boundaries.map((item) => <li key={item}>{item}</li>)}</ul>
+              </div>
+              <div className="fw-actions">
+                <Btn primary onClick={() => onUse(knowledgeBaseContext(selectedKnowledge))}>
+                  使用该知识库新建任务
+                </Btn>
+              </div>
+            </>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
