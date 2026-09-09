@@ -698,7 +698,7 @@ export function SettingsPage({
 }) {
   const [section, setSection] = useState<SettingsSection>('account');
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto bg-[var(--ui-canvas)]">
+    <div className="fw-settings-page min-h-0 flex-1 overflow-y-auto bg-[var(--ui-center)]">
       <div className="mx-auto flex min-h-full max-w-[1120px] px-7 py-6">
         <div className="flex min-h-[660px] w-full overflow-hidden rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] shadow-[var(--ui-shadow)]">
           <nav
@@ -736,7 +736,7 @@ export function SettingsPage({
               })}
             </div>
           </nav>
-          <section className="min-w-0 flex-1 overflow-y-auto px-7 py-6">
+          <section className="fw-settings-content min-w-0 flex-1 overflow-y-auto px-7 py-6">
             {section === 'account' ? <AccountSection /> : null}
             {section === 'model' ? (
               <ModelSection

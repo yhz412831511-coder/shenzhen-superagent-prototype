@@ -90,7 +90,10 @@ test('显示转换不会改写历史事件、授权、回执或业务状态', ()
 test('未知或失败执行摘要不宣称已执行，成功操作保留独立风险和回执', () => {
   const op = { cmd: 'writeback', scope: 'scope', status: '待核实' };
   assert.equal(operationTitle(op), '写入智慧财政草稿箱');
-  assert.equal(operationTitle({ ...op, status: '成功' }), '已写入智慧财政草稿箱');
+  assert.equal(
+    operationTitle({ ...op, status: '成功' }),
+    '已写入智慧财政草稿箱',
+  );
 });
 test('重演中新成果仍与实际执行事件关联，不借用历史来源', () => {
   let s = workspaceReducer(initial(), { type: 'replay', kind: 'payment' });
@@ -148,30 +151,44 @@ for (const name of ['light', 'dark'])
       ratio(p.surface, p['side-surface']) >= 1.06,
       `surface/side-surface: ${ratio(p.surface, p['side-surface'])}`,
     );
-    for (const fg of ['task-text', 'task-muted', 'task-brand'])
-      for (const bg of ['task-center', 'task-side', 'task-raised'])
+    for (const fg of ['workspace-text', 'workspace-muted', 'workspace-brand'])
+      for (const bg of [
+        'workspace-center',
+        'workspace-side',
+        'workspace-raised',
+      ])
+        assert.ok(
+          ratio(p[fg], p[bg]) >= 4.5,
+          `${fg}/${bg}: ${ratio(p[fg], p[bg])}`,
+        );
+    for (const fg of ['success', 'warning', 'danger'])
+      for (const bg of [
+        'workspace-center',
+        'workspace-side',
+        'workspace-raised',
+      ])
         assert.ok(
           ratio(p[fg], p[bg]) >= 4.5,
           `${fg}/${bg}: ${ratio(p[fg], p[bg])}`,
         );
   });
 
-test('任务三栏强聚焦配色保持浅色侧栏更深、深色侧栏更亮', () => {
+test('工作台强聚焦配色保持浅色侧栏更深、深色侧栏更亮', () => {
   const light = palettes.light;
   const dark = palettes.dark;
   assert.ok(
-    luminance(light['task-side']) < luminance(light['task-center']),
-    '浅色任务侧栏应比中间阅读区更深',
+    luminance(light['workspace-side']) < luminance(light['workspace-center']),
+    '浅色工作台侧栏应比主内容区更深',
   );
   assert.ok(
-    luminance(dark['task-side']) > luminance(dark['task-center']),
-    '深色任务侧栏应比中间阅读区更亮',
+    luminance(dark['workspace-side']) > luminance(dark['workspace-center']),
+    '深色工作台侧栏应比主内容区更亮',
   );
-  assert.ok(ratio(light['task-side'], light['task-center']) >= 1.25);
-  assert.ok(ratio(dark['task-side'], dark['task-center']) >= 1.4);
+  assert.ok(ratio(light['workspace-side'], light['workspace-center']) >= 1.25);
+  assert.ok(ratio(dark['workspace-side'], dark['workspace-center']) >= 1.4);
 });
 
-test('任务三栏页使用独立侧栏表面，非任务页面不被全局染灰', () => {
+test('工作台全部页面共享同一表面层级', () => {
   const workbench = fs.readFileSync(
     new URL('../app/fiscal-workbench.tsx', import.meta.url),
     'utf8',
@@ -180,19 +197,50 @@ test('任务三栏页使用独立侧栏表面，非任务页面不被全局染�
     new URL('../app/visual-refinement.css', import.meta.url),
     'utf8',
   );
-  assert.match(workbench, /page === 'task' && task \? 'fw-task-page'/);
+  const memoryPage = fs.readFileSync(
+    new URL('../app/memory-page.tsx', import.meta.url),
+    'utf8',
+  );
+  const settingsPage = fs.readFileSync(
+    new URL('../app/settings-page.tsx', import.meta.url),
+    'utf8',
+  );
+  assert.match(workbench, /fw-app fw-page-\$\{page\}/);
+  assert.doesNotMatch(workbench, /fw-task-page/);
   assert.match(
     refinement,
-    /\.fw-app\.fw-task-page \.fw-sidebar[\s\S]*background:\s*var\(--ui-task-side\)/,
+    /\.fw-app\s*\{[\s\S]*--ui-center:\s*var\(--ui-workspace-center\)/,
   );
   assert.match(
     refinement,
-    /\.fw-app\.fw-task-page \.fw-task-center[\s\S]*background:\s*var\(--ui-task-center\)/,
+    /\.fw-app\s+:is\(\s*\.fw-sidebar,[\s\S]*background:\s*var\(--ui-side\)/,
   );
-  assert.doesNotMatch(
+  assert.match(
     refinement,
-    /\.fw-(?:home|module|legacy-page)[^{]*\{[^}]*var\(--ui-task-(?:side|center|raised)\)/s,
+    /\.fw-app\s+:is\(\.fw-main,[\s\S]*background:\s*var\(--ui-center\)/,
   );
+  assert.match(refinement, /\.fw-library-list-pane/);
+  assert.match(memoryPage, /fw-memory-list-pane/);
+  assert.match(memoryPage, /fw-memory-detail-pane/);
+  assert.match(settingsPage, /fw-settings-page/);
+  assert.match(settingsPage, /fw-settings-content/);
+  assert.match(settingsPage, /data-settings-nav/);
+});
+
+test('工作台抬升控件和纸张预览各自保持正确表面', () => {
+  const refinement = fs.readFileSync(
+    new URL('../app/visual-refinement.css', import.meta.url),
+    'utf8',
+  );
+  assert.match(
+    refinement,
+    /\.fw-app :is\(\.fw-nav-search,[\s\S]*background:\s*var\(--ui-raised\)/,
+  );
+  assert.match(
+    refinement,
+    /\.fw-app :is\(\.fw-catalog-list > button, \.fw-auto-item\)/,
+  );
+  assert.match(refinement, /\.fw-paper\s*\{[^}]*background:\s*#ffffff;/s);
 });
 
 test('历史确认请求关联后续执行，显示已确认但保留原始鉴权记录', () => {

@@ -434,11 +434,7 @@
 .fw-home {
   flex: 1;
   overflow: auto;
-  background: radial-gradient(
-    ellipse at 50% 9%,
-    var(--ui-canvas) 0,
-    var(--ui-surface) 58%
-  );
+  background: var(--ui-center);
   padding: 7vh 36px 50px;
 }
 .fw-home-inner {

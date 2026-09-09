@@ -13,8 +13,25 @@ html[data-theme] ::selection {
   color: var(--ui-text);
 }
 .fw-app {
+  --ui-center: var(--ui-workspace-center);
+  --ui-side: var(--ui-workspace-side);
+  --ui-surface: var(--ui-workspace-center);
+  --ui-canvas: var(--ui-workspace-raised);
+  --ui-raised: var(--ui-workspace-raised);
+  --ui-hover: var(--ui-workspace-hover);
+  --ui-bubble: var(--ui-workspace-bubble);
+  --ui-text: var(--ui-workspace-text);
+  --ui-muted: var(--ui-workspace-muted);
+  --ui-border: var(--ui-workspace-border);
+  --ui-border-strong: var(--ui-workspace-border-strong);
+  --ui-brand: var(--ui-workspace-brand);
+  --ui-brand-hover: var(--ui-workspace-brand-hover);
+  --ui-brand-soft: var(--ui-workspace-brand-soft);
+  --ui-brand-border: var(--ui-workspace-brand-border);
+  --line: var(--ui-workspace-border);
   color: var(--ui-text);
   font-size: var(--ui-font-control);
+  background: var(--ui-center);
 }
 .fw-app :where(input, select, textarea) {
   color: var(--ui-text);
@@ -28,62 +45,77 @@ html[data-theme] ::selection {
 .fw-app button:disabled {
   opacity: 0.55;
 }
-.fw-sidebar,
-.fw-monitor {
-  background: var(--ui-canvas);
+.fw-app
+  :is(.fw-main, .fw-view, .fw-topbar, .fw-home, .fw-module, .fw-legacy-page),
+.fw-app
+  :is(.fw-task-center, .fw-task-tabs, .fw-conversation, .fw-composer-area),
+.fw-app :is(.tw-browser-content, .tw-page-inner),
+.fw-app
+  :is(
+    .fw-memory-page,
+    .fw-memory-detail-pane,
+    .fw-settings-page,
+    .fw-settings-content
+  ),
+.fw-settings-overlay,
+.fw-settings-header {
+  background: var(--ui-center);
 }
-.fw-app.fw-task-page {
-  --ui-surface: var(--ui-task-center);
-  --ui-canvas: var(--ui-task-raised);
-  --ui-raised: var(--ui-task-raised);
-  --ui-hover: var(--ui-task-hover);
-  --ui-bubble: var(--ui-task-bubble);
-  --ui-text: var(--ui-task-text);
-  --ui-muted: var(--ui-task-muted);
-  --ui-border: var(--ui-task-border);
-  --ui-border-strong: var(--ui-task-border-strong);
-  --ui-brand: var(--ui-task-brand);
-  --ui-brand-hover: var(--ui-task-brand-hover);
-  --ui-brand-soft: var(--ui-task-brand-soft);
-  --ui-brand-border: var(--ui-task-brand-border);
-  --line: var(--ui-task-border);
-  background: var(--ui-task-center);
+.fw-app
+  :is(
+    .fw-sidebar,
+    .tw-dock,
+    .fw-monitor,
+    .tw-header,
+    .tw-tabs,
+    .tw-browser-tools
+  ),
+.fw-app :is(.fw-library-list-pane, .fw-memory-list-pane, [data-settings-nav]) {
+  background: var(--ui-side);
 }
-.fw-app.fw-task-page .fw-sidebar,
-.fw-app.fw-task-page .tw-dock,
-.fw-app.fw-task-page .fw-monitor,
-.fw-app.fw-task-page .tw-header,
-.fw-app.fw-task-page .tw-tabs,
-.fw-app.fw-task-page .tw-browser-tools {
-  background: var(--ui-task-side);
+.fw-app :is(.fw-nav-search, .fw-account-button, .composer-shell),
+.fw-app :is(input:not([type='checkbox']), textarea, select),
+.fw-app :is(.fw-catalog-list > button, .fw-auto-item),
+.fw-app :is(.fw-capability-card, .fw-source-card, .fw-modal),
+.fw-app :is(.tw-dock input, .tw-dock textarea, .tw-menu, .tw-note-editor) {
+  background: var(--ui-raised);
 }
-.fw-app.fw-task-page .fw-task-center,
-.fw-app.fw-task-page .fw-topbar,
-.fw-app.fw-task-page .fw-task-tabs,
-.fw-app.fw-task-page .fw-conversation,
-.fw-app.fw-task-page .fw-composer-area,
-.fw-app.fw-task-page .tw-browser-content,
-.fw-app.fw-task-page .tw-page-inner {
-  background: var(--ui-task-center);
+.fw-app
+  :is(
+    .fw-sidebar,
+    .tw-dock,
+    .fw-library-list-pane,
+    .fw-memory-list-pane,
+    [data-settings-nav]
+  ) {
+  border-color: var(--ui-border);
 }
-.fw-app.fw-task-page .fw-nav-search,
-.fw-app.fw-task-page .fw-account-button,
-.fw-app.fw-task-page .composer-shell,
-.fw-app.fw-task-page .fw-composer-area > section,
-.fw-app.fw-task-page .tw-dock input,
-.fw-app.fw-task-page .tw-dock textarea,
-.fw-app.fw-task-page .tw-menu,
-.fw-app.fw-task-page .tw-note-editor {
-  background: var(--ui-task-raised);
-}
-.fw-app.fw-task-page :is(.fw-sidebar, .tw-dock) {
-  border-color: var(--ui-task-border);
-}
-.fw-app.fw-task-page :is(.tw-file-preview pre, .tw-terminal pre, .tw-command) {
-  background: var(--ui-task-raised);
-  border: 1px solid var(--ui-task-border);
+.fw-app :is(.tw-file-preview pre, .tw-terminal pre, .tw-command) {
+  background: var(--ui-raised);
+  border: 1px solid var(--ui-border);
   border-radius: 8px;
   padding: 10px 12px;
+}
+.fw-app :is(.fw-search, .fw-toggle, .fw-category-filters button),
+.fw-app
+  :is(
+    .fw-library-toolbar select,
+    .fw-library-connect-form input,
+    .fw-library-connect-form select
+  ) {
+  background: var(--ui-raised);
+}
+.fw-app .fw-catalog-list > button:hover,
+.fw-app .fw-recents > button:hover {
+  background: var(--ui-hover);
+}
+.fw-app :is(.fw-library-layout, .fw-library-detail-pane),
+.fw-app [data-testid='memory-page'] > div:last-child,
+.fw-app .fw-settings-page > div > div {
+  background: var(--ui-center);
+}
+.fw-app .tw-dock .fw-module {
+  background: var(--ui-side);
 }
 .fw-topbar {
   background: var(--ui-surface);
@@ -117,6 +149,7 @@ html[data-theme] ::selection {
   border-radius: 8px;
   min-height: 36px;
   font-weight: 500;
+  background: var(--ui-raised);
 }
 .fw-btn:hover {
   background: var(--ui-hover);
@@ -460,7 +493,7 @@ html[data-theme] ::selection {
 }
 .fw-theme-options > button {
   text-align: left;
-  background: var(--ui-surface);
+  background: var(--ui-raised);
   border: 1px solid var(--ui-border);
   border-radius: 12px;
   padding: 12px;
@@ -491,27 +524,29 @@ html[data-theme] ::selection {
   border-radius: 8px;
 }
 .fw-theme-swatch.light {
-  background: #f7f8fa;
-  border: 1px solid #e1e5eb;
+  background: #ffffff;
+  border: 1px solid #c7cfd9;
 }
 .fw-theme-swatch.dark {
-  background: #181a1e;
-  border: 1px solid #363c46;
+  background: #080a0c;
+  border: 1px solid #444c56;
 }
 .fw-theme-swatch i {
   grid-row: span 3;
-  background: #c5d4f5;
+  background: #dde3ea;
   border-radius: 4px;
 }
 .fw-theme-swatch.dark i {
-  background: #435f93;
+  background: #292e35;
 }
 .fw-theme-swatch span {
-  background: #e1e5eb;
+  background: #fafbfc;
+  border: 1px solid #c7cfd9;
   border-radius: 3px;
 }
 .fw-theme-swatch.dark span {
-  background: #363c46;
+  background: #30363e;
+  border-color: #444c56;
 }
 .fw-theme-swatch span:nth-child(3) {
   width: 72%;
@@ -900,10 +935,21 @@ html[data-theme] [data-slot='popover-content'] {
   grid-template-columns: auto minmax(0, 1fr) auto;
   row-gap: 6px;
 }
-.fw-account-button .fw-account-info { display: contents; }
-.fw-account-button .fw-avatar { grid-column: 1; grid-row: 1; }
-.fw-account-button .fw-account-name { grid-column: 2; grid-row: 1; }
-.fw-account-button > svg { grid-column: 3; grid-row: 1; }
+.fw-account-button .fw-account-info {
+  display: contents;
+}
+.fw-account-button .fw-avatar {
+  grid-column: 1;
+  grid-row: 1;
+}
+.fw-account-button .fw-account-name {
+  grid-column: 2;
+  grid-row: 1;
+}
+.fw-account-button > svg {
+  grid-column: 3;
+  grid-row: 1;
+}
 .fw-account-button .fw-account-role {
   grid-column: 1 / -1;
   grid-row: 2;

@@ -386,7 +386,11 @@ function KindIcon({ kind }: { kind: MemoryKind }) {
   }[kind];
   return <Icon className="size-4" aria-hidden="true" />;
 }
-function ApplicationView({ revision }: { revision: ReturnType<typeof current> }) {
+function ApplicationView({
+  revision,
+}: {
+  revision: ReturnType<typeof current>;
+}) {
   const application = applicationFor(revision);
   return (
     <section
@@ -639,7 +643,7 @@ export function MemoryPage({
     : [];
   return (
     <div
-      className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-[var(--ui-canvas)] p-5 lg:p-7"
+      className="fw-memory-page flex min-h-0 flex-1 flex-col overflow-y-auto bg-[var(--ui-center)] p-5 lg:p-7"
       data-testid="memory-page"
     >
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
@@ -791,7 +795,7 @@ export function MemoryPage({
         </output>
       )}
       <div className="grid min-h-[460px] flex-1 grid-cols-1 overflow-hidden rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface)] min-[820px]:grid-cols-[minmax(210px,0.85fr)_minmax(320px,1.4fr)]">
-        <div className="border-r border-[var(--ui-border)]">
+        <div className="fw-memory-list-pane border-r border-[var(--ui-border)]">
           <p className="border-b border-[var(--ui-border)] px-4 py-3 text-[length:var(--ui-font-meta)] text-[color:var(--ui-muted)]">
             {rows.length} 条记忆
           </p>
@@ -834,7 +838,7 @@ export function MemoryPage({
             )}
           </div>
         </div>
-        <div className="min-w-0 p-5 lg:p-6">
+        <div className="fw-memory-detail-pane min-w-0 p-5 lg:p-6">
           {creating ? (
             <MemoryEditor key="new" onClose={() => setCreating(false)} />
           ) : m && r ? (

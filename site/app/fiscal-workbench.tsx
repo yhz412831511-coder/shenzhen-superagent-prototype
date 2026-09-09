@@ -383,7 +383,7 @@ export function FiscalWorkbench() {
   const notification = state.notice || state.memory.notice;
   return (
     <div
-      className={`fw-app ${page === 'task' && task ? 'fw-task-page' : ''} ${sidebar ? '' : 'sidebar-closed'} ${mobileNav ? 'mobile-nav-open' : ''}`}
+      className={`fw-app fw-page-${page} ${sidebar ? '' : 'sidebar-closed'} ${mobileNav ? 'mobile-nav-open' : ''}`}
     >
       {mobileNav && sidebar && (
         <button
@@ -503,7 +503,11 @@ export function FiscalWorkbench() {
                           onClick={() => openTask(t.id)}
                         >
                           <span className="fw-task-dot" />
-                          <span>{state.flows[t.id]?.kind === 'payment' ? t.title.replace(/^财政支付审查 · /, '') : t.title}</span>
+                          <span>
+                            {state.flows[t.id]?.kind === 'payment'
+                              ? t.title.replace(/^财政支付审查 · /, '')
+                              : t.title}
+                          </span>
                         </button>
                       ))}
                     </section>
@@ -550,7 +554,9 @@ export function FiscalWorkbench() {
                   <strong>{currentUser.name}</strong>
                   <small>{currentUser.role}</small>
                 </span>
-                <small className="fw-account-role">{currentUser.organization}</small>
+                <small className="fw-account-role">
+                  {currentUser.organization}
+                </small>
               </span>
               <Settings size={16} />
             </button>
@@ -650,7 +656,10 @@ export function FiscalWorkbench() {
               <button
                 className="fw-icon"
                 aria-label={monitor ? '收起工作区' : '打开工作区'}
-                onClick={() => { setMonitor(!monitor); updateUi({ workspaceOpen: !monitor }); }}
+                onClick={() => {
+                  setMonitor(!monitor);
+                  updateUi({ workspaceOpen: !monitor });
+                }}
               >
                 {monitor ? (
                   <PanelRightClose size={18} />
@@ -664,10 +673,27 @@ export function FiscalWorkbench() {
             <>
               <div className="fw-task-body">
                 <section className="fw-task-center">
-                  <Conversation key={task.id} task={task} onOpen={openTarget} onMemory={openMemory} />
+                  <Conversation
+                    key={task.id}
+                    task={task}
+                    onOpen={openTarget}
+                    onMemory={openMemory}
+                  />
                   <div className="fw-composer-area">{composer()}</div>
                 </section>
-                <TaskWorkspace key={task.id} taskId={task.id} request={ui.active} visible={monitor} onClose={() => { setMonitor(false); updateUi({ workspaceOpen: false }); }} onMemory={openMemory} onConsult={consult} onUse={addCatalogToTask} />
+                <TaskWorkspace
+                  key={task.id}
+                  taskId={task.id}
+                  request={ui.active}
+                  visible={monitor}
+                  onClose={() => {
+                    setMonitor(false);
+                    updateUi({ workspaceOpen: false });
+                  }}
+                  onMemory={openMemory}
+                  onConsult={consult}
+                  onUse={addCatalogToTask}
+                />
               </div>
             </>
           ) : null}
