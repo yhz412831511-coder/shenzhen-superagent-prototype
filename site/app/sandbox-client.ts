@@ -66,7 +66,7 @@ export async function runSandbox(id: string, command: string) {
     const channel = new MessageChannel(); port = channel.port1;
     port.onmessage = event => {
       const data = event.data;
-      if (data.ready) { session.status = data.phase || '正在执行 · 无风险 · 本地处理'; notifySandbox(); return; }
+      if (data.ready) { session.status = data.phase || '正在执行'; notifySandbox(); return; }
       if (data.error) { finish(String(data.error), '异常'); return; }
       if (typeof data.output !== 'string' || !Array.isArray(data.files)) { finish('沙箱返回格式无效', '异常'); return; }
       const files = data.files as SandboxFile[];

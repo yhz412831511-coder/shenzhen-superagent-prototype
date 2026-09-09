@@ -54,6 +54,7 @@ import {
   type Target,
   type SystemViewState,
 } from './fiscal-components';
+import { conversationTurns } from './conversation-view';
 type Page =
   | 'home'
   | 'task'
@@ -628,8 +629,32 @@ export function FiscalWorkbench() {
                 <button
                   className="fw-top-action"
                   onClick={() => {
-                    const op = flow.operations.at(-1);
-                    if (op) openTarget({ kind: 'operation', id: op.id });
+                    const attention = flow.operations.findLast(
+                      (op) =>
+                        op.risk === '高' ||
+                        op.status !== '成功' ||
+                        (op.risk !== '无' &&
+                          (!op.checks.length ||
+                            op.checks.some((check) => !check.passed))),
+                    );
+                    const latestGroup = task
+                      ? conversationTurns(task, flow.operations)
+                          .flatMap((turn) =>
+                            turn.segments.flatMap((segment) =>
+                              segment.kind === 'operation-group'
+                                ? [segment.group]
+                                : [],
+                            ),
+                          )
+                          .at(-1)
+                      : undefined;
+                    if (attention)
+                      openTarget({ kind: 'operation', id: attention.id });
+                    else if (latestGroup)
+                      openTarget({
+                        kind: 'operation-group',
+                        id: latestGroup.id,
+                      });
                     else
                       dispatch({
                         type: 'notice',

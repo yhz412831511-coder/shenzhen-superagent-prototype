@@ -76,26 +76,10 @@ export function conversationSegments(
   blocks: ConversationBlock[],
 ): ConversationSegment[] {
   const segments: ConversationSegment[] = [];
-  for (let index = 0; index < blocks.length; index += 1) {
-    const block = blocks[index];
+  const routineOperations: Operation[] = [];
+  for (const block of blocks) {
     if (block.operation && isRoutineOperation(block.operation)) {
-      const run = [block];
-      while (
-        blocks[index + 1]?.operation &&
-        isRoutineOperation(blocks[index + 1].operation!)
-      ) {
-        run.push(blocks[index + 1]);
-        index += 1;
-      }
-      const routineOperations = run.map((entry) => entry.operation!);
-      if (routineOperations.length === 1) {
-        segments.push({ kind: 'operation', block });
-      } else {
-        segments.push({
-          kind: 'operation-group',
-          group: summarizeOperationGroup(routineOperations),
-        });
-      }
+      routineOperations.push(block.operation);
       continue;
     }
     segments.push(
@@ -103,6 +87,12 @@ export function conversationSegments(
         ? { kind: 'operation', block }
         : { kind: 'message', block },
     );
+  }
+  if (routineOperations.length) {
+    segments.push({
+      kind: 'operation-group',
+      group: summarizeOperationGroup(routineOperations),
+    });
   }
   return segments;
 }

@@ -3,7 +3,8 @@ import { useEffect, useRef, useState, useCallback, type CSSProperties, type Reac
 import { Plus, X, ArrowLeft, ArrowRight, RotateCw, Maximize2, Minimize2, FolderOpen, Globe2, Terminal, MousePointer2, FileText, Download, Upload, Send, Trash2 } from 'lucide-react';
 import { useWorkspace } from './workspace-store';
 import { systems, type SystemId } from './fiscal-catalog';
-import { ArtifactPreview, Btn, CatalogPage, Monitor, SafetyDetail, SystemPage, type Target, type SystemViewState } from './fiscal-components';
+import { ArtifactPreview, Btn, CatalogPage, Monitor, OperationGroupDetail, SafetyDetail, SystemPage, type Target, type SystemViewState } from './fiscal-components';
+import { conversationTurns } from './conversation-view';
 import { annotationsText, navigateTab, openBrowserTarget, safeFilename, targetKey, type Annotation, type BrowserTab, type WorkspaceTarget, type SandboxFile } from './task-workspace-model';
 import { updateSession, runSandbox, sessionFor, subscribeSandbox } from './sandbox-client';
 import './task-workspace.css';
@@ -44,7 +45,7 @@ function TerminalDrawer({taskId,onClose}:{taskId:string;onClose:()=>void}) {
   useEffect(() => subscribeSandbox(()=>refresh(v=>v+1)), []);
   const session = sessionFor(taskId);
   return <section className="tw-terminal" aria-label="Python 沙箱">
-    <header><strong><Terminal size={15}/>Python 沙箱</strong><span>无风险 · 本地处理</span><button aria-label="收起终端" onClick={onClose}><X size={16}/></button></header>
+    <header><strong><Terminal size={15}/>Python 沙箱</strong><span>隔离环境</span><button aria-label="收起终端" onClick={onClose}><X size={16}/></button></header>
     <div className="tw-terminal-output" role="log" aria-live="polite">
       {!session.records.length && <p>输入 Python 代码或 help 查看文件命令。文件跨命令保留，变量仅在本次执行有效。</p>}
       {session.records.map((r,i)=><div key={i}><pre className="tw-command">{r.command}</pre><small>{r.status}</small><pre>{r.output}</pre></div>)}
@@ -79,6 +80,7 @@ export function TaskWorkspace({taskId,request,visible,onClose,onMemory,onConsult
   useEffect(()=>{if(!visible)return;returnFocus.current=document.activeElement as HTMLElement;panel.current?.focus({preventScroll:true});return()=>returnFocus.current?.focus({preventScroll:true});},[visible]);
   const update=(patch:Partial<DockState>)=>setDock(old=>{const value={...old,...patch};caches.set(taskId,value);return value;});
   const task=state.memory.tasks.find(t=>t.id===taskId), flow=state.flows[taskId];
+  const operationGroups=task?conversationTurns(task,flow?.operations).flatMap(turn=>turn.segments.flatMap(segment=>segment.kind==='operation-group'?[segment.group]:[])):[];
   const session=sessionFor(taskId);
   useEffect(()=>subscribeSandbox(()=>tick(n=>n+1)),[]);
   const open=useCallback((target:WorkspaceTarget)=>setDock(old=>{
@@ -106,7 +108,7 @@ export function TaskWorkspace({taskId,request,visible,onClose,onMemory,onConsult
     const key=target?targetKey(target):'blank';
     if(content.current) content.current.scrollTop=dock.positions?.[key]||0;
   },[target, dock.positions]);
-  const title=(t:WorkspaceTarget)=>t.kind==='system'?systems[t.id as SystemId]?.name||'系统':t.kind==='artifact'?state.artifacts[t.id]?.name||'成果':t.kind==='file'?t.id.split('/').pop()||'文件':t.kind==='capability'?state.catalog.find(c=>c.id===t.id)?.name||'能力':'安全与授权';
+  const title=(t:WorkspaceTarget)=>t.kind==='system'?systems[t.id as SystemId]?.name||'系统':t.kind==='artifact'?state.artifacts[t.id]?.name||'成果':t.kind==='file'?t.id.split('/').pop()||'文件':t.kind==='capability'?state.catalog.find(c=>c.id===t.id)?.name||'能力':t.kind==='operation-group'?'执行记录':'安全与授权';
   const version=(t:WorkspaceTarget)=>t.kind==='artifact'?'v'+state.artifacts[t.id]?.version:t.kind==='system'?'v'+(flow?.version||1)+' · '+(flow?.submission||'draft'):'当前会话';
   const addFile=(file:SandboxFile)=>{
     if(session.running){setNotice('请等待终端执行结束后添加文件。');return;}
@@ -133,6 +135,7 @@ export function TaskWorkspace({taskId,request,visible,onClose,onMemory,onConsult
     if(t.kind==='artifact')return <ArtifactPreview artifact={state.artifacts[t.id]?.taskId===taskId?state.artifacts[t.id]:undefined} onBack={onClose}/>;
     if(t.kind==='file')return <FilePreview file={session.files.find(f=>f.path===t.id)}/>;
     if(t.kind==='system')return flow?<SystemPage system={t.id as SystemId} flow={flow} onOpen={open} view={dock.systemViews[t.id]} onViewChange={patch=>update({systemViews:{...dock.systemViews,[t.id]:{...dock.systemViews[t.id],...patch}}})}/>:<p>此任务尚无关联系统数据。</p>;
+    if(t.kind==='operation-group'){const group=operationGroups.find(candidate=>candidate.id===t.id);return <div className="tw-detail">{group?<OperationGroupDetail group={group} onOpen={navigate}/>:<p>执行记录不存在。</p>}</div>;}
     if(t.kind==='operation'){const op=flow?.operations.find(o=>o.id===t.id);return <div className="tw-detail">{op?<SafetyDetail op={op}/>:<p>操作记录不存在。</p>}</div>;}
     return <CatalogPage initialId={t.id} kind={state.catalog.find(c=>c.id===t.id)?.kind==='专业智能体'?'专业智能体':'Skill'} onBack={onClose} onConsult={onConsult} onMemory={onMemory} onUse={onUse}/>;
   };

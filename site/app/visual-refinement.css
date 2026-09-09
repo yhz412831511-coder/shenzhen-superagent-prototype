@@ -1182,71 +1182,91 @@ html[data-theme] [data-slot='popover-content'] {
   padding: 5px 0;
 }
 .fw-operation-group {
-  color: var(--ui-muted);
-  font-size: var(--ui-font-control);
-}
-.fw-operation-group > summary {
   display: flex;
+  width: 100%;
   min-height: 34px;
   align-items: center;
   gap: 8px;
   padding: 6px 0;
-  list-style: none;
+  border: 0;
+  background: transparent;
+  color: var(--ui-muted);
+  font: inherit;
+  font-size: var(--ui-font-control);
+  text-align: left;
   cursor: pointer;
 }
-.fw-operation-group > summary::-webkit-details-marker {
-  display: none;
-}
-.fw-operation-group > summary:hover {
+.fw-operation-group:hover {
   color: var(--ui-text);
 }
-.fw-operation-group > summary > svg:first-child {
+.fw-operation-group > svg:first-child {
   flex: 0 0 auto;
-  color: var(--ui-success);
+  color: var(--ui-muted);
 }
 .fw-operation-group-title {
   min-width: 0;
   flex: 1;
-  color: var(--ui-text);
+  color: inherit;
 }
-.fw-operation-group-status {
-  flex: 0 0 auto;
-  white-space: nowrap;
+.fw-operation-group-detail > header {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--ui-border);
+}
+.fw-operation-group-detail > header h3,
+.fw-operation-group-detail > header p {
+  margin: 0;
+}
+.fw-operation-group-detail > header p {
+  margin-top: 3px;
+  color: var(--ui-muted);
   font-size: var(--ui-font-meta);
 }
-.fw-operation-group[open] > summary > svg:last-child {
-  transform: rotate(180deg);
-}
-.fw-operation-group-list {
-  margin: 2px 0 10px 22px;
-  padding: 4px 0 4px 12px;
-  border-left: 1px solid var(--ui-border-strong);
-}
-.fw-operation-group-list > button {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  width: 100%;
-  min-height: 30px;
+.fw-operation-group-assurance {
+  display: flex;
   align-items: center;
   gap: 7px;
-  padding: 4px 6px;
+  margin: 10px 0 6px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: var(--ui-success-soft);
+  color: var(--ui-success);
+  font-size: var(--ui-font-meta);
+}
+.fw-operation-group-records > button {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) 14px;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 2px;
   border: 0;
-  border-radius: 6px;
+  border-bottom: 1px solid var(--ui-border);
   background: transparent;
   color: var(--ui-muted);
   text-align: left;
 }
-.fw-operation-group-list > button:hover {
-  background: var(--ui-hover);
+.fw-operation-group-records > button:hover {
   color: var(--ui-text);
 }
-.fw-operation-group-list > button small,
-.fw-operation-group-list > p {
-  font-size: var(--ui-font-meta);
+.fw-operation-group-records > button > span {
+  min-width: 0;
 }
-.fw-operation-group-list > p {
-  margin: 5px 6px 0;
-  color: var(--ui-muted);
+.fw-operation-group-records strong,
+.fw-operation-group-records small {
+  display: block;
+}
+.fw-operation-group-records strong {
+  overflow: hidden;
+  color: var(--ui-text);
+  font-size: var(--ui-font-control);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fw-operation-group-records small {
+  margin-top: 2px;
+  font-size: var(--ui-font-meta);
 }
 .fw-operation > .fw-safety-detail {
   padding: 10px 14px;
@@ -1424,13 +1444,6 @@ html[data-theme] [data-slot='popover-content'] {
   .fw-composer-area {
     padding: 8px 16px max(10px, env(safe-area-inset-bottom));
   }
-  .fw-operation-group > summary {
-    flex-wrap: wrap;
-  }
-  .fw-operation-group-status {
-    width: 100%;
-    padding-left: 23px;
-  }
   .fw-module,
   .fw-memory-page,
   .fw-settings-page > div,
@@ -1447,7 +1460,7 @@ html[data-theme] [data-slot='popover-content'] {
   font-size: var(--ui-font-body) !important;
   line-height: 1.6 !important;
 }
-.fw-app .fw-operation-group > summary {
+.fw-app .fw-operation-group {
   min-height: 34px;
   padding: 6px 0;
 }
@@ -1481,7 +1494,7 @@ html[data-theme] [data-slot='popover-content'] {
 }
 
 @media (max-width: 700px) {
-  .fw-app .fw-operation-group > summary,
+  .fw-app .fw-operation-group,
   .fw-app .fw-monitor > details > summary,
   .fw-app .fw-artifact-more > summary,
   .fw-app .fw-monitor-history > summary {
@@ -1491,36 +1504,6 @@ html[data-theme] [data-slot='popover-content'] {
   .tw-header button {
     min-width: 44px;
     min-height: 44px;
-  }
-}
-
-@media (max-width: 700px) {
-  .fw-app .fw-operation-group > summary {
-    display: grid;
-    grid-template-columns: 18px minmax(0, 1fr) 18px;
-    grid-template-rows: auto auto;
-    column-gap: 7px;
-    row-gap: 2px;
-  }
-  .fw-operation-group > summary > svg:first-child {
-    grid-column: 1;
-    grid-row: 1 / span 2;
-    align-self: center;
-  }
-  .fw-operation-group-title {
-    grid-column: 2;
-    grid-row: 1;
-  }
-  .fw-operation-group-status {
-    grid-column: 2;
-    grid-row: 2;
-    width: auto;
-    padding-left: 0;
-  }
-  .fw-operation-group > summary > svg:last-child {
-    grid-column: 3;
-    grid-row: 1 / span 2;
-    align-self: center;
   }
 }
 
@@ -1574,21 +1557,15 @@ html[data-theme] [data-slot='popover-content'] {
 .fw-conversation :is(.fw-operation-group, .fw-operation) {
   font-size: var(--conversation-font-control);
 }
-.fw-app .fw-conversation .fw-operation-group > summary,
 .fw-app .fw-conversation .fw-operation > summary {
   min-height: 28px;
   padding: 2px 0;
   font-size: var(--conversation-font-control);
 }
-.fw-conversation .fw-operation-group-list {
-  margin-bottom: 6px;
-  padding-top: 2px;
-  padding-bottom: 2px;
-}
-.fw-conversation .fw-operation-group-list > button {
-  min-height: 26px;
-  padding-top: 2px;
-  padding-bottom: 2px;
+.fw-app .fw-conversation .fw-operation-group {
+  min-height: 28px;
+  padding: 2px 0;
+  font-size: var(--conversation-font-control);
 }
 .fw-conversation :is(.fw-operation-group-status, .fw-operation-risk, .fw-operation-status) {
   font-size: var(--conversation-font-meta);
@@ -1647,11 +1624,10 @@ html[data-theme] [data-slot='popover-content'] {
   .fw-conversation .fw-turn + .fw-turn {
     margin-top: 10px;
   }
-  .fw-app .fw-conversation .fw-operation-group > summary,
   .fw-app .fw-conversation .fw-operation > summary {
     min-height: 44px;
   }
-  .fw-conversation .fw-operation-group-list > button {
+  .fw-app .fw-conversation .fw-operation-group {
     min-height: 44px;
   }
   .fw-conversation .fw-turn-tools {

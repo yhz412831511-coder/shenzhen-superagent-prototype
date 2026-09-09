@@ -84,7 +84,13 @@ import {
   type PersonalLibraryItem,
 } from './library-domain';
 export type Target = {
-  kind: 'system' | 'artifact' | 'operation' | 'capability' | 'file';
+  kind:
+    | 'system'
+    | 'artifact'
+    | 'operation'
+    | 'operation-group'
+    | 'capability'
+    | 'file';
   annotationId?: string;
   id: string;
 };
@@ -257,7 +263,17 @@ export function OperationRow({
   op: Operation;
   resolution?: Operation;
 }) {
-  const abnormal = ['失败', '部分成功', '已阻止', '待核实'].includes(op.status);
+  const abnormal = op.status !== '成功';
+  const statusLabel =
+    op.status === '成功'
+      ? '高风险操作 · 已执行'
+      : op.status === '待确认'
+        ? '需要本人确认'
+        : op.status === '失败'
+          ? '执行失败'
+          : op.status === '部分成功'
+            ? '部分完成'
+            : op.status;
   const Icon = abnormal
     ? AlertCircle
     : [
@@ -283,14 +299,9 @@ export function OperationRow({
           <Icon size={16} />
           <span className="fw-operation-title">{operationTitle(op)}</span>
           <span
-            className={'fw-operation-risk ' + (op.risk === '高' ? 'high' : '')}
-          >
-            {op.risk}风险
-          </span>
-          <span
             className={abnormal ? 'fw-warning-text' : 'fw-operation-status'}
           >
-            {authorizationLabel(op)} · {op.status === '成功' ? '完成' : resolution ? '已确认' : op.status}
+            {resolution ? '已确认并执行' : statusLabel}
           </span>
           <ChevronDown size={14} />
         </summary>
@@ -315,13 +326,19 @@ export function OperationRow({
 }
 export function OperationGroupRow({group,onOpen}:{group:OperationGroup;onOpen:(t:Target)=>void}) {
   const systemsLabel=group.systems.length?` · 涉及 ${group.systems.length} 个系统`:'';
-  return <details className="fw-operation-group">
-    <summary><ShieldCheck size={15}/><span className="fw-operation-group-title">已完成 {group.operations.length} 项操作{systemsLabel}</span><span className="fw-operation-group-status">最高{group.maxRisk}风险 · {group.authorization}</span><ChevronDown size={14}/></summary>
-    <div className="fw-operation-group-list">
-      {group.operations.map(op=><button type="button" id={'message-'+op.messageId} key={op.id} onClick={()=>onOpen({kind:'operation',id:op.id})} aria-label={`查看${operationTitle(op)}的安全与授权记录`}><span>{operationTitle(op)}</span><small>完成</small><ArrowUpRight size={13}/></button>)}
-      <p>{group.authorization==='本地处理'?'全部操作在本地处理范围内完成。':`授权检查 ${group.operations.length}/${group.operations.length} 通过。`}</p>
+  return <button type="button" className="fw-operation-group" onClick={()=>onOpen({kind:'operation-group',id:group.id})} aria-label={`查看本轮 ${group.operations.length} 项执行记录`}>
+    <History size={14}/><span className="fw-operation-group-title">执行记录 {group.operations.length} 项{systemsLabel}</span><ArrowUpRight size={13}/>
+  </button>;
+}
+
+export function OperationGroupDetail({group,onOpen}:{group:OperationGroup;onOpen:(t:Target)=>void}) {
+  return <div className="fw-operation-group-detail">
+    <header><h3>本轮执行记录</h3><p>{group.operations.length} 项操作 · 涉及 {group.systems.length} 个系统</p></header>
+    <div className="fw-operation-group-assurance"><ShieldCheck size={15}/><span>最高{group.maxRisk}风险 · {group.authorization==='本地处理'?'全部在本地完成':`${group.operations.length}/${group.operations.length} 项检查通过`}</span></div>
+    <div className="fw-operation-group-records">
+      {group.operations.map(op=><button type="button" key={op.id} onClick={()=>onOpen({kind:'operation',id:op.id})}><Check size={14}/><span><strong>{operationTitle(op)}</strong><small>{op.system?systems[op.system].name:'任务工作区'} · {formatTime(op.at)}</small></span><ArrowUpRight size={13}/></button>)}
     </div>
-  </details>;
+  </div>;
 }
 export function ArtifactRow({
   art,
@@ -787,8 +804,7 @@ export function Conversation({
                   : '智能体回复'
             }
           >
-            {turn.segments.map(segment => {
-              if(segment.kind==='operation-group') return <article key={segment.group.id} className="fw-message assistant execution fw-execution-summary"><div className="fw-message-content"><OperationGroupRow group={segment.group} onOpen={onOpen}/></div></article>;
+            {turn.segments.filter(segment=>segment.kind!=='operation-group').map(segment => {
               const {message:m,operation:op}=segment.block;
               return <article key={m.id} className={'fw-message '+m.role+(op?' execution':'')} id={'message-'+m.id}>
                 {m.role==='system'&&!op?<div className="fw-system-message"><Clock3 size={14}/><span>{m.text}</span></div>:<div className="fw-message-content">
@@ -836,6 +852,7 @@ export function Conversation({
                     '专业智能体'}
                 </div>
               )}
+            {turn.segments.filter(segment=>segment.kind==='operation-group').map(segment=>segment.kind==='operation-group'?<article key={segment.group.id} className="fw-message assistant execution fw-execution-summary"><div className="fw-message-content"><OperationGroupRow group={segment.group} onOpen={onOpen}/></div></article>:null)}
             {turn.role === 'assistant' && turn.id === lastAssistantTurn?.id && (
               <>
                 {task.uses.length > 0 && (
@@ -970,10 +987,12 @@ export function Monitor({
     ),
   ];
   const attentionOperations=f?.operations.filter(op=>op.risk==='高'||op.status!=='成功'||(op.risk!=='无'&&(!op.checks.length||op.checks.some(check=>!check.passed))))||[];
+  const operationGroups=conversationTurns(task,f?.operations).flatMap(turn=>turn.segments.flatMap(segment=>segment.kind==='operation-group'?[segment.group]:[]));
   const recentArtifacts=(f?.artifactIds||[]).slice(-3).reverse();
   const securitySection=<details className={attentionOperations.length?'fw-monitor-attention':''} open={attentionOperations.length>0}>
-    <summary>安全与授权 <span>{attentionOperations.length?`${attentionOperations.length} 项需关注`:`${f?.operations.length||0} 项`}</span></summary>
-    {f?.operations.slice(-5).reverse().map(op=><button className="fw-detail-link" key={op.id} onClick={()=>onOpen({kind:'operation',id:op.id})}><ShieldCheck size={15}/><span>{op.risk}风险 · {authorizationLabel(op)} · {op.status}<small>{op.scope}</small></span></button>)}
+    <summary>安全与授权 <span>{attentionOperations.length?`${attentionOperations.length} 项需关注`:`${f?.operations.length||0} 项检查已记录`}</span></summary>
+    {attentionOperations.map(op=><button className="fw-detail-link" key={op.id} onClick={()=>onOpen({kind:'operation',id:op.id})}><AlertCircle size={15}/><span>{operationTitle(op)}<small>{op.status==='待确认'?'需要本人确认':op.status==='成功'?'高风险操作已执行':op.status}</small></span><ArrowUpRight size={13}/></button>)}
+    {!attentionOperations.length&&operationGroups.slice(-3).reverse().map(group=><OperationGroupRow key={group.id} group={group} onOpen={onOpen}/>)}
     {!f?.operations.length&&<p className="fw-meta">尚未发起系统操作。</p>}
   </details>;
   return (

@@ -139,7 +139,7 @@ test('同一助手轮次的正常操作合并为一条摘要，正文顺序与�
   );
   assert.deepEqual(
     segments.map((segment) => segment.kind),
-    ['operation-group', 'message'],
+    ['message', 'operation-group'],
   );
   const group = segments.find(
     (segment) => segment.kind === 'operation-group',
@@ -151,7 +151,7 @@ test('同一助手轮次的正常操作合并为一条摘要，正文顺序与�
   assert.equal(group.statusCounts['成功'], 2);
   assert.equal(JSON.stringify(blocks), copy);
 });
-test('正文或需关注操作会切断聚合，派生片段保持原时间顺序', () => {
+test('正文不会切断本轮正常执行记录，摘要统一放在本轮末尾', () => {
   const first = operation({ cmd: 'before' });
   const second = operation({ cmd: 'after' });
   const text = block(undefined, 1);
@@ -162,9 +162,17 @@ test('正文或需关注操作会切断聚合，派生片段保持原时间顺�
   ]);
   assert.deepEqual(
     segments.map((segment) => segment.kind),
-    ['operation', 'message', 'operation'],
+    ['message', 'operation-group'],
   );
-  assert.equal(segments[1].block, text);
+  assert.equal(segments[0].block, text);
+  assert.deepEqual(segments[1].group.operations, [first, second]);
+});
+
+test('单个正常操作也使用本轮执行记录入口', () => {
+  const candidate = operation({ cmd: 'read-payments', risk: '低' });
+  const segments = conversationSegments([block(candidate, 0)]);
+  assert.deepEqual(segments.map((segment) => segment.kind), ['operation-group']);
+  assert.deepEqual(segments[0].group.operations, [candidate]);
 });
 test('高风险、待确认、失败、取消和授权不完整的操作保持独立', () => {
   const cases = [

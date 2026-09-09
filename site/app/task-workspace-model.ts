@@ -1,4 +1,4 @@
-export type WorkspaceTarget = { kind: 'system' | 'artifact' | 'operation' | 'capability' | 'file'; id: string };
+export type WorkspaceTarget = { kind: 'system' | 'artifact' | 'operation' | 'operation-group' | 'capability' | 'file'; id: string };
 export type BrowserTab = { id: string; history: WorkspaceTarget[]; cursor: number };
 export type Annotation = {
   id: string; target: WorkspaceTarget; title: string; version: string;
