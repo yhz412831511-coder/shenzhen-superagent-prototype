@@ -1181,6 +1181,21 @@
   padding: 9px 0 !important;
   outline: none !important;
 }
+.fw-input-with-icon {
+  position: relative;
+}
+.fw-input-with-icon > svg:first-child {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  z-index: 1;
+  flex: 0 0 auto;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+.fw-input-with-icon > input {
+  padding-left: 40px !important;
+}
 .fw-filter {
   display: flex;
   gap: 12px;

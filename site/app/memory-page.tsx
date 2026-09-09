@@ -699,12 +699,12 @@ export function MemoryPage({
         ))}
       </div>
       <div className="mb-4 flex flex-wrap gap-2">
-        <label className="relative min-w-[180px] flex-1">
-          <Search className="absolute left-3 top-2.5 size-4 text-[color:var(--ui-muted)]" />
+        <label className="fw-input-with-icon relative min-w-[180px] flex-1">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[color:var(--ui-muted)]" />
           <input
             aria-label="搜索记忆"
             placeholder="搜索名称、简称、含义或来源"
-            className={inputClass + ' pl-9'}
+            className={inputClass}
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />

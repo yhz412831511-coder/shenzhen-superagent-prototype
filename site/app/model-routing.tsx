@@ -419,13 +419,13 @@ export function ModelSelector({
           </div>
 
           <div className="border-b border-[var(--ui-border)] p-2.5">
-            <div className="relative">
+            <div className="fw-input-with-icon relative">
               <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-[color:var(--ui-muted)]" />
               <Input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="搜索模型或厂商"
-                className="h-8 border-[var(--ui-border)] pl-8 text-[length:var(--ui-font-meta)]"
+                className="h-8 border-[var(--ui-border)] text-[length:var(--ui-font-meta)]"
               />
             </div>
             <div className="mt-2 flex gap-1">
