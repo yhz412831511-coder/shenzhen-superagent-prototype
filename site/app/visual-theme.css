@@ -27,6 +27,19 @@ html[data-theme='light'] {
   --ui-danger-border: #ecc4c1;
   --ui-shadow: 0 12px 36px #18223014;
   --ui-overlay: #11182766;
+  --ui-task-center: #ffffff;
+  --ui-task-side: #dde3ea;
+  --ui-task-raised: #fafbfc;
+  --ui-task-hover: #d3d9e1;
+  --ui-task-bubble: #e6eaf0;
+  --ui-task-text: #20242c;
+  --ui-task-muted: #5b6472;
+  --ui-task-border: #c7cfd9;
+  --ui-task-border-strong: #aab4c1;
+  --ui-task-brand: #2d5cca;
+  --ui-task-brand-hover: #244bb3;
+  --ui-task-brand-soft: #d9e5ff;
+  --ui-task-brand-border: #afc5f3;
 }
 html[data-theme='dark'] {
   color-scheme: dark;
@@ -56,6 +69,19 @@ html[data-theme='dark'] {
   --ui-danger-border: #79454b;
   --ui-shadow: 0 16px 44px #00000055;
   --ui-overlay: #00000088;
+  --ui-task-center: #080a0c;
+  --ui-task-side: #292e35;
+  --ui-task-raised: #30363e;
+  --ui-task-hover: #39414a;
+  --ui-task-bubble: #30363e;
+  --ui-task-text: #f1f3f5;
+  --ui-task-muted: #b1bac6;
+  --ui-task-border: #444c56;
+  --ui-task-border-strong: #66717f;
+  --ui-task-brand: #8eb2ff;
+  --ui-task-brand-hover: #abc4ff;
+  --ui-task-brand-soft: #21365b;
+  --ui-task-brand-border: #496b9f;
 }
 html[data-theme] {
   --ui-font-body: 16px;

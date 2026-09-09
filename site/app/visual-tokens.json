@@ -25,7 +25,20 @@
     "danger-soft": "#FFF0EF",
     "danger-border": "#ECC4C1",
     "shadow": "0 12px 36px #18223014",
-    "overlay": "#11182766"
+    "overlay": "#11182766",
+    "task-center": "#FFFFFF",
+    "task-side": "#DDE3EA",
+    "task-raised": "#FAFBFC",
+    "task-hover": "#D3D9E1",
+    "task-bubble": "#E6EAF0",
+    "task-text": "#20242C",
+    "task-muted": "#5B6472",
+    "task-border": "#C7CFD9",
+    "task-border-strong": "#AAB4C1",
+    "task-brand": "#2D5CCA",
+    "task-brand-hover": "#244BB3",
+    "task-brand-soft": "#D9E5FF",
+    "task-brand-border": "#AFC5F3"
   },
   "dark": {
     "surface": "#181A1E",
@@ -53,6 +66,19 @@
     "danger-soft": "#3B2528",
     "danger-border": "#79454B",
     "shadow": "0 16px 44px #00000055",
-    "overlay": "#00000088"
+    "overlay": "#00000088",
+    "task-center": "#080A0C",
+    "task-side": "#292E35",
+    "task-raised": "#30363E",
+    "task-hover": "#39414A",
+    "task-bubble": "#30363E",
+    "task-text": "#F1F3F5",
+    "task-muted": "#B1BAC6",
+    "task-border": "#444C56",
+    "task-border-strong": "#66717F",
+    "task-brand": "#8EB2FF",
+    "task-brand-hover": "#ABC4FF",
+    "task-brand-soft": "#21365B",
+    "task-brand-border": "#496B9F"
   }
 }

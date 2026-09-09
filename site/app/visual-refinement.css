@@ -32,13 +32,58 @@ html[data-theme] ::selection {
 .fw-monitor {
   background: var(--ui-canvas);
 }
+.fw-app.fw-task-page {
+  --ui-surface: var(--ui-task-center);
+  --ui-canvas: var(--ui-task-raised);
+  --ui-raised: var(--ui-task-raised);
+  --ui-hover: var(--ui-task-hover);
+  --ui-bubble: var(--ui-task-bubble);
+  --ui-text: var(--ui-task-text);
+  --ui-muted: var(--ui-task-muted);
+  --ui-border: var(--ui-task-border);
+  --ui-border-strong: var(--ui-task-border-strong);
+  --ui-brand: var(--ui-task-brand);
+  --ui-brand-hover: var(--ui-task-brand-hover);
+  --ui-brand-soft: var(--ui-task-brand-soft);
+  --ui-brand-border: var(--ui-task-brand-border);
+  --line: var(--ui-task-border);
+  background: var(--ui-task-center);
+}
 .fw-app.fw-task-page .fw-sidebar,
 .fw-app.fw-task-page .tw-dock,
 .fw-app.fw-task-page .fw-monitor,
 .fw-app.fw-task-page .tw-header,
 .fw-app.fw-task-page .tw-tabs,
 .fw-app.fw-task-page .tw-browser-tools {
-  background: var(--ui-side-surface);
+  background: var(--ui-task-side);
+}
+.fw-app.fw-task-page .fw-task-center,
+.fw-app.fw-task-page .fw-topbar,
+.fw-app.fw-task-page .fw-task-tabs,
+.fw-app.fw-task-page .fw-conversation,
+.fw-app.fw-task-page .fw-composer-area,
+.fw-app.fw-task-page .tw-browser-content,
+.fw-app.fw-task-page .tw-page-inner {
+  background: var(--ui-task-center);
+}
+.fw-app.fw-task-page .fw-nav-search,
+.fw-app.fw-task-page .fw-account-button,
+.fw-app.fw-task-page .composer-shell,
+.fw-app.fw-task-page .fw-composer-area > section,
+.fw-app.fw-task-page .tw-dock input,
+.fw-app.fw-task-page .tw-dock textarea,
+.fw-app.fw-task-page .tw-menu,
+.fw-app.fw-task-page .tw-note-editor {
+  background: var(--ui-task-raised);
+}
+.fw-app.fw-task-page :is(.fw-sidebar, .tw-dock) {
+  border-color: var(--ui-task-border);
+}
+.fw-app.fw-task-page :is(.tw-file-preview pre, .tw-terminal pre, .tw-command) {
+  background: var(--ui-task-raised);
+  border: 1px solid var(--ui-task-border);
+  border-radius: 8px;
+  padding: 10px 12px;
 }
 .fw-topbar {
   background: var(--ui-surface);

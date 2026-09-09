@@ -148,7 +148,28 @@ for (const name of ['light', 'dark'])
       ratio(p.surface, p['side-surface']) >= 1.06,
       `surface/side-surface: ${ratio(p.surface, p['side-surface'])}`,
     );
+    for (const fg of ['task-text', 'task-muted', 'task-brand'])
+      for (const bg of ['task-center', 'task-side', 'task-raised'])
+        assert.ok(
+          ratio(p[fg], p[bg]) >= 4.5,
+          `${fg}/${bg}: ${ratio(p[fg], p[bg])}`,
+        );
   });
+
+test('任务三栏强聚焦配色保持浅色侧栏更深、深色侧栏更亮', () => {
+  const light = palettes.light;
+  const dark = palettes.dark;
+  assert.ok(
+    luminance(light['task-side']) < luminance(light['task-center']),
+    '浅色任务侧栏应比中间阅读区更深',
+  );
+  assert.ok(
+    luminance(dark['task-side']) > luminance(dark['task-center']),
+    '深色任务侧栏应比中间阅读区更亮',
+  );
+  assert.ok(ratio(light['task-side'], light['task-center']) >= 1.25);
+  assert.ok(ratio(dark['task-side'], dark['task-center']) >= 1.4);
+});
 
 test('任务三栏页使用独立侧栏表面，非任务页面不被全局染灰', () => {
   const workbench = fs.readFileSync(
@@ -162,11 +183,15 @@ test('任务三栏页使用独立侧栏表面，非任务页面不被全局染�
   assert.match(workbench, /page === 'task' && task \? 'fw-task-page'/);
   assert.match(
     refinement,
-    /\.fw-app\.fw-task-page \.fw-sidebar[\s\S]*background:\s*var\(--ui-side-surface\)/,
+    /\.fw-app\.fw-task-page \.fw-sidebar[\s\S]*background:\s*var\(--ui-task-side\)/,
+  );
+  assert.match(
+    refinement,
+    /\.fw-app\.fw-task-page \.fw-task-center[\s\S]*background:\s*var\(--ui-task-center\)/,
   );
   assert.doesNotMatch(
     refinement,
-    /\.fw-(?:home|module|legacy-page)[^{]*\{[^}]*var\(--ui-side-surface\)/s,
+    /\.fw-(?:home|module|legacy-page)[^{]*\{[^}]*var\(--ui-task-(?:side|center|raised)\)/s,
   );
 });
 
