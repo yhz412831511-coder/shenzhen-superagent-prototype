@@ -1,8 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   conversationTurns,
+  conversationSegments,
+  isRoutineOperation,
+  summarizeOperationGroup,
   turnText,
   operationTitle,
   confirmationResolution,
@@ -12,6 +19,31 @@ import {
   workspaceReducer,
   taskFor,
 } from '../app/fiscal-domain.ts';
+
+const operation = (patch = {}) => ({
+  id: `op-${patch.cmd || 'read'}`,
+  messageId: `message-${patch.cmd || 'read'}`,
+  cmd: patch.cmd || 'read-payments',
+  system: 'payment',
+  risk: '低',
+  scope: '读取本次任务材料',
+  at: '2026-09-08T09:00:00+08:00',
+  actor: '超级智能体 · 当前经办身份',
+  version: 1,
+  checks: [{ label: '当前任务授权', passed: true }],
+  status: '成功',
+  detail: '执行前检查通过。',
+  ...patch,
+});
+const block = (op, index) => ({
+  message: {
+    id: op?.messageId || `message-text-${index}`,
+    role: 'assistant',
+    text: op ? '操作记录' : '处理结果正文',
+    at: '2026-09-08T09:00:00+08:00',
+  },
+  ...(op ? { operation: op } : {}),
+});
 const initial = () => initialWorkspace(Date.parse('2026-09-08T09:00:00+08:00'));
 test('连续助手事件属于一轮，用户与系统事件形成边界，所有原始锚点保留', () => {
   const s = initial();
@@ -86,6 +118,87 @@ test('显示转换不会改写历史事件、授权、回执或业务状态', ()
   for (const t of s.memory.tasks)
     conversationTurns(t, s.flows[t.id]?.operations, Object.values(s.artifacts));
   assert.equal(JSON.stringify(s), copy);
+});
+test('同一助手轮次的正常操作合并为一条摘要，正文顺序与原始记录保留', () => {
+  const first = operation({ cmd: 'read-payments', risk: '低' });
+  const second = operation({
+    cmd: 'check-rules',
+    risk: '中',
+    system: 'supervision',
+  });
+  const blocks = [block(first, 0), block(second, 1), block(undefined, 2)];
+  const copy = JSON.stringify(blocks);
+  const segments = conversationSegments(blocks);
+  assert.equal(
+    segments.filter((segment) => segment.kind === 'operation-group').length,
+    1,
+  );
+  assert.equal(
+    segments.filter((segment) => segment.kind === 'message').length,
+    1,
+  );
+  assert.deepEqual(
+    segments.map((segment) => segment.kind),
+    ['operation-group', 'message'],
+  );
+  const group = segments.find(
+    (segment) => segment.kind === 'operation-group',
+  ).group;
+  assert.deepEqual(group.operations, [first, second]);
+  assert.equal(group.maxRisk, '中');
+  assert.equal(group.authorization, '鉴权通过');
+  assert.deepEqual(group.systems, ['payment', 'supervision']);
+  assert.equal(group.statusCounts['成功'], 2);
+  assert.equal(JSON.stringify(blocks), copy);
+});
+test('正文或需关注操作会切断聚合，派生片段保持原时间顺序', () => {
+  const first = operation({ cmd: 'before' });
+  const second = operation({ cmd: 'after' });
+  const text = block(undefined, 1);
+  const segments = conversationSegments([
+    block(first, 0),
+    text,
+    block(second, 2),
+  ]);
+  assert.deepEqual(
+    segments.map((segment) => segment.kind),
+    ['operation', 'message', 'operation'],
+  );
+  assert.equal(segments[1].block, text);
+});
+test('高风险、待确认、失败、取消和授权不完整的操作保持独立', () => {
+  const cases = [
+    operation({ cmd: 'high', risk: '高' }),
+    operation({ cmd: 'pending', status: '待确认' }),
+    operation({ cmd: 'failed', status: '失败' }),
+    operation({ cmd: 'cancelled', status: '已取消' }),
+    operation({ cmd: 'unchecked', checks: [] }),
+  ];
+  assert.ok(cases.every((candidate) => !isRoutineOperation(candidate)));
+  assert.deepEqual(
+    conversationSegments(cases.map(block)).map((segment) => segment.kind),
+    cases.map(() => 'operation'),
+  );
+});
+test('全无风险操作的摘要显示本地处理', () => {
+  const group = summarizeOperationGroup([
+    operation({ cmd: 'local-one', risk: '无', system: undefined, checks: [] }),
+    operation({ cmd: 'local-two', risk: '无', system: undefined, checks: [] }),
+  ]);
+  assert.equal(group.authorization, '本地处理');
+  assert.equal(group.maxRisk, '无');
+  assert.deepEqual(group.systems, []);
+});
+test('GFM 支持表格且跳过原始 HTML', () => {
+  const html = renderToStaticMarkup(
+    React.createElement(
+      ReactMarkdown,
+      { remarkPlugins: [remarkGfm], skipHtml: true },
+      '<script>alert(1)</script>\n\n|事项|状态|\n|---|---|\n|材料|完成|',
+    ),
+  );
+  assert.match(html, /<table>/);
+  assert.doesNotMatch(html, /<script|alert\(1\)/);
 });
 test('未知或失败执行摘要不宣称已执行，成功操作保留独立风险和回执', () => {
   const op = { cmd: 'writeback', scope: 'scope', status: '待核实' };

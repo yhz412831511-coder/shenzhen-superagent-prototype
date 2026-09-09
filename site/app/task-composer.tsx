@@ -224,6 +224,7 @@ export function TaskComposer({
   onBrowserCommand?: () => void;
 }) {
   const { state } = useWorkspace();
+  const [contextExpanded, setContextExpanded] = useState(false);
   const contextGroups = [
     ...['专业智能体', 'Skill', '插件', '连接器', '知识库'].map((kind) => ({
       label: kind,
@@ -279,6 +280,11 @@ export function TaskComposer({
     (item) => item.value === permissionMode,
   )!;
   const hasContextRow = Boolean(activeCommand || contexts.length);
+  const visibleContexts = contextExpanded ? contexts : contexts.slice(0, 3);
+  const hiddenContextCount = Math.max(
+    0,
+    contexts.length - visibleContexts.length,
+  );
 
   const addContext = (context: TaskContext) => {
     onAddContext(context);
@@ -324,7 +330,7 @@ export function TaskComposer({
               </button>
             </span>
           ) : null}
-          {contexts.map((context) => {
+          {visibleContexts.map((context) => {
             const Icon = contextIcon(context.kind);
             return (
               <span
@@ -349,6 +355,23 @@ export function TaskComposer({
               </span>
             );
           })}
+          {hiddenContextCount > 0 ? (
+            <button
+              type="button"
+              className="inline-flex items-center rounded-lg px-2 py-1 text-[length:var(--ui-font-meta)] font-medium text-[color:var(--ui-brand)] hover:bg-[var(--ui-hover)]"
+              onClick={() => setContextExpanded(true)}
+            >
+              另有 {hiddenContextCount} 项
+            </button>
+          ) : contextExpanded && contexts.length > 3 ? (
+            <button
+              type="button"
+              className="inline-flex items-center rounded-lg px-2 py-1 text-[length:var(--ui-font-meta)] text-[color:var(--ui-muted)] hover:bg-[var(--ui-hover)]"
+              onClick={() => setContextExpanded(false)}
+            >
+              收起
+            </button>
+          ) : null}
         </div>
       ) : null}
       <textarea
@@ -377,8 +400,8 @@ export function TaskComposer({
         rows={variant === 'large' ? 5 : 1}
         className={
           variant === 'large'
-            ? 'h-[118px] w-full resize-none border-0 bg-transparent px-5 pb-2 pt-4 text-[length:var(--ui-font-control)] leading-6 text-[color:var(--ui-text)] outline-none placeholder:text-[color:var(--ui-muted)]'
-            : 'max-h-28 min-h-11 w-full resize-none border-0 bg-transparent px-4 pb-1 pt-3 text-[length:var(--ui-font-meta)] leading-5 text-[color:var(--ui-text)] outline-none placeholder:text-[color:var(--ui-muted)]'
+            ? 'h-[88px] w-full resize-none border-0 bg-transparent px-5 pb-2 pt-4 text-[length:var(--ui-font-body)] leading-6 text-[color:var(--ui-text)] outline-none placeholder:text-[color:var(--ui-muted)]'
+            : 'max-h-28 min-h-14 w-full resize-none border-0 bg-transparent px-4 py-3 text-[length:var(--ui-font-body)] leading-5 text-[color:var(--ui-text)] outline-none placeholder:text-[color:var(--ui-muted)]'
         }
         placeholder={placeholder}
       />

@@ -670,6 +670,7 @@ html[data-theme] [data-slot='dialog-content'] {
     min-height: 0;
   }
 }
+
 .fw-prose ol {
   list-style: decimal;
 }
@@ -981,4 +982,544 @@ html[data-theme] [data-slot='popover-content'] {
 }
 .fw-project-tasks button {
   padding: 8px;
+}
+
+/* Global density contract: keep reading text comfortable and reclaim space from chrome. */
+.fw-app h1 {
+  font-size: var(--ui-font-page-title);
+  line-height: 1.35;
+}
+.fw-app h2 {
+  font-size: var(--ui-font-section-title);
+  line-height: 1.4;
+}
+.fw-app h3 {
+  font-size: var(--ui-font-subtitle);
+  line-height: 1.45;
+}
+.fw-sidebar {
+  width: var(--ui-sidebar-width);
+  padding: 12px 8px max(8px, env(safe-area-inset-bottom));
+}
+.fw-brand {
+  min-height: 40px;
+  gap: 8px;
+  padding: 0 4px 8px;
+}
+.fw-nav-search {
+  min-height: 32px;
+  margin-bottom: 8px;
+  padding: 6px 8px;
+}
+.fw-sidebar nav {
+  gap: 1px;
+}
+.fw-sidebar nav button {
+  min-height: 34px;
+  gap: 9px;
+  padding: 6px 9px;
+}
+.fw-nav-heading {
+  min-height: 26px;
+  padding: 8px 8px 4px;
+}
+.fw-folder,
+.fw-nav-scroll .fw-project-row .fw-folder {
+  min-height: 32px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+.fw-task-list button,
+.fw-project-tasks button {
+  min-height: 32px;
+  padding: 5px 8px;
+}
+.fw-project-group {
+  margin-bottom: 2px;
+}
+.fw-nav-scroll .fw-project-tasks {
+  margin-bottom: 3px;
+}
+.fw-sidebar footer {
+  padding-top: 6px;
+}
+.fw-sidebar footer > button.fw-account-button {
+  min-height: 48px;
+  padding: 6px 7px;
+}
+.fw-topbar {
+  min-height: var(--ui-topbar-height);
+  max-height: var(--ui-topbar-height);
+  gap: 8px;
+  padding: 0 16px;
+}
+.fw-task-tabs {
+  min-height: var(--ui-tabbar-height);
+  padding: 0 16px;
+}
+.fw-task-tabs > button,
+.fw-task-tabs > div {
+  min-height: var(--ui-tabbar-height);
+  padding: 6px 8px;
+}
+.fw-home {
+  padding: 32px 24px 28px;
+}
+.fw-home-inner {
+  max-width: 800px;
+}
+.fw-home-greeting {
+  margin-bottom: 18px;
+}
+.fw-home-icon {
+  padding: 9px;
+  margin-bottom: 6px;
+  border-radius: 12px;
+}
+.fw-home-greeting h1 {
+  margin: 0;
+}
+.fw-recents {
+  margin-top: 22px;
+}
+.fw-recents > button {
+  gap: 10px;
+  padding: 11px 4px;
+}
+.fw-recents > button > span:first-child {
+  padding: 7px;
+}
+.fw-message-column {
+  max-width: 848px;
+  padding: 20px 24px 28px;
+}
+.fw-task-origin {
+  margin-bottom: 18px;
+}
+.fw-message-content {
+  line-height: 1.68;
+}
+.fw-turn {
+  margin-bottom: 24px;
+}
+.fw-message {
+  margin-bottom: 12px;
+}
+.fw-message.user .fw-message-content {
+  padding: 10px 14px;
+}
+.fw-prose > :first-child {
+  margin-top: 0;
+}
+.fw-prose > :last-child {
+  margin-bottom: 0;
+}
+.fw-prose p {
+  margin: 0 0 8px;
+  white-space: pre-wrap;
+}
+.fw-prose :is(h1, h2, h3, h4) {
+  margin: 18px 0 8px;
+  color: var(--ui-text);
+  font-weight: 650;
+}
+.fw-prose h1 {
+  font-size: var(--ui-font-section-title);
+}
+.fw-prose :is(h2, h3, h4) {
+  font-size: var(--ui-font-subtitle);
+}
+.fw-prose :is(ul, ol) {
+  margin: 6px 0 10px;
+  padding-left: 1.45em;
+}
+.fw-prose li {
+  margin: 2px 0;
+}
+.fw-prose blockquote {
+  margin: 10px 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--ui-brand-border);
+  background: var(--ui-brand-soft);
+  color: var(--ui-muted);
+}
+.fw-prose table {
+  width: 100%;
+  margin: 10px 0 12px;
+  border-collapse: collapse;
+  font-size: var(--ui-font-control);
+}
+.fw-prose :is(th, td) {
+  padding: 7px 9px;
+  border: 1px solid var(--ui-border);
+  text-align: left;
+  vertical-align: top;
+}
+.fw-prose pre {
+  max-width: 100%;
+  margin: 10px 0;
+  padding: 10px 12px;
+  overflow: auto;
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  background: var(--ui-canvas);
+  font-family: var(--font-code);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.fw-prose :not(pre) > code {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--ui-hover);
+  font-family: var(--font-code);
+  font-size: 0.88em;
+}
+.fw-message.execution {
+  margin: 8px 0;
+}
+.fw-operation > summary {
+  min-height: 32px;
+  padding: 5px 0;
+}
+.fw-operation-group {
+  color: var(--ui-muted);
+  font-size: var(--ui-font-control);
+}
+.fw-operation-group > summary {
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  list-style: none;
+  cursor: pointer;
+}
+.fw-operation-group > summary::-webkit-details-marker {
+  display: none;
+}
+.fw-operation-group > summary:hover {
+  color: var(--ui-text);
+}
+.fw-operation-group > summary > svg:first-child {
+  flex: 0 0 auto;
+  color: var(--ui-success);
+}
+.fw-operation-group-title {
+  min-width: 0;
+  flex: 1;
+  color: var(--ui-text);
+}
+.fw-operation-group-status {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: var(--ui-font-meta);
+}
+.fw-operation-group[open] > summary > svg:last-child {
+  transform: rotate(180deg);
+}
+.fw-operation-group-list {
+  margin: 2px 0 10px 22px;
+  padding: 4px 0 4px 12px;
+  border-left: 1px solid var(--ui-border-strong);
+}
+.fw-operation-group-list > button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  width: 100%;
+  min-height: 30px;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ui-muted);
+  text-align: left;
+}
+.fw-operation-group-list > button:hover {
+  background: var(--ui-hover);
+  color: var(--ui-text);
+}
+.fw-operation-group-list > button small,
+.fw-operation-group-list > p {
+  font-size: var(--ui-font-meta);
+}
+.fw-operation-group-list > p {
+  margin: 5px 6px 0;
+  color: var(--ui-muted);
+}
+.fw-operation > .fw-safety-detail {
+  padding: 10px 14px;
+}
+.fw-safety-detail {
+  line-height: 1.6;
+}
+.fw-app dl {
+  gap: 8px 12px;
+  padding: 12px 0;
+}
+.fw-decision {
+  margin-top: 14px;
+  padding: 14px 16px;
+}
+.fw-turn-artifacts {
+  margin-top: 12px;
+}
+.fw-artifact-row {
+  min-height: 44px;
+  padding: 8px 10px;
+}
+.fw-composer-area {
+  padding: 8px 24px max(12px, env(safe-area-inset-bottom));
+}
+.fw-composer-area > section,
+.fw-history-footer {
+  max-width: 800px;
+}
+.fw-composer-area textarea {
+  min-height: 56px !important;
+  padding: 12px 16px !important;
+  font-size: var(--ui-font-body) !important;
+}
+.fw-monitor {
+  padding: 12px;
+}
+.fw-monitor h3 {
+  margin-bottom: 8px;
+}
+.fw-monitor > details {
+  padding: 4px 0 6px;
+}
+.fw-monitor > details > summary {
+  min-height: 32px;
+}
+.fw-monitor > details > p {
+  margin: 6px 0;
+  line-height: 1.55;
+}
+.fw-monitor .fw-artifact-row {
+  margin: 4px 0;
+}
+.fw-monitor .fw-detail-link {
+  min-height: 34px;
+  gap: 7px;
+  padding: 5px 2px;
+  line-height: 1.45;
+}
+.fw-monitor .fw-detail-link > svg {
+  margin-top: 2px;
+}
+.fw-monitor-more {
+  display: flex;
+  width: 100%;
+  min-height: 32px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 2px;
+  border: 0;
+  background: transparent;
+  color: var(--ui-brand);
+  font-size: var(--ui-font-meta);
+}
+.fw-monitor-attention {
+  margin-bottom: 4px;
+  padding: 5px 8px 7px !important;
+  border: 1px solid var(--ui-warning-border) !important;
+  border-radius: 8px;
+  background: var(--ui-warning-soft);
+}
+.fw-module {
+  padding: 24px;
+}
+.fw-module-title {
+  margin-bottom: 16px;
+}
+.fw-module-title p {
+  margin-top: 4px;
+}
+.fw-large-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+}
+.fw-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  line-height: 1.68;
+}
+.fw-section-heading {
+  margin-bottom: 12px;
+}
+.fw-capability-card,
+.fw-agent-list-card,
+.fw-source-card {
+  padding: 12px 14px;
+}
+.fw-catalog-list > button {
+  gap: 12px;
+  padding: 13px 16px;
+}
+.fw-catalog-icon {
+  padding: 8px;
+}
+.fw-filter {
+  margin: 14px auto;
+}
+.fw-tabs {
+  margin-bottom: 16px;
+}
+.fw-auto-item {
+  margin: 12px auto;
+  padding: 16px;
+}
+.fw-settings-page > div {
+  padding: 20px 24px !important;
+}
+.fw-settings-content {
+  padding: 20px 24px !important;
+}
+.fw-settings-page [data-settings-nav] {
+  width: 208px !important;
+  padding: 8px !important;
+}
+.fw-settings-page [data-settings-nav] button {
+  min-height: 42px;
+  gap: 8px;
+  padding: 6px 9px;
+  border-radius: 8px;
+}
+.fw-memory-page {
+  padding: 20px 24px !important;
+}
+.fw-memory-detail-pane,
+.fw-library-detail-pane {
+  padding: 20px !important;
+}
+.fw-library-detail-block {
+  padding: 12px 0;
+}
+.fw-library-list > button,
+.fw-split-list-item {
+  min-height: 48px;
+}
+
+@media (max-width: 900px) {
+  .fw-sidebar {
+    width: 216px;
+  }
+  .fw-module,
+  .fw-memory-page,
+  .fw-settings-page > div {
+    padding: 20px !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .fw-app :where(button, summary, [role='button']) {
+    min-height: 44px;
+  }
+  .fw-message-column {
+    padding: 16px 16px 24px;
+  }
+  .fw-composer-area {
+    padding: 8px 16px max(10px, env(safe-area-inset-bottom));
+  }
+  .fw-operation-group > summary {
+    flex-wrap: wrap;
+  }
+  .fw-operation-group-status {
+    width: 100%;
+    padding-left: 23px;
+  }
+  .fw-module,
+  .fw-memory-page,
+  .fw-settings-page > div,
+  .fw-settings-content {
+    padding: 16px !important;
+  }
+}
+
+/* Final specificity fixes for the density contract. */
+.fw-app .fw-composer-area section textarea,
+.fw-app section[aria-label='创建新任务'] textarea {
+  min-height: 56px !important;
+  padding: 12px 16px !important;
+  font-size: var(--ui-font-body) !important;
+  line-height: 1.6 !important;
+}
+.fw-app .fw-operation-group > summary {
+  min-height: 34px;
+  padding: 6px 0;
+}
+.fw-app .fw-monitor > details > summary {
+  min-height: 32px;
+  padding: 5px 0;
+}
+.fw-artifact-more {
+  margin-top: 4px;
+  border-top: 1px solid var(--ui-border);
+}
+.fw-app .fw-artifact-more > summary,
+.fw-app .fw-monitor-history > summary {
+  min-height: 34px;
+  padding: 6px 2px;
+  color: var(--ui-muted);
+  font-size: var(--ui-font-meta);
+}
+.fw-monitor-history {
+  margin: 2px 0 6px 20px;
+}
+.fw-monitor-history .fw-small-line {
+  margin: 6px 0;
+}
+.fw-recents strong {
+  line-height: 1.4;
+}
+.fw-recents small {
+  margin-top: 2px;
+  line-height: 1.35;
+}
+
+@media (max-width: 700px) {
+  .fw-app .fw-operation-group > summary,
+  .fw-app .fw-monitor > details > summary,
+  .fw-app .fw-artifact-more > summary,
+  .fw-app .fw-monitor-history > summary {
+    min-height: 44px;
+  }
+  .fw-topbar button,
+  .tw-header button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 700px) {
+  .fw-app .fw-operation-group > summary {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr) 18px;
+    grid-template-rows: auto auto;
+    column-gap: 7px;
+    row-gap: 2px;
+  }
+  .fw-operation-group > summary > svg:first-child {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
+  .fw-operation-group-title {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .fw-operation-group-status {
+    grid-column: 2;
+    grid-row: 2;
+    width: auto;
+    padding-left: 0;
+  }
+  .fw-operation-group > summary > svg:last-child {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
 }

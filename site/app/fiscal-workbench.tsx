@@ -476,6 +476,7 @@ export function FiscalWorkbench() {
                     </button>
                     <button
                       className="fw-folder"
+                      title={name}
                       onClick={() => {
                         setSettingsOpen(false);
                         setMobileNav(false);
@@ -528,6 +529,7 @@ export function FiscalWorkbench() {
                       className={
                         page === 'task' && t.id === activeId ? 'active' : ''
                       }
+                      title={t.title}
                       onClick={() => openTask(t.id)}
                     >
                       <span className="fw-task-dot" />

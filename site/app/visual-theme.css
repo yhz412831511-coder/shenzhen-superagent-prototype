@@ -87,6 +87,20 @@ html[data-theme] {
   --ui-font-body: 16px;
   --ui-font-control: 14px;
   --ui-font-meta: 12px;
+  --ui-font-page-title: 22px;
+  --ui-font-section-title: 18px;
+  --ui-font-subtitle: 15px;
+  --ui-space-1: 4px;
+  --ui-space-2: 8px;
+  --ui-space-3: 12px;
+  --ui-space-4: 16px;
+  --ui-space-5: 20px;
+  --ui-space-6: 24px;
+  --ui-sidebar-width: 228px;
+  --ui-workspace-width: 360px;
+  --ui-topbar-height: 48px;
+  --ui-tabbar-height: 36px;
+  --ui-panel-header-height: 40px;
   --background: var(--ui-canvas);
   --foreground: var(--ui-text);
   --card: var(--ui-surface);
@@ -120,6 +134,9 @@ html[data-font-size='large'] {
   --ui-font-body: 18px;
   --ui-font-control: 16px;
   --ui-font-meta: 13px;
+  --ui-font-page-title: 24px;
+  --ui-font-section-title: 20px;
+  --ui-font-subtitle: 17px;
 }
 html[data-reduced-motion='true'] *,
 html[data-reduced-motion='true'] *::before,

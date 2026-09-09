@@ -413,7 +413,7 @@ function start(
       s,
       id,
       'assistant',
-      '我将读取本周期支付申请，检查支付用途备注。发现疑点后先请你确认，再完成其他规则核查和结果整理。',
+      '### 处理范围\n\n我将读取本周期支付申请并检查支付用途备注。发现疑点后先请你确认，再完成其他规则核查和结果整理。',
     );
   workPoint(
     s,
@@ -879,7 +879,7 @@ function applyCommand(s: WorkspaceState, a: CommandAction) {
         s,
         id,
         'assistant',
-        `智慧财政支付系统连接器返回本周期 2 条院校支付申请，已按申请编号和版本去重。以下为原始用途描述：\n\n${originalRemarks.map((x, i) => `${i + 1}. ${x}`).join('\n\n')}`,
+        `### 读取结果\n\n智慧财政支付系统返回本周期 2 条院校支付申请，已按申请编号和版本去重。\n\n### 原始用途描述\n\n${originalRemarks.map((x, i) => `${i + 1}. ${x}`).join('\n\n')}`,
       );
       break;
     case 'review':
@@ -889,7 +889,7 @@ function applyCommand(s: WorkspaceState, a: CommandAction) {
         s,
         id,
         'assistant',
-        `已调用“支付备注隐晦表达审查”Skill，两条申请均触发用途描述预警，需人工二次确认。\n\n预警范围：院校支付申请的用途描述含${paymentWarningTerms.map((term) => `“${term}”`).join('、')}等字样。\n\n${originalRemarks.map((remark, i) => `${i + 1}. 命中“${paymentWarningTerms.filter((term) => remark.includes(term)).join('、')}”：${remark}\n待核实：${i === 0 ? '年薪补差、一次性奖金转基本户的实际支付事项、对象与依据。' : '“绩效”是否属于平台产品名称，需结合数据库服务合同和实际支付内容确认。'}`).join('\n\n')}\n\n以上为关键词预警，不代表已经认定违规。请人工二次确认两笔申请的实际用途和处理意见；也可以补充核对方法。`,
+        `### 预警结论\n\n两条申请均触发用途描述预警，需要人工二次确认。关键词命中不代表已经认定违规。\n\n### 触发范围\n\n院校支付申请的用途描述含${paymentWarningTerms.map((term) => `“${term}”`).join('、')}等字样。\n\n### 待核实事项\n\n${originalRemarks.map((remark, i) => `${i + 1}. 命中“${paymentWarningTerms.filter((term) => remark.includes(term)).join('、')}”：${remark}\n   待核实：${i === 0 ? '年薪补差、一次性奖金转基本户的实际支付事项、对象与依据。' : '“绩效”是否属于平台产品名称，需结合数据库服务合同和实际支付内容确认。'}`).join('\n\n')}\n\n请确认两笔申请的实际用途和处理意见；也可以补充核对方法。`,
       );
       break;
     case 'save-method': {
@@ -1106,7 +1106,7 @@ function applyCommand(s: WorkspaceState, a: CommandAction) {
         s,
         id,
         'assistant',
-        '项目统筹处数字人已返回办理指引，接下来按以下路径办理：\n\n1. 在项管平台选择“运维类项目”，填报基本信息并关联历史建设项目。\n2. 从一体化数字资源管理系统（原 CDOS）关联本单位运维资产并同步。\n3. 根据本处室资料准备方案及附件，核对平台与材料一致性后上传。\n4. 读取项管平台费用估算；经你确认后正式提交，进入主管单位内审。\n\n本次指引引用了项目统筹处数字人的程序记忆《运维项目申报办理流程》。该记忆由政数局工作人员在日常办理中沉淀，经组织确认后纳入数字人。',
+        '项目统筹处数字人已返回办理指引。\n\n### 办理路径\n\n1. 在项管平台选择“运维类项目”，填报基本信息并关联历史建设项目。\n2. 从一体化数字资源管理系统（原 CDOS）关联本单位运维资产并同步。\n3. 根据本处室资料准备方案及附件，核对平台与材料一致性后上传。\n4. 读取项管平台费用估算；经你确认后正式提交，进入主管单位内审。\n\n### 依据\n\n本次指引引用项目统筹处数字人的程序记忆《运维项目申报办理流程》。该记忆由政数局工作人员在日常办理中沉淀，经组织确认后纳入数字人。',
       );
       f.agentId = projectAgent;
       break;
@@ -1292,7 +1292,7 @@ function applyCommand(s: WorkspaceState, a: CommandAction) {
         s,
         id,
         'assistant',
-        `项管平台返回费用估算 ${f.estimate.total.toFixed(2)} 万元，覆盖 ${rows.length} 项资产、${months} 个月${f.project.service}。明细与计算依据已放入成果。此金额为估算，不是批复金额。\n\n你可以确认后由我自动提交，也可以本人前往项管平台提交。`,
+        `### 费用估算\n\n项管平台返回费用估算 **${f.estimate.total.toFixed(2)} 万元**，覆盖 ${rows.length} 项资产、${months} 个月${f.project.service}。明细与计算依据已放入成果。此金额为估算，不是批复金额。\n\n### 下一步\n\n你可以确认后由我自动提交，也可以本人前往项管平台提交。`,
       );
       lastOp(f).receipt = 'PM-EST-' + id + '-v' + f.version;
       break;

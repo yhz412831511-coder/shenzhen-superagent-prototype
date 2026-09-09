@@ -8,6 +8,8 @@ import {
   type ReactNode,
   type SyntheticEvent,
 } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   AlertCircle,
   Zap,
@@ -71,6 +73,7 @@ import {
   operationTitle,
   authorizationLabel,
   turnText,
+  type OperationGroup,
 } from './conversation-view';
 import {
   canUsePersonalItem,
@@ -176,57 +179,21 @@ export function Tag({
 }) {
   return <span className={`fw-tag ${tone}`}>{children}</span>;
 }
-function InlineText({ text }: { text: string }) {
-  return (
-    <>
-      {text
-        .split(/(\*\*[^*]+\*\*|\[[^\]]+\]\(https?:\/\/[^\s)]+\))/g)
-        .map((part, i) => {
-          if (part.startsWith('**') && part.endsWith('**'))
-            return <strong key={i}>{part.slice(2, -2)}</strong>;
-          const link = part.match(/^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/);
-          return link ? (
-            <a key={i} href={link[2]} target="_blank" rel="noreferrer">
-              {link[1]}
-            </a>
-          ) : (
-            part
-          );
-        })}
-    </>
-  );
-}
 export function PlainText({ text }: { text: string }) {
+  const markdown = text
+    .replace(/^(\d+)[、．]\s*/gm, '$1. ')
+    .replace(/^([一二三四五六七八九十]+)、([^\n]+)$/gm, '## $1、$2');
   return (
     <div className="fw-prose">
-      {text.split('\n\n').map((p, i) => {
-        const lines = p.split('\n');
-        if (lines.every((line) => /^\d+[.、]\s+/.test(line)))
-          return (
-            <ol key={i} start={Number(lines[0].match(/^\d+/)?.[0] || 1)}>
-              {lines.map((line, j) => (
-                <li key={j}>
-                  <InlineText text={line.replace(/^\d+[.、]\s+/, '')} />
-                </li>
-              ))}
-            </ol>
-          );
-        if (lines.every((line) => /^[-*]\s+/.test(line)))
-          return (
-            <ul key={i}>
-              {lines.map((line, j) => (
-                <li key={j}>
-                  <InlineText text={line.replace(/^[-*]\s+/, '')} />
-                </li>
-              ))}
-            </ul>
-          );
-        return (
-          <p key={i}>
-            <InlineText text={p} />
-          </p>
-        );
-      })}
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        skipHtml
+        components={{
+          a: ({ href, children }) => <a href={href} target="_blank" rel="noreferrer">{children}</a>,
+        }}
+      >
+        {markdown}
+      </ReactMarkdown>
     </div>
   );
 }
@@ -345,6 +312,16 @@ export function OperationRow({
       )}
     </>
   );
+}
+export function OperationGroupRow({group,onOpen}:{group:OperationGroup;onOpen:(t:Target)=>void}) {
+  const systemsLabel=group.systems.length?` · 涉及 ${group.systems.length} 个系统`:'';
+  return <details className="fw-operation-group">
+    <summary><ShieldCheck size={15}/><span className="fw-operation-group-title">已完成 {group.operations.length} 项操作{systemsLabel}</span><span className="fw-operation-group-status">最高{group.maxRisk}风险 · {group.authorization}</span><ChevronDown size={14}/></summary>
+    <div className="fw-operation-group-list">
+      {group.operations.map(op=><button type="button" id={'message-'+op.messageId} key={op.id} onClick={()=>onOpen({kind:'operation',id:op.id})} aria-label={`查看${operationTitle(op)}的安全与授权记录`}><span>{operationTitle(op)}</span><small>完成</small><ArrowUpRight size={13}/></button>)}
+      <p>{group.authorization==='本地处理'?'全部操作在本地处理范围内完成。':`授权检查 ${group.operations.length}/${group.operations.length} 通过。`}</p>
+    </div>
+  </details>;
 }
 export function ArtifactRow({
   art,
@@ -810,73 +787,40 @@ export function Conversation({
                   : '智能体回复'
             }
           >
-            {turn.blocks.map(({ message: m, operation: op }) => (
-              <article
-                key={m.id}
-                className={'fw-message ' + m.role + (op ? ' execution' : '')}
-                id={'message-' + m.id}
-              >
-                {m.role === 'system' && !op ? (
-                  <div className="fw-system-message">
-                    <Clock3 size={14} />
-                    <span>{m.text}</span>
-                  </div>
-                ) : (
-                  <div className="fw-message-content">
-                    {op ? (
-                      <OperationRow
-                        op={op}
-                        resolution={confirmationResolution(
-                          op,
-                          flow?.operations || [],
-                        )}
-                      />
-                    ) : (
-                      <>
-                        <PlainText text={m.text} />
-                        {state.workspaceFeedback?.find(f => f.taskId === task.id && f.messageId === m.id)?.annotations.map((note, index) => (
-                          <button className="fw-source-entry" key={note.id} onClick={() => onOpen({...note.target, annotationId: note.id})}>
-                            <MousePointer2 size={13} /> 标注 {index + 1} · {note.title}
-                          </button>
-                        ))}
-                        {m.text.includes('程序记忆候选') && flow?.candidate && (
-                          <details className="fw-inline-memory fw-source-entry">
-                            <summary>
-                              <BrainCircuit size={14} />
-                              查看本次整理的方法
-                            </summary>
-                            <p>{flow.candidate.conditions}</p>
-                            <ol>
-                              {flow.candidate.steps.map((x, i) => (
-                                <li key={i}>{x}</li>
-                              ))}
-                            </ol>
-                            <p>例外：{flow.candidate.exceptions}</p>
-                            {flow.memoryId && (
-                              <Btn
-                                small
-                                onClick={() => onMemory(flow.memoryId!)}
-                              >
-                                打开关联记忆
-                              </Btn>
-                            )}
-                          </details>
-                        )}
-                      </>
-                    )}
-                  </div>
-                )}
-              </article>
-            ))}
+            {turn.segments.map(segment => {
+              if(segment.kind==='operation-group') return <article key={segment.group.id} className="fw-message assistant execution fw-execution-summary"><div className="fw-message-content"><OperationGroupRow group={segment.group} onOpen={onOpen}/></div></article>;
+              const {message:m,operation:op}=segment.block;
+              return <article key={m.id} className={'fw-message '+m.role+(op?' execution':'')} id={'message-'+m.id}>
+                {m.role==='system'&&!op?<div className="fw-system-message"><Clock3 size={14}/><span>{m.text}</span></div>:<div className="fw-message-content">
+                  {op?<OperationRow op={op} resolution={confirmationResolution(op,flow?.operations||[])}/>:<>
+                    <PlainText text={m.text}/>
+                    {state.workspaceFeedback?.find(f=>f.taskId===task.id&&f.messageId===m.id)?.annotations.map((note,index)=><button className="fw-source-entry" key={note.id} onClick={()=>onOpen({...note.target,annotationId:note.id})}><MousePointer2 size={13}/> 标注 {index+1} · {note.title}</button>)}
+                    {m.text.includes('程序记忆候选')&&flow?.candidate&&<details className="fw-inline-memory fw-source-entry"><summary><BrainCircuit size={14}/>查看本次整理的方法</summary><p>{flow.candidate.conditions}</p><ol>{flow.candidate.steps.map((x,i)=><li key={i}>{x}</li>)}</ol><p>例外：{flow.candidate.exceptions}</p>{flow.memoryId&&<Btn small onClick={()=>onMemory(flow.memoryId!)}>打开关联记忆</Btn>}</details>}
+                  </>}
+                </div>}
+              </article>;
+            })}
             {turn.artifacts.length > 0 && (
               <div className="fw-turn-artifacts" aria-label="本轮成果">
-                {turn.artifacts.map((a) => (
+                {turn.artifacts.slice(0, 3).map((a) => (
                   <ArtifactRow
                     key={a.id}
                     art={a}
                     onOpen={() => onOpen({ kind: 'artifact', id: a.id })}
                   />
                 ))}
+                {turn.artifacts.length > 3 && (
+                  <details className="fw-artifact-more">
+                    <summary>另有 {turn.artifacts.length - 3} 项成果</summary>
+                    {turn.artifacts.slice(3).map((a) => (
+                      <ArtifactRow
+                        key={a.id}
+                        art={a}
+                        onOpen={() => onOpen({ kind: 'artifact', id: a.id })}
+                      />
+                    ))}
+                  </details>
+                )}
               </div>
             )}
             {flow?.agentId &&
@@ -996,10 +940,12 @@ export function Monitor({
   task,
   onOpen,
   onMemory,
+  onShowFiles,
 }: {
   task: WorkTask;
   onOpen: (t: Target) => void;
   onMemory: (id: string) => void;
+  onShowFiles?: () => void;
 }) {
   const { state } = useWorkspace(),
     f = state.flows[task.id];
@@ -1023,9 +969,17 @@ export function Monitor({
       f?.operations.flatMap((o) => (o.system ? [o.system] : [])) || [],
     ),
   ];
+  const attentionOperations=f?.operations.filter(op=>op.risk==='高'||op.status!=='成功'||(op.risk!=='无'&&(!op.checks.length||op.checks.some(check=>!check.passed))))||[];
+  const recentArtifacts=(f?.artifactIds||[]).slice(-3).reverse();
+  const securitySection=<details className={attentionOperations.length?'fw-monitor-attention':''} open={attentionOperations.length>0}>
+    <summary>安全与授权 <span>{attentionOperations.length?`${attentionOperations.length} 项需关注`:`${f?.operations.length||0} 项`}</span></summary>
+    {f?.operations.slice(-5).reverse().map(op=><button className="fw-detail-link" key={op.id} onClick={()=>onOpen({kind:'operation',id:op.id})}><ShieldCheck size={15}/><span>{op.risk}风险 · {authorizationLabel(op)} · {op.status}<small>{op.scope}</small></span></button>)}
+    {!f?.operations.length&&<p className="fw-meta">尚未发起系统操作。</p>}
+  </details>;
   return (
     <aside className="fw-monitor">
       <h3>任务概览</h3>
+      {!!attentionOperations.length&&securitySection}
       <details open>
         <summary>
           处理进度{' '}
@@ -1034,12 +988,23 @@ export function Monitor({
           )}
         </summary>
         <p>{f ? stageNames[f.stage] : '依据当前任务内容继续办理'}</p>
-        {f?.decisions.map((d, i) => (
+        {f?.decisions.slice(-1).map((d, i) => (
           <p className="fw-small-line" key={i}>
             <Check size={14} />
             {d.text}
           </p>
         ))}
+        {!!f && f.decisions.length > 1 && (
+          <details className="fw-monitor-history">
+            <summary>查看此前 {f.decisions.length - 1} 项决定</summary>
+            {f.decisions.slice(0, -1).map((d, i) => (
+              <p className="fw-small-line" key={i}>
+                <Check size={14} />
+                {d.text}
+              </p>
+            ))}
+          </details>
+        )}
         {f?.submission === 'user-reported' && (
           <p className="fw-meta">
             提交来源：本人告知已提交。尚未取得平台提交回执。
@@ -1073,7 +1038,7 @@ export function Monitor({
         <summary>
           材料与成果 <span>{f?.artifactIds.length || 0}</span>
         </summary>
-        {f?.artifactIds.map((id) => (
+        {recentArtifacts.map((id) => (
           <ArtifactRow
             key={id}
             art={state.artifacts[id]}
@@ -1081,6 +1046,7 @@ export function Monitor({
           />
         ))}
         {!f?.artifactIds.length && <p className="fw-meta">尚未形成成果。</p>}
+        {(f?.artifactIds.length||0)>3&&<button className="fw-monitor-more" onClick={onShowFiles}>查看其余 {(f?.artifactIds.length||0)-3} 项成果<ArrowUpRight size={13}/></button>}
       </details>
       <details>
         <summary>
@@ -1143,26 +1109,7 @@ export function Monitor({
           </p>
         )}
       </details>
-      <details>
-        <summary>安全与授权</summary>
-        {f?.operations
-          .slice(-5)
-          .reverse()
-          .map((op) => (
-            <button
-              className="fw-detail-link"
-              key={op.id}
-              onClick={() => onOpen({ kind: 'operation', id: op.id })}
-            >
-              <ShieldCheck size={15} />
-              <span>
-                {op.risk}风险 · {authorizationLabel(op)} · {op.status}
-                <small>{op.scope}</small>
-              </span>
-            </button>
-          ))}
-        {!f?.operations.length && <p className="fw-meta">尚未发起系统操作。</p>}
-      </details>
+      {!attentionOperations.length&&securitySection}
     </aside>
   );
 }

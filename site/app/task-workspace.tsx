@@ -16,7 +16,7 @@ type DockState = {
   systemViews: Record<string, SystemViewState>; positions: Record<string, number>;
 };
 const caches = new Map<string, DockState>();
-const initial = (): DockState => ({ view:'任务概览', tabs:[], active:'', width:380, expanded:false, terminal:false, notes:[], address:'', mode:'', search:'', systemViews:{}, positions:{} });
+const initial = (): DockState => ({ view:'任务概览', tabs:[], active:'', width:360, expanded:false, terminal:false, notes:[], address:'', mode:'', search:'', systemViews:{}, positions:{} });
 function download(file: SandboxFile) {
   const url = URL.createObjectURL(new Blob([new Uint8Array(file.data)], {type:file.mime}));
   const link = document.createElement('a'); link.href = url; link.download = file.path.split('/').pop() || '文件'; link.style.display='none'; document.body.appendChild(link); link.click();
@@ -138,9 +138,9 @@ export function TaskWorkspace({taskId,request,visible,onClose,onMemory,onConsult
   };
   if(!task)return null;
   return <div ref={panel} tabIndex={-1} hidden={!visible} className={'tw-dock '+(dock.expanded?'expanded':'')} style={{'--dock-width':dock.width+'px'} as CSSProperties} aria-label="任务工作区">
-    <button className="tw-resizer" aria-label="调整工作区宽度" onKeyDown={e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();update({width:Math.min(window.innerWidth*.7,Math.max(300,dock.width+(e.key==='ArrowLeft'?40:-40)))})}}}
+    <button className="tw-resizer" aria-label="调整工作区宽度" onKeyDown={e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();update({width:Math.min(window.innerWidth*.7,Math.max(320,dock.width+(e.key==='ArrowLeft'?40:-40)))})}}}
       onPointerDown={e=>{e.currentTarget.setPointerCapture(e.pointerId);start.current={x:e.clientX,y:dock.width};}}
-      onPointerMove={e=>{if(start.current)update({width:Math.min(window.innerWidth*.7,Math.max(300,start.current.y+start.current.x-e.clientX))});}}
+      onPointerMove={e=>{if(start.current)update({width:Math.min(window.innerWidth*.7,Math.max(320,start.current.y+start.current.x-e.clientX))});}}
       onPointerUp={()=>{start.current=null;}}/>
     <header className="tw-header"><strong>{dock.view}</strong><div className="tw-head-actions">
       <button aria-label="添加工作区视图" aria-expanded={menu} onClick={()=>setMenu(!menu)}><Plus size={18}/></button>
@@ -150,7 +150,7 @@ export function TaskWorkspace({taskId,request,visible,onClose,onMemory,onConsult
     {menu&&<div className="tw-menu">{(['任务概览','文件','浏览器','终端'] as const).map(view=><button key={view} onClick={()=>{update(view==='终端'?{terminal:true}:{view});setMenu(false);}}>{view==='文件'?<FolderOpen size={16}/>:view==='浏览器'?<Globe2 size={16}/>:view==='终端'?<Terminal size={16}/>:<FileText size={16}/>} {view}</button>)}</div>}
     </header>
     {notice&&<output className="tw-notice">{notice}<button aria-label="关闭提示" onClick={()=>setNotice('')}><X size={13}/></button></output>}
-    <div className="tw-main" hidden={dock.view!=='任务概览'}><Monitor task={task} onOpen={open} onMemory={onMemory}/></div>
+    <div className="tw-main" hidden={dock.view!=='任务概览'}><Monitor task={task} onOpen={open} onMemory={onMemory} onShowFiles={()=>update({view:'文件'})}/></div>
     <div className="tw-main tw-files" hidden={dock.view!=='文件'}>
       <label className="tw-search">搜索文件<input aria-label="搜索任务文件" value={dock.search} onChange={e=>update({search:e.target.value})}/></label>
       <label className="tw-import"><Upload size={15}/>导入到沙箱<input type="file" multiple disabled={session.running} onChange={async e=>{const files=Array.from(e.target.files||[]);e.target.value='';for(const f of files){if(f.size>20*1024*1024){setNotice('单文件上限20MB。');continue;}addFile({path:'/task/导入资料/'+safeFilename(f.name),data:Array.from(new Uint8Array(await f.arrayBuffer())),mime:f.type||'application/octet-stream'});}}}/></label>

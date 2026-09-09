@@ -2,12 +2,110 @@ import type { Message, WorkTask } from './memory-domain.ts';
 import type { Artifact, Operation } from './fiscal-domain.ts';
 
 export type ConversationBlock = { message: Message; operation?: Operation };
+export type OperationGroup = {
+  id: string;
+  operations: Operation[];
+  messageIds: string[];
+  maxRisk: Operation['risk'];
+  systems: NonNullable<Operation['system']>[];
+  authorization: '本地处理' | '鉴权通过';
+  statusCounts: Partial<Record<Operation['status'], number>>;
+};
+export type ConversationSegment =
+  | { kind: 'message'; block: ConversationBlock }
+  | { kind: 'operation'; block: ConversationBlock }
+  | { kind: 'operation-group'; group: OperationGroup };
 export type ConversationTurn = {
   id: string;
   role: Message['role'];
   blocks: ConversationBlock[];
+  segments: ConversationSegment[];
   artifacts: Artifact[];
 };
+
+const riskOrder: Record<Operation['risk'], number> = {
+  无: 0,
+  低: 1,
+  中: 2,
+  高: 3,
+};
+
+/** Only fully successful, non-high-risk work may recede into a compact summary. */
+export function isRoutineOperation(op: Operation) {
+  if (op.status !== '成功' || op.risk === '高') return false;
+  if (op.risk === '无') return true;
+  return op.checks.length > 0 && op.checks.every((check) => check.passed);
+}
+
+export function summarizeOperationGroup(
+  operations: Operation[],
+): OperationGroup {
+  const systems = [
+    ...new Set(
+      operations.flatMap((operation) =>
+        operation.system ? [operation.system] : [],
+      ),
+    ),
+  ];
+  const maxRisk = operations.reduce<Operation['risk']>(
+    (highest, operation) =>
+      riskOrder[operation.risk] > riskOrder[highest] ? operation.risk : highest,
+    '无',
+  );
+  const statusCounts = operations.reduce<OperationGroup['statusCounts']>(
+    (counts, operation) => ({
+      ...counts,
+      [operation.status]: (counts[operation.status] || 0) + 1,
+    }),
+    {},
+  );
+  return {
+    id: `operation-group-${operations[0]?.id || 'empty'}`,
+    operations,
+    messageIds: operations.map((operation) => operation.messageId),
+    maxRisk,
+    systems,
+    authorization: operations.every((operation) => operation.risk === '无')
+      ? '本地处理'
+      : '鉴权通过',
+    statusCounts,
+  };
+}
+
+export function conversationSegments(
+  blocks: ConversationBlock[],
+): ConversationSegment[] {
+  const segments: ConversationSegment[] = [];
+  for (let index = 0; index < blocks.length; index += 1) {
+    const block = blocks[index];
+    if (block.operation && isRoutineOperation(block.operation)) {
+      const run = [block];
+      while (
+        blocks[index + 1]?.operation &&
+        isRoutineOperation(blocks[index + 1].operation!)
+      ) {
+        run.push(blocks[index + 1]);
+        index += 1;
+      }
+      const routineOperations = run.map((entry) => entry.operation!);
+      if (routineOperations.length === 1) {
+        segments.push({ kind: 'operation', block });
+      } else {
+        segments.push({
+          kind: 'operation-group',
+          group: summarizeOperationGroup(routineOperations),
+        });
+      }
+      continue;
+    }
+    segments.push(
+      block.operation
+        ? { kind: 'operation', block }
+        : { kind: 'message', block },
+    );
+  }
+  return segments;
+}
 
 /** A view over events; never mutates, executes or merges the underlying business records. */
 export function conversationTurns(
@@ -21,7 +119,13 @@ export function conversationTurns(
   for (const message of task.messages) {
     let turn = turns.at(-1);
     if (message.role !== 'assistant' || turn?.role !== 'assistant') {
-      turn = { id: message.id, role: message.role, blocks: [], artifacts: [] };
+      turn = {
+        id: message.id,
+        role: message.role,
+        blocks: [],
+        segments: [],
+        artifacts: [],
+      };
       turns.push(turn);
     }
     turn!.blocks.push({ message, operation: ops.get(message.id) });
@@ -39,6 +143,7 @@ export function conversationTurns(
     )
       turn.artifacts.push(artifact);
   }
+  for (const turn of turns) turn.segments = conversationSegments(turn.blocks);
   return turns;
 }
 
