@@ -165,3 +165,21 @@ test('任务进度只保留业务步骤并实现三态视觉', () => {
   assert.match(css, /fw-task-progress-spin/);
   assert.match(css, /data-reduced-motion='true'.*fw-task-progress/s);
 });
+
+test('任务概览使用限定在右侧工作区的连续清单视觉', () => {
+  const css = readFileSync(
+    new URL('../app/visual-refinement.css', import.meta.url),
+    'utf8',
+  );
+  const workspaceCss = readFileSync(
+    new URL('../app/task-workspace.css', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(css, /\.tw-dock \.fw-monitor\s*\{/);
+  assert.match(css, /summary::after/);
+  assert.match(css, /border-bottom:\s*1px dashed/);
+  assert.match(css, /\.tw-dock \.fw-monitor \.fw-file-icon/);
+  assert.match(workspaceCss, /\.tw-header\s*\{[^}]*min-height:48px/);
+  assert.match(workspaceCss, /\.tw-head-actions button\s*\{[^}]*width:32px/);
+});

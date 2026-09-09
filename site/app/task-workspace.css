@@ -2,11 +2,14 @@
 .tw-dock[hidden], .tw-dock [hidden] { display:none !important; }
 .tw-dock.expanded { position:absolute; inset:0 0 0 auto; width:min(1100px,100%); z-index:25; box-shadow:var(--ui-shadow); }
 .fw-task-body { position:relative; }
-.tw-header { position:relative; min-height:var(--ui-panel-header-height); display:flex; align-items:center; justify-content:space-between; padding:4px 10px; border-bottom:1px solid var(--ui-border); background:var(--ui-surface); flex-shrink:0; }
+.tw-header { position:relative; min-height:48px; display:flex; align-items:center; justify-content:space-between; padding:6px 12px 6px 16px; border-bottom:1px solid color-mix(in srgb,var(--ui-border) 68%,transparent); background:var(--ui-canvas); flex-shrink:0; }
+.tw-header > strong { color:var(--ui-text); font-size:var(--ui-font-subtitle); font-weight:650; letter-spacing:-.01em; }
 .tw-head-actions,.tw-browser-tools,.tw-mark-tools,.tw-note-actions { display:flex; align-items:center; gap:6px; }
 .tw-dock button { cursor:pointer; }
 .tw-dock button:disabled { cursor:default; opacity:.45; }
 .tw-head-actions button,.tw-browser-tools > button,.tw-tabs > button,.tw-file-row > button,.tw-terminal header button,.tw-notice button { display:inline-flex; align-items:center; justify-content:center; padding:7px; border-radius:8px; color:var(--ui-muted); background:transparent; border:0; }
+.tw-head-actions { gap:2px; }
+.tw-head-actions button { width:32px; height:32px; padding:0; }
 .tw-head-actions button:hover,.tw-menu button:hover,.tw-tabs button:hover,.tw-browser-tools button:hover,.tw-file-row button:hover,.tw-start > button:hover { background:var(--ui-hover); }
 .tw-dock button:focus-visible,.tw-dock input:focus-visible,.tw-dock textarea:focus-visible { outline:2px solid var(--ui-brand); outline-offset:2px; }
 .tw-resizer { position:absolute; top:0; bottom:0; left:-4px; width:7px; padding:0; border:0; background:transparent; z-index:5; cursor:col-resize !important; touch-action:none; }

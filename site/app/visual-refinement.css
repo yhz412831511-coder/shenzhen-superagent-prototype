@@ -1705,3 +1705,201 @@ html[data-reduced-motion='true'] .fw-task-progress li[data-status='in_progress']
     padding-left: 12px;
   }
 }
+
+/* QoderWork-inspired task overview: one quiet, continuous working surface. */
+.tw-dock .tw-main:has(> .fw-monitor) {
+  background: var(--ui-canvas);
+}
+.tw-dock .fw-monitor {
+  width: 100%;
+  max-width: none;
+  padding: 6px 16px 20px;
+  border: 0;
+  background: var(--ui-canvas);
+  font-size: var(--ui-font-control);
+}
+.tw-dock .fw-monitor > details {
+  margin: 0;
+  padding: 6px 0 12px;
+  border: 0;
+  border-bottom: 1px dashed color-mix(in srgb, var(--ui-border) 68%, transparent);
+}
+.tw-dock .fw-monitor > details:last-child {
+  border-bottom: 0;
+}
+.tw-dock .fw-monitor > details > summary {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+  color: var(--ui-text);
+  cursor: pointer;
+  font-size: var(--ui-font-control);
+  font-weight: 650;
+  letter-spacing: -.01em;
+}
+.tw-dock .fw-monitor > details > summary::-webkit-details-marker {
+  display: none;
+}
+.tw-dock .fw-monitor > details > summary > span {
+  margin-left: auto;
+  color: var(--ui-muted);
+  font-size: calc(var(--ui-font-meta) - 1px);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+.tw-dock .fw-monitor > details > summary::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  margin: 0 4px;
+  flex: 0 0 7px;
+  border-right: 1.5px solid var(--ui-muted);
+  border-bottom: 1.5px solid var(--ui-muted);
+  transform: translateY(-1px) rotate(-45deg);
+  transition: transform 140ms ease;
+}
+.tw-dock .fw-monitor > details[open] > summary::after {
+  transform: translateY(-2px) rotate(45deg);
+}
+.tw-dock .fw-monitor > details > summary:hover {
+  color: var(--ui-brand);
+}
+.tw-dock .fw-monitor > details > summary:focus-visible {
+  border-radius: 6px;
+  outline: 2px solid var(--ui-brand);
+  outline-offset: 2px;
+}
+.tw-dock .fw-task-progress {
+  gap: 0;
+  margin: 0 0 6px;
+  padding: 0 4px 0 12px;
+}
+.tw-dock .fw-task-progress li {
+  min-height: 32px;
+  gap: 10px;
+  padding: 6px 0;
+  line-height: 1.45;
+}
+.tw-dock .fw-task-progress-icon {
+  width: 18px;
+  height: 18px;
+  margin-top: 0;
+}
+.tw-dock .fw-task-progress-title {
+  font-size: calc(var(--ui-font-control) - 1px);
+}
+.tw-dock .fw-task-progress-copy small {
+  margin-top: 2px;
+  font-size: calc(var(--ui-font-meta) - 1px);
+  line-height: 1.45;
+}
+.tw-dock .fw-task-progress li[data-status='completed'] .fw-task-progress-icon {
+  padding: 2px;
+  border-radius: 50%;
+  background: var(--ui-success);
+  color: var(--ui-surface);
+  fill: none;
+  stroke-width: 2.4;
+}
+.tw-dock .fw-task-progress li[data-status='completed'] .fw-task-progress-title {
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, currentColor 72%, transparent);
+}
+.tw-dock .fw-monitor .fw-artifact-row,
+.tw-dock .fw-monitor .fw-detail-link {
+  min-height: 42px;
+  margin: 1px 0;
+  padding: 6px 8px;
+  gap: 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ui-text);
+  line-height: 1.4;
+}
+.tw-dock .fw-monitor .fw-artifact-row:hover,
+.tw-dock .fw-monitor .fw-detail-link:hover {
+  background: color-mix(in srgb, var(--ui-hover) 72%, transparent);
+  color: var(--ui-text);
+}
+.tw-dock .fw-monitor .fw-artifact-row:focus-visible,
+.tw-dock .fw-monitor .fw-detail-link:focus-visible,
+.tw-dock .fw-monitor-more:focus-visible {
+  outline-offset: -2px;
+}
+.tw-dock .fw-monitor .fw-file-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--ui-border) 68%, transparent);
+  border-radius: 7px;
+  background: var(--ui-surface);
+  color: var(--ui-brand);
+}
+.tw-dock .fw-monitor .fw-file-icon svg {
+  width: 17px;
+  height: 17px;
+}
+.tw-dock .fw-monitor .fw-artifact-row strong,
+.tw-dock .fw-monitor .fw-detail-link {
+  font-size: calc(var(--ui-font-control) - 1px);
+  font-weight: 500;
+}
+.tw-dock .fw-monitor .fw-artifact-row small,
+.tw-dock .fw-monitor .fw-detail-link small {
+  margin-top: 1px;
+  color: var(--ui-muted);
+  font-size: calc(var(--ui-font-meta) - 1px);
+  line-height: 1.4;
+  font-weight: 400;
+}
+.tw-dock .fw-monitor .fw-detail-link > svg {
+  margin-top: 1px;
+  color: var(--ui-muted);
+}
+.tw-dock .fw-monitor > details > p {
+  margin: 4px 8px 8px;
+  color: var(--ui-muted);
+  font-size: calc(var(--ui-font-control) - 1px);
+  line-height: 1.5;
+}
+.tw-dock .fw-monitor-more {
+  min-height: 36px;
+  margin-top: 2px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: calc(var(--ui-font-meta) - 1px);
+}
+.tw-dock .fw-monitor-more:hover {
+  background: color-mix(in srgb, var(--ui-hover) 72%, transparent);
+}
+
+@media (max-width: 700px) {
+  .tw-dock .tw-head-actions button {
+    width: 44px;
+    height: 44px;
+  }
+  .tw-dock .fw-monitor {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+  .tw-dock .fw-monitor > details > summary,
+  .tw-dock .fw-monitor .fw-artifact-row,
+  .tw-dock .fw-monitor .fw-detail-link,
+  .tw-dock .fw-monitor-more {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tw-dock .fw-monitor > details > summary::after {
+    transition: none;
+  }
+}
