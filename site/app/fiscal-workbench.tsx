@@ -80,9 +80,9 @@ const nav: {
   { id: 'home', title: '新任务', icon: SquarePen },
   { id: 'library', title: '资料库', icon: LibraryBig },
   { id: 'memory', title: 'AI 记忆', icon: BrainCircuit },
-  { id: 'agents', title: '专业智能体', icon: Bot },
-  { id: 'skills', title: 'Skills', icon: Zap },
-  { id: 'extensions', title: '插件与连接器', icon: PlugZap },
+  { id: 'agents', title: '专业智能', icon: Bot },
+  { id: 'skills', title: '工作技能', icon: Zap },
+  { id: 'extensions', title: '系统与工具', icon: PlugZap },
   { id: 'automations', title: '自动化', icon: Workflow },
 ];
 export function FiscalWorkbench() {

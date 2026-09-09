@@ -23,6 +23,21 @@ test('首页保持原任务数据与打开行为', () => {
   assert.match(component, /\{!folder && composer\(true\)\}/);
 });
 
+test('一级能力目录使用确认名称且内部能力类型保持不变', () => {
+  const component = read('../app/fiscal-workbench.tsx');
+
+  assert.match(component, /\{ id: 'agents', title: '专业智能', icon: Bot \}/);
+  assert.match(component, /\{ id: 'skills', title: '工作技能', icon: Zap \}/);
+  assert.match(
+    component,
+    /\{ id: 'extensions', title: '系统与工具', icon: PlugZap \}/,
+  );
+  assert.match(
+    component,
+    /page === 'agents'[\s\S]*?\? '专业智能体'[\s\S]*?page === 'skills'[\s\S]*?\? 'Skill'[\s\S]*?: '插件'/,
+  );
+});
+
 test('首页采用任务指挥界面的尺寸与连续清单', () => {
   const css = read('../app/visual-refinement.css');
 
