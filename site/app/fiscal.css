@@ -463,14 +463,6 @@
   font-weight: 560;
   color: var(--ui-text);
 }
-.fw-home .composer-shell {
-  width: 100%;
-  max-width: none;
-  border: 1px solid var(--ui-border);
-  border-radius: 16px;
-  background: var(--ui-surface);
-  box-shadow: 0 9px 35px var(--ui-overlay);
-}
 .fw-recents {
   margin-top: 38px;
 }
@@ -870,24 +862,6 @@
   border-top: 1px solid var(--ui-border);
   font-size: var(--ui-font-meta);
   color: var(--ui-muted);
-}
-.fw-app .composer-shell textarea,
-.fw-composer-area textarea {
-  font-size: var(--ui-font-body) !important;
-  border: 0 !important;
-  border-radius: 0;
-  min-height: 72px;
-  padding: 14px 16px !important;
-  box-shadow: none !important;
-}
-.fw-app .composer-shell [class*='text-['],
-.fw-composer-area section [class*='text-['] {
-  font-size: var(--ui-font-meta) !important;
-  line-height: 1.55 !important;
-}
-.fw-app .composer-shell textarea,
-.fw-composer-area section textarea {
-  font-size: var(--ui-font-body) !important;
 }
 .fw-monitor {
   width: min(320px, 25vw);

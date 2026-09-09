@@ -102,7 +102,7 @@ html[data-theme] ::selection {
   font-size: var(--ui-font-control);
   line-height: 1.6;
 }
-.fw-app :is(.fw-nav-search, .fw-account-button, .composer-shell),
+.fw-app :is(.fw-nav-search, .fw-account-button),
 .fw-app :is(input:not([type='checkbox']), textarea, select),
 .fw-app :is(.fw-catalog-list > button, .fw-auto-item),
 .fw-app :is(.fw-capability-card, .fw-source-card, .fw-modal),
@@ -227,18 +227,6 @@ html[data-theme] ::selection {
 .fw-avatar {
   background: var(--ui-brand-soft);
   color: var(--ui-brand);
-}
-.fw-app .composer-shell,
-.fw-composer-area > section {
-  background: var(--ui-raised);
-  border: 1px solid var(--ui-border-strong);
-  border-radius: 12px;
-  box-shadow: 0 3px 14px #00000006;
-}
-.fw-app .composer-shell:focus-within,
-.fw-composer-area > section:focus-within {
-  border-color: var(--ui-brand);
-  box-shadow: 0 0 0 2px var(--ui-brand-soft);
 }
 .fw-message-column {
   max-width: 864px;
@@ -596,10 +584,6 @@ html[data-theme] ::selection {
 .fw-legacy-page [class*='text-[length:var(--ui-font-control)'] {
   font-size: var(--ui-font-control) !important;
 }
-.fw-app .composer-shell [class*='text-[length:var(--ui-font-control)'],
-.fw-composer-area section [class*='text-[length:var(--ui-font-control)'] {
-  font-size: var(--ui-font-control) !important;
-}
 html[data-theme] [data-slot='dropdown-menu-content'],
 html[data-theme] [data-slot='dropdown-menu-sub-content'],
 html[data-theme] [data-slot='popover-content'],
@@ -803,22 +787,6 @@ html[data-theme] [data-slot='popover-content'] {
 .fw-monitor > details > p {
   font-size: var(--ui-font-control);
   line-height: 1.65;
-}
-/* Composer is one surface, not a native textarea nested inside another bordered form. */
-.fw-app section[aria-label='创建新任务'] textarea,
-.fw-composer-area textarea {
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  min-height: 52px;
-  resize: none;
-  padding: 14px 16px 8px;
-  box-shadow: none;
-  font-size: var(--ui-font-control);
-}
-.fw-app section[aria-label='创建新任务'] textarea:focus-visible,
-.fw-composer-area textarea:focus-visible {
-  outline: none;
 }
 .fw-composer-area {
   padding-bottom: max(12px, env(safe-area-inset-bottom));
@@ -1296,11 +1264,6 @@ html[data-theme] [data-slot='popover-content'] {
 .fw-history-footer {
   max-width: 800px;
 }
-.fw-composer-area textarea {
-  min-height: 56px !important;
-  padding: 12px 16px !important;
-  font-size: var(--ui-font-body) !important;
-}
 .fw-monitor {
   padding: 12px;
 }
@@ -1446,13 +1409,6 @@ html[data-theme] [data-slot='popover-content'] {
 }
 
 /* Final specificity fixes for the density contract. */
-.fw-app .fw-composer-area section textarea,
-.fw-app section[aria-label='创建新任务'] textarea {
-  min-height: 56px !important;
-  padding: 12px 16px !important;
-  font-size: var(--ui-font-body) !important;
-  line-height: 1.6 !important;
-}
 .fw-app .fw-operation-group {
   min-height: 34px;
   padding: 6px 0;
@@ -1669,12 +1625,6 @@ html[data-reduced-motion='true'] .fw-task-progress li[data-status='in_progress']
 .fw-history-footer {
   max-width: 940px;
 }
-.fw-app .fw-composer-area section textarea {
-  min-height: 50px !important;
-  padding: 10px 14px !important;
-  font-size: var(--conversation-font-body) !important;
-  line-height: var(--conversation-line-height) !important;
-}
 .fw-history-footer {
   padding: 4px 2px;
   font-size: var(--conversation-font-meta);
@@ -1703,6 +1653,200 @@ html[data-reduced-motion='true'] .fw-task-progress li[data-status='in_progress']
   .fw-composer-area {
     padding-right: 12px;
     padding-left: 12px;
+  }
+}
+
+/* Global task composer: one complete command surface across home and task views. */
+.task-composer {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  overflow: clip;
+  border: 1px solid
+    color-mix(in srgb, var(--ui-border-strong) 62%, var(--ui-border));
+  border-radius: 14px;
+  background: var(--ui-raised);
+  background-clip: padding-box;
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--ui-overlay) 14%, transparent),
+    0 10px 28px color-mix(in srgb, var(--ui-overlay) 9%, transparent);
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+.task-composer[data-variant='large'] {
+  border-radius: 16px;
+}
+.task-composer:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--ui-border-strong) 82%,
+    var(--ui-border)
+  );
+}
+.task-composer:focus-within {
+  border-color: color-mix(
+    in srgb,
+    var(--ui-brand) 72%,
+    var(--ui-border-strong)
+  );
+  box-shadow:
+    0 0 0 3px var(--ui-brand-soft),
+    0 1px 2px color-mix(in srgb, var(--ui-overlay) 14%, transparent),
+    0 12px 30px color-mix(in srgb, var(--ui-overlay) 11%, transparent);
+}
+.fw-home .task-composer {
+  max-width: none;
+}
+.task-composer__context-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--ui-border);
+  background: color-mix(in srgb, var(--ui-hover) 28%, transparent);
+}
+.fw-app .task-composer__input {
+  display: block;
+  width: 100%;
+  height: 50px;
+  min-height: 50px;
+  max-height: 112px;
+  resize: none;
+  overflow-y: auto;
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 10px 14px;
+  color: var(--ui-text);
+  font-size: var(--conversation-font-body);
+  line-height: var(--conversation-line-height);
+}
+.fw-app .task-composer[data-variant='large'] .task-composer__input {
+  height: 84px;
+  min-height: 84px;
+  padding: 14px 16px 10px;
+  font-size: var(--ui-font-body);
+  line-height: 1.55;
+}
+.fw-app .task-composer__input::placeholder {
+  color: var(--ui-muted);
+}
+.fw-app .task-composer__input:focus-visible {
+  outline: 0;
+}
+.task-composer__toolbar {
+  display: flex;
+  min-width: 0;
+  min-height: 42px;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 8px;
+  border-top: 1px solid var(--ui-border);
+  background: color-mix(in srgb, var(--ui-hover) 34%, transparent);
+}
+.task-composer__toolbar-left,
+.task-composer__toolbar-right {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+}
+.task-composer__toolbar-right {
+  margin-left: auto;
+  justify-content: flex-end;
+}
+.task-composer__toolbar [data-slot='button'] {
+  height: 30px;
+  min-height: 30px;
+  border-radius: 8px;
+  color: var(--ui-text);
+  font-size: var(--ui-font-meta);
+  font-weight: 400;
+  box-shadow: none;
+}
+.task-composer__toolbar [data-slot='button']:hover {
+  background: var(--ui-hover);
+}
+.task-composer__add,
+.task-composer__voice {
+  width: 30px;
+  min-width: 30px;
+  padding: 0;
+  background: transparent;
+}
+.task-composer__text-control {
+  padding: 0 7px;
+}
+.task-composer__send[data-slot='button'] {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--ui-brand);
+  color: var(--ui-on-brand);
+  box-shadow: 0 3px 9px
+    color-mix(in srgb, var(--ui-brand) 22%, transparent);
+}
+.task-composer[data-variant='large'] .task-composer__send[data-slot='button'] {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+}
+.task-composer__send[data-slot='button']:hover:not(:disabled) {
+  background: var(--ui-brand-hover);
+}
+.fw-app .task-composer__send[data-slot='button']:disabled {
+  opacity: 1;
+  background: var(--ui-hover);
+  color: var(--ui-muted);
+  box-shadow: none;
+}
+
+@media (max-width: 700px) {
+  .task-composer__toolbar {
+    min-height: 52px;
+    gap: 4px;
+    padding: 4px 8px;
+  }
+  .task-composer__toolbar [data-slot='button'] {
+    min-height: 44px;
+  }
+  .task-composer__add,
+  .task-composer__voice,
+  .task-composer__send[data-slot='button'],
+  .task-composer[data-variant='large'] .task-composer__send[data-slot='button'] {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .task-composer__text-control {
+    height: 44px;
+    padding-right: 6px;
+    padding-left: 6px;
+  }
+}
+
+@media (max-width: 359px) {
+  .task-composer__toolbar {
+    flex-wrap: wrap;
+    padding-top: 3px;
+    padding-bottom: 3px;
+  }
+  .task-composer__toolbar-left,
+  .task-composer__toolbar-right {
+    width: 100%;
+  }
+  .task-composer__toolbar-right {
+    margin-left: 0;
   }
 }
 

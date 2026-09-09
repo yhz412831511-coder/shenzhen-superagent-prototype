@@ -168,19 +168,6 @@
   box-shadow: 0 7px 20px rgba(57, 78, 196, 0.2);
 }
 
-.composer-shell {
-  overflow: hidden;
-  border: 1px solid #d9dee8;
-  border-radius: 18px;
-  background: #ffffff;
-  box-shadow:
-    0 16px 36px rgba(16, 24, 40, 0.07),
-    0 2px 5px rgba(16, 24, 40, 0.03);
-  transition:
-    border-color 160ms ease,
-    box-shadow 160ms ease;
-}
-
 .workbench-grid {
   background-color: #f5f7fb;
   background-image:
@@ -257,13 +244,6 @@
 .document-preview {
   background-image: linear-gradient(rgba(92, 111, 142, 0.025) 1px, transparent 1px);
   background-size: 100% 22px;
-}
-
-.composer-shell:focus-within {
-  border-color: #9db8ff;
-  box-shadow:
-    0 0 0 3px rgba(31, 94, 255, 0.08),
-    0 16px 36px rgba(16, 24, 40, 0.07);
 }
 
 * {

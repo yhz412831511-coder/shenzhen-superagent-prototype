@@ -174,11 +174,11 @@ function VoiceInputButton({
         onClick={toggle}
         aria-label={listening ? '停止语音输入' : '语音输入'}
         aria-pressed={listening}
-        className={
+        className={`task-composer__voice ${
           listening
             ? 'bg-[var(--ui-canvas)] text-[color:var(--ui-danger)] hover:bg-[var(--ui-danger-soft)]'
-            : 'text-[color:var(--ui-muted)] hover:bg-[var(--ui-canvas)]'
-        }
+            : 'text-[color:var(--ui-muted)]'
+        }`}
       >
         {listening ? <MicOff /> : <Mic />}
       </Button>
@@ -280,7 +280,10 @@ export function TaskComposer({
     (item) => item.value === permissionMode,
   )!;
   const hasContextRow = Boolean(activeCommand || contexts.length);
-  const visibleContexts = contextExpanded ? contexts : contexts.slice(0, 3);
+  const collapsedContextLimit = activeCommand ? 1 : 2;
+  const visibleContexts = contextExpanded
+    ? contexts
+    : contexts.slice(0, collapsedContextLimit);
   const hiddenContextCount = Math.max(
     0,
     contexts.length - visibleContexts.length,
@@ -304,15 +307,15 @@ export function TaskComposer({
 
   return (
     <section
-      className={
-        variant === 'large'
-          ? 'composer-shell overflow-visible'
-          : 'w-full overflow-visible rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface)] shadow-[var(--ui-shadow)]'
-      }
+      className="task-composer"
+      data-variant={variant}
       aria-label={variant === 'large' ? '创建新任务' : '继续任务'}
     >
       {hasContextRow ? (
-        <div className="flex flex-wrap gap-1.5 border-b border-[var(--ui-border)] px-3 py-2">
+        <div
+          className="task-composer__context-row"
+          data-expanded={contextExpanded || undefined}
+        >
           {activeCommand ? (
             <span className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--ui-border)] bg-[var(--ui-brand-soft)] px-2 py-1 text-[length:var(--ui-font-meta)] font-medium text-[color:var(--ui-brand)]">
               <activeCommand.icon className="size-3" />
@@ -363,7 +366,7 @@ export function TaskComposer({
             >
               另有 {hiddenContextCount} 项
             </button>
-          ) : contextExpanded && contexts.length > 3 ? (
+          ) : contextExpanded && contexts.length > collapsedContextLimit ? (
             <button
               type="button"
               className="inline-flex items-center rounded-lg px-2 py-1 text-[length:var(--ui-font-meta)] text-[color:var(--ui-muted)] hover:bg-[var(--ui-hover)]"
@@ -398,83 +401,83 @@ export function TaskComposer({
           }
         }}
         rows={variant === 'large' ? 5 : 1}
-        className={
-          variant === 'large'
-            ? 'h-[88px] w-full resize-none border-0 bg-transparent px-5 pb-2 pt-4 text-[length:var(--ui-font-body)] leading-6 text-[color:var(--ui-text)] outline-none placeholder:text-[color:var(--ui-muted)]'
-            : 'max-h-28 min-h-14 w-full resize-none border-0 bg-transparent px-4 py-3 text-[length:var(--ui-font-body)] leading-5 text-[color:var(--ui-text)] outline-none placeholder:text-[color:var(--ui-muted)]'
-        }
+        className="task-composer__input"
         placeholder={placeholder}
       />
-      <div className="flex min-w-0 flex-wrap items-center gap-1.5 border-t border-[var(--ui-border)] px-2.5 py-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                aria-label="添加材料、能力或命令"
-                className="rounded-lg bg-[var(--ui-canvas)] text-[color:var(--ui-text)] hover:bg-[var(--ui-hover)]"
-              />
-            }
-          >
-            <Plus />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="start"
-            side="top"
-            sideOffset={8}
-            className="w-[250px] rounded-xl border border-[var(--ui-border)] p-1.5 shadow-[var(--ui-shadow)]"
-          >
-            <DropdownMenuItem
-              onClick={() =>
-                addContext({
-                  id: 'upload-weekly',
-                  kind: '资料',
-                  label: '本周重点工作汇总.docx',
-                })
+      <div className="task-composer__toolbar">
+        <div className="task-composer__toolbar-left">
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="添加材料、能力或命令"
+                  className="task-composer__add"
+                />
               }
-              className="h-9 px-2 text-[length:var(--ui-font-meta)]"
             >
-              <Upload className="text-[color:var(--ui-muted)]" />
-              上传附件
-            </DropdownMenuItem>
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger className="h-9 px-2 text-[length:var(--ui-font-meta)]">
-                <FolderOpen className="text-[color:var(--ui-muted)]" />
-                当前项目的文件
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent className="w-56 rounded-xl p-1.5">
-                {[
-                  '任务材料清单.xlsx',
-                  '部门意见汇总.docx',
-                  '工作底稿／参考材料',
-                ].map((label, index) => (
-                  <DropdownMenuItem
-                    key={label}
-                    onClick={() =>
-                      addContext({
-                        id: `project-file-${index}`,
-                        kind: '资料',
-                        label,
-                      })
-                    }
-                    className="min-h-9 px-2 text-[length:var(--ui-font-meta)]"
-                  >
-                    <FileText />
-                    {label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger className="h-9 px-2 text-[length:var(--ui-font-meta)]">
-                <LibraryBig className="text-[color:var(--ui-muted)]" />
-                我的产物
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent className="w-56 rounded-xl p-1.5">
-                {['上一版工作报告.docx', '问题清单.xlsx', '汇报提纲.pptx'].map(
-                  (label, index) => (
+              <Plus />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="start"
+              side="top"
+              sideOffset={8}
+              className="w-[250px] rounded-xl border border-[var(--ui-border)] p-1.5 shadow-[var(--ui-shadow)]"
+            >
+              <DropdownMenuItem
+                onClick={() =>
+                  addContext({
+                    id: 'upload-weekly',
+                    kind: '资料',
+                    label: '本周重点工作汇总.docx',
+                  })
+                }
+                className="h-9 px-2 text-[length:var(--ui-font-meta)]"
+              >
+                <Upload className="text-[color:var(--ui-muted)]" />
+                上传附件
+              </DropdownMenuItem>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="h-9 px-2 text-[length:var(--ui-font-meta)]">
+                  <FolderOpen className="text-[color:var(--ui-muted)]" />
+                  当前项目的文件
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="w-56 rounded-xl p-1.5">
+                  {[
+                    '任务材料清单.xlsx',
+                    '部门意见汇总.docx',
+                    '工作底稿／参考材料',
+                  ].map((label, index) => (
+                    <DropdownMenuItem
+                      key={label}
+                      onClick={() =>
+                        addContext({
+                          id: `project-file-${index}`,
+                          kind: '资料',
+                          label,
+                        })
+                      }
+                      className="min-h-9 px-2 text-[length:var(--ui-font-meta)]"
+                    >
+                      <FileText />
+                      {label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="h-9 px-2 text-[length:var(--ui-font-meta)]">
+                  <LibraryBig className="text-[color:var(--ui-muted)]" />
+                  我的产物
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="w-56 rounded-xl p-1.5">
+                  {[
+                    '上一版工作报告.docx',
+                    '问题清单.xlsx',
+                    '汇报提纲.pptx',
+                  ].map((label, index) => (
                     <DropdownMenuItem
                       key={label}
                       onClick={() =>
@@ -489,136 +492,136 @@ export function TaskComposer({
                       <FileText />
                       {label}
                     </DropdownMenuItem>
-                  ),
-                )}
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-            <DropdownMenuSeparator />
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger className="h-9 px-2 text-[length:var(--ui-font-meta)]">
-                <Sparkles className="text-[color:var(--ui-brand)]" />
-                命令
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent className="w-[250px] rounded-xl p-1.5">
-                {commandOptions.map((item) => (
-                  <DropdownMenuItem
-                    key={item.value}
-                    onClick={() => selectCommand(item.value)}
-                    className="min-h-12 items-start px-2 py-2"
-                  >
-                    <item.icon className="mt-0.5 text-[color:var(--ui-brand)]" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-[length:var(--ui-font-meta)] font-medium text-[color:var(--ui-text)]">
-                        {item.label}
-                      </span>
-                      <span className="mt-0.5 block text-[length:var(--ui-font-meta)] text-[color:var(--ui-muted)]">
-                        {item.description}
-                      </span>
-                    </span>
-                    {commandMode === item.value ? (
-                      <Check className="mt-1 text-[color:var(--ui-brand)]" />
-                    ) : null}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-            {contextGroups.map((group) => (
-              <DropdownMenuSub key={group.label}>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              <DropdownMenuSeparator />
+              <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="h-9 px-2 text-[length:var(--ui-font-meta)]">
-                  <group.icon className="text-[color:var(--ui-muted)]" />
-                  {group.label}
+                  <Sparkles className="text-[color:var(--ui-brand)]" />
+                  命令
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent className="w-[250px] rounded-xl p-1.5">
-                  {group.items.map((item) => (
+                  {commandOptions.map((item) => (
                     <DropdownMenuItem
-                      key={item.id}
-                      onClick={() => addContext(item)}
-                      className="min-h-9 px-2 text-[length:var(--ui-font-meta)]"
+                      key={item.value}
+                      onClick={() => selectCommand(item.value)}
+                      className="min-h-12 items-start px-2 py-2"
                     >
-                      <group.icon />
-                      <span className="min-w-0 flex-1 truncate">
-                        {item.label}
+                      <item.icon className="mt-0.5 text-[color:var(--ui-brand)]" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[length:var(--ui-font-meta)] font-medium text-[color:var(--ui-text)]">
+                          {item.label}
+                        </span>
+                        <span className="mt-0.5 block text-[length:var(--ui-font-meta)] text-[color:var(--ui-muted)]">
+                          {item.description}
+                        </span>
                       </span>
-                      {contexts.some((context) => context.id === item.id) ? (
-                        <Check className="text-[color:var(--ui-brand)]" />
+                      {commandMode === item.value ? (
+                        <Check className="mt-1 text-[color:var(--ui-brand)]" />
                       ) : null}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+              {contextGroups.map((group) => (
+                <DropdownMenuSub key={group.label}>
+                  <DropdownMenuSubTrigger className="h-9 px-2 text-[length:var(--ui-font-meta)]">
+                    <group.icon className="text-[color:var(--ui-muted)]" />
+                    {group.label}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-[250px] rounded-xl p-1.5">
+                    {group.items.map((item) => (
+                      <DropdownMenuItem
+                        key={item.id}
+                        onClick={() => addContext(item)}
+                        className="min-h-9 px-2 text-[length:var(--ui-font-meta)]"
+                      >
+                        <group.icon />
+                        <span className="min-w-0 flex-1 truncate">
+                          {item.label}
+                        </span>
+                        {contexts.some((context) => context.id === item.id) ? (
+                          <Check className="text-[color:var(--ui-brand)]" />
+                        ) : null}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-8 gap-1.5 px-2 text-[length:var(--ui-font-meta)] font-normal text-[color:var(--ui-text)] hover:bg-[var(--ui-canvas)]"
-              />
-            }
-          >
-            <ShieldCheck className="size-3.5 text-[color:var(--ui-brand)]" />
-            {permission.label}
-            <ChevronDown className="size-3 text-[color:var(--ui-muted)]" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="start"
-            side="top"
-            sideOffset={8}
-            className="w-[292px] rounded-xl border border-[var(--ui-border)] p-1.5 shadow-[var(--ui-shadow)]"
-          >
-            <p className="px-2 py-2 text-[length:var(--ui-font-meta)] font-medium uppercase tracking-[0.08em] text-[color:var(--ui-muted)]">
-              本任务权限
-            </p>
-            {permissionOptions.map((item) => (
-              <DropdownMenuItem
-                key={item.value}
-                onClick={() => onPermissionModeChange(item.value)}
-                className="min-h-12 items-start px-2 py-2"
-              >
-                <ShieldCheck className="mt-0.5 text-[color:var(--ui-brand)]" />
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[length:var(--ui-font-meta)] font-medium text-[color:var(--ui-text)]">
-                    {item.label}
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="task-composer__text-control"
+                />
+              }
+            >
+              <ShieldCheck className="size-3.5 text-[color:var(--ui-brand)]" />
+              {permission.label}
+              <ChevronDown className="size-3 text-[color:var(--ui-muted)]" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="start"
+              side="top"
+              sideOffset={8}
+              className="w-[292px] rounded-xl border border-[var(--ui-border)] p-1.5 shadow-[var(--ui-shadow)]"
+            >
+              <p className="px-2 py-2 text-[length:var(--ui-font-meta)] font-medium uppercase tracking-[0.08em] text-[color:var(--ui-muted)]">
+                本任务权限
+              </p>
+              {permissionOptions.map((item) => (
+                <DropdownMenuItem
+                  key={item.value}
+                  onClick={() => onPermissionModeChange(item.value)}
+                  className="min-h-12 items-start px-2 py-2"
+                >
+                  <ShieldCheck className="mt-0.5 text-[color:var(--ui-brand)]" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[length:var(--ui-font-meta)] font-medium text-[color:var(--ui-text)]">
+                      {item.label}
+                    </span>
+                    <span className="mt-0.5 block text-[length:var(--ui-font-meta)] leading-4 text-[color:var(--ui-muted)]">
+                      {item.description}
+                    </span>
                   </span>
-                  <span className="mt-0.5 block text-[length:var(--ui-font-meta)] leading-4 text-[color:var(--ui-muted)]">
-                    {item.description}
-                  </span>
-                </span>
-                {permissionMode === item.value ? (
-                  <Check className="mt-1 text-[color:var(--ui-brand)]" />
-                ) : null}
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <p className="px-2 py-2 text-[length:var(--ui-font-meta)] leading-4 text-[color:var(--ui-muted)]">
-              不扩大来源系统原有权限；完全访问下，对外发送、正式提交和删除仍单独确认。
-            </p>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <span className="min-w-0 flex-1" />
-        <ModelSelector
-          value={modelMode}
-          onChange={onModelModeChange}
-          routing={routing}
-          onRoutingChange={onRoutingChange}
-        />
-        <VoiceInputButton onTranscript={appendTranscript} />
-        <Button
-          type="button"
-          size={variant === 'large' ? 'icon-lg' : 'icon'}
-          onClick={onSubmit}
-          disabled={!value.trim()}
-          aria-label={variant === 'large' ? '开始任务' : '发送'}
-          className="ml-0.5 rounded-xl bg-[var(--ui-brand)] text-[color:var(--ui-on-brand)] shadow-[var(--ui-shadow)] hover:bg-[var(--ui-brand)]"
-        >
-          <Send className="size-4" />
-        </Button>
+                  {permissionMode === item.value ? (
+                    <Check className="mt-1 text-[color:var(--ui-brand)]" />
+                  ) : null}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <p className="px-2 py-2 text-[length:var(--ui-font-meta)] leading-4 text-[color:var(--ui-muted)]">
+                不扩大来源系统原有权限；完全访问下，对外发送、正式提交和删除仍单独确认。
+              </p>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        <div className="task-composer__toolbar-right">
+          <ModelSelector
+            value={modelMode}
+            onChange={onModelModeChange}
+            routing={routing}
+            onRoutingChange={onRoutingChange}
+          />
+          <VoiceInputButton onTranscript={appendTranscript} />
+          <Button
+            type="button"
+            size={variant === 'large' ? 'icon-lg' : 'icon'}
+            onClick={onSubmit}
+            disabled={!value.trim()}
+            aria-label={variant === 'large' ? '开始任务' : '发送'}
+            className="task-composer__send"
+          >
+            <Send className="size-4" />
+          </Button>
+        </div>
       </div>
     </section>
   );
