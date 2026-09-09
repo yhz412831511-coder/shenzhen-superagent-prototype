@@ -6,6 +6,7 @@ import { fileURLToPath, URL } from "node:url";
 export default defineConfig({
   base: "/shenzhen-superagent-prototype/",
   root: "static",
+  publicDir: "../public",
   resolve: {
     alias: {
       "@": fileURLToPath(new URL(".", import.meta.url)),

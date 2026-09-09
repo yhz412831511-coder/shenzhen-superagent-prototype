@@ -1,0 +1,496 @@
+[
+  {
+    "id": "government-disclosure",
+    "name": "政务信息公开助手",
+    "kind": "专业智能体",
+    "category": "综合办公",
+    "summary": "围绕主动公开与依申请公开材料，辅助识别公开范围、敏感信息、依据和发布前检查。",
+    "publisher": "平台通用能力",
+    "version": "v1.2",
+    "owned": true,
+    "enabled": true,
+    "details": [
+      "公开属性初步研判",
+      "发布前敏感信息检查",
+      "公开目录与材料一致性核对"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "deep-research-agent",
+    "name": "深度研究助手",
+    "kind": "专业智能体",
+    "category": "综合办公",
+    "summary": "把开放研究问题拆成证据任务，联合互联网、组织知识库和个人资料形成可追溯研究成果。",
+    "publisher": "平台通用能力",
+    "version": "v1.4",
+    "owned": true,
+    "enabled": true,
+    "details": [
+      "政策与行业专题研究",
+      "多来源事实核验",
+      "形成带引用的决策参考"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "work-report-agent",
+    "name": "工作报告助手",
+    "kind": "专业智能体",
+    "category": "综合办公",
+    "summary": "从台账、通知、往年材料和阶段成果中归集事实，形成工作总结、计划、简报及汇报版本。",
+    "publisher": "平台通用能力",
+    "version": "v1.3",
+    "owned": true,
+    "enabled": true,
+    "details": [
+      "年度与阶段工作总结",
+      "领导汇报和会议简报",
+      "多版本材料协同修订"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "law-enforcement-review",
+    "name": "行政执法案卷评查智能体",
+    "kind": "专业智能体",
+    "category": "法治监管",
+    "summary": "按主体、事实、证据、依据、程序、文书和时限辅助开展案卷完整性检查与问题定位。",
+    "publisher": "建议共建：市司法局",
+    "version": "示例 v0.9",
+    "owned": false,
+    "enabled": false,
+    "details": [
+      "行政处罚案卷日常评查",
+      "程序与文书完整性检查",
+      "共性问题汇总与培训材料生成"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "market-supervision",
+    "name": "市场监管案件研判智能体",
+    "kind": "专业智能体",
+    "category": "法治监管",
+    "summary": "辅助整理投诉举报、现场检查、证据材料和适用规则，形成案件事实链与待核查事项。",
+    "publisher": "建议共建：市市场监管局",
+    "version": "示例 v0.8",
+    "owned": false,
+    "enabled": false,
+    "details": [
+      "投诉举报材料归并",
+      "检查记录与证据目录整理",
+      "适用规则和缺失材料提示"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "digital-city-management",
+    "name": "数字城管事件协同智能体",
+    "kind": "专业智能体",
+    "category": "城市治理",
+    "summary": "将巡查、投诉和平台事件按地点、类型、责任边界与时限进行归并，辅助分拨和闭环跟踪。",
+    "publisher": "建议共建：市城管和综合执法局",
+    "version": "示例 v0.8",
+    "owned": false,
+    "enabled": false,
+    "details": [
+      "城市管理事件归并去重",
+      "责任单位和处置时限辅助识别",
+      "跨区重大事件材料汇总"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "social-assistance",
+    "name": "社会救助材料核验智能体",
+    "kind": "专业智能体",
+    "category": "民生服务",
+    "summary": "辅助核对救助申请材料、家庭经济状况信息和政策条件，形成缺件与待人工核实事项。",
+    "publisher": "建议共建：市民政局",
+    "version": "示例 v0.7",
+    "owned": false,
+    "enabled": false,
+    "details": [
+      "申请材料完整性检查",
+      "政策条件与材料对照",
+      "跨部门核验事项整理"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "government-investment-review",
+    "name": "政府投资项目评审智能体",
+    "kind": "专业智能体",
+    "category": "项目建设",
+    "summary": "辅助核查项目建议书、可研、初步设计和概算之间的建设范围、指标、投资与验收关系。",
+    "publisher": "建议共建：市发展改革委／评审中心",
+    "version": "示例 v0.9",
+    "owned": false,
+    "enabled": false,
+    "details": [
+      "项目建议书和可研材料预审",
+      "建设内容与概算对照",
+      "评审问题清单和会议材料形成"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "emergency-duty",
+    "name": "应急值守信息研判智能体",
+    "kind": "专业智能体",
+    "category": "应急环保",
+    "summary": "汇聚值守快报、监测预警和部门反馈，辅助识别事件要素、信息缺口、影响范围与续报节点。",
+    "publisher": "建议共建：市应急管理局",
+    "version": "示例 v0.8",
+    "owned": false,
+    "enabled": false,
+    "details": [
+      "突发事件信息归并",
+      "首报续报要素检查",
+      "预案与联动单位辅助匹配"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "environmental-enforcement",
+    "name": "生态环境执法辅助智能体",
+    "kind": "专业智能体",
+    "category": "应急环保",
+    "summary": "围绕检查记录、监测数据、许可信息和信访材料，辅助形成污染线索、证据目录与检查重点。",
+    "publisher": "建议共建：市生态环境局",
+    "version": "示例 v0.8",
+    "owned": false,
+    "enabled": false,
+    "details": [
+      "执法检查材料归并",
+      "监测异常与许可条件对照",
+      "跨区域污染线索整理"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "disclosure-assessment",
+    "name": "信息公开属性研判",
+    "kind": "Skill",
+    "category": "政务业务",
+    "summary": "按公开、不予公开和依申请公开边界形成可复核的研判过程。",
+    "publisher": "深圳政务能力中心",
+    "version": "v1.2",
+    "owned": true,
+    "enabled": true,
+    "details": [
+      "识别材料与公开目标",
+      "定位相关依据",
+      "标记敏感信息与例外情形",
+      "形成研判意见并保留人工决定"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "regulation-review",
+    "name": "法规条款一致性审查",
+    "kind": "Skill",
+    "category": "政务业务",
+    "summary": "按上位法、权限、程序和可执行性检查草案条款。",
+    "publisher": "深圳政务能力中心",
+    "version": "v1.4",
+    "owned": true,
+    "enabled": true,
+    "details": [
+      "锁定版本与审查边界",
+      "检索并定位上位依据",
+      "区分冲突、缺失与优化建议",
+      "形成可回溯审查意见"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "fact-consistency",
+    "name": "多来源事实口径核对",
+    "kind": "Skill",
+    "category": "政务业务",
+    "summary": "对多份材料中的数字、名称、时间和状态建立事实底账。",
+    "publisher": "SuperAgent基础能力",
+    "version": "v1.3",
+    "owned": true,
+    "enabled": true,
+    "details": [
+      "抽取可核验事实",
+      "记录来源、时间与统计口径",
+      "标记冲突及影响范围",
+      "同步检查派生成果"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "oa-opinion",
+    "name": "OA拟办意见形成",
+    "kind": "Skill",
+    "category": "政务业务",
+    "summary": "从事项正文和附件中提炼背景、问题、责任边界与办理建议。",
+    "publisher": "深圳政务能力中心",
+    "version": "v1.0",
+    "owned": false,
+    "enabled": false,
+    "details": [
+      "锁定事项与附件版本",
+      "提取事实和办理时限",
+      "形成简明拟办建议",
+      "核对边界后预填草稿"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "deep-research",
+    "name": "深度检索与来源核验",
+    "kind": "Skill",
+    "category": "研究检索",
+    "summary": "把开放问题拆成检索计划，交叉核验来源并形成带引用结论。",
+    "publisher": "SuperAgent基础能力",
+    "version": "v2.0",
+    "owned": true,
+    "enabled": true,
+    "details": [
+      "拆解问题与证据要求",
+      "多路径检索并记录来源",
+      "交叉核验时间、主体和结论",
+      "区分事实、推断与待验证项"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "long-document-extraction",
+    "name": "长文档与PDF结构化提取",
+    "kind": "Skill",
+    "category": "文档成果",
+    "summary": "从长篇DOCX、PDF和扫描件中按目标提取结构、表格与关键事实。",
+    "publisher": "社区能力适政版",
+    "version": "v1.5",
+    "owned": false,
+    "enabled": false,
+    "details": [
+      "识别目录和版面结构",
+      "按问题提取正文与表格",
+      "保留页码和段落定位",
+      "对OCR低置信内容抽样复核"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "multi-file-comparison",
+    "name": "多文件归并与差异比对",
+    "kind": "Skill",
+    "category": "执行效率",
+    "summary": "批量识别重复文件、版本差异和内容变化，形成可追溯合并建议。",
+    "publisher": "SuperAgent基础能力",
+    "version": "v1.3",
+    "owned": false,
+    "enabled": false,
+    "details": [
+      "按名称、时间和内容聚类",
+      "识别主版本与重复项",
+      "生成逐项差异摘要",
+      "确认后输出合并副本"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "spreadsheet-cleaning",
+    "name": "表格清洗与异常识别",
+    "kind": "Skill",
+    "category": "数据分析",
+    "summary": "清理错位表头、空值、重复记录和格式混乱，并解释每类变更。",
+    "publisher": "社区能力适政版",
+    "version": "v1.8",
+    "owned": true,
+    "enabled": false,
+    "details": [
+      "识别表头和数据区域",
+      "统一字段类型与格式",
+      "标记缺失、重复和异常值",
+      "生成清洗副本与变更说明"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "data-analysis-visualization",
+    "name": "数据分析与图表表达",
+    "kind": "Skill",
+    "category": "数据分析",
+    "summary": "从问题、数据到指标、分析和图表，形成可解释的决策材料。",
+    "publisher": "SuperAgent基础能力",
+    "version": "v1.6",
+    "owned": false,
+    "enabled": false,
+    "details": [
+      "确认指标定义与数据质量",
+      "选择适合的分析方法",
+      "用图表表达关键关系",
+      "复核计算、图例和结论"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "document-coauthoring",
+    "name": "专业文档共创",
+    "kind": "Skill",
+    "category": "文档成果",
+    "summary": "通过提纲、分段起草、审阅和迭代，把复杂材料共同写成正式文档。",
+    "publisher": "社区能力适政版",
+    "version": "v1.4",
+    "owned": true,
+    "enabled": true,
+    "details": [
+      "共同确认目标与提纲",
+      "按材料分段形成草稿",
+      "逐轮处理结构和表达反馈",
+      "统一术语、引用和格式"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "presentation-storytelling",
+    "name": "演示文稿叙事与排版",
+    "kind": "Skill",
+    "category": "文档成果",
+    "summary": "把复杂材料转化为结构清楚、信息密度适当、可直接汇报的演示文稿。",
+    "publisher": "SuperAgent基础能力",
+    "version": "v1.3",
+    "owned": false,
+    "enabled": false,
+    "details": [
+      "提炼汇报主线和页级结论",
+      "规划页面结构与证据",
+      "生成图表和版式",
+      "逐页检查溢出、重复和可读性"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "artifact-quality-review",
+    "name": "成果质量复核",
+    "kind": "Skill",
+    "category": "执行效率",
+    "summary": "交付前统一检查内容完整性、来源、版本、格式和跨成果一致性。",
+    "publisher": "SuperAgent基础能力",
+    "version": "v1.1",
+    "owned": true,
+    "enabled": true,
+    "details": [
+      "确认成果清单与验收目标",
+      "检查结构、来源和版本",
+      "比对跨成果数字与表述",
+      "按阻断、建议和提示分级"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "artifact-annotation",
+    "name": "成果批注归并与修订",
+    "kind": "Skill",
+    "category": "执行效率",
+    "summary": "汇总内置浏览器中的多条批注并生成一个新工作版本。",
+    "publisher": "林思远",
+    "version": "v0.3",
+    "owned": true,
+    "enabled": true,
+    "details": [
+      "按成果与位置汇总",
+      "识别相互影响",
+      "一次生成新版本",
+      "同步任务产物与版本记录"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "wps-documents",
+    "name": "WPS文档",
+    "kind": "插件",
+    "category": "执行工具",
+    "summary": "为任务提供文字、演示、表格和PDF的读取、生成、预览与格式处理能力。",
+    "publisher": "办公能力中心",
+    "version": "v2.3",
+    "owned": true,
+    "enabled": false,
+    "details": [
+      "读取与生成文字文档",
+      "生成与处理演示文稿",
+      "处理电子表格",
+      "导出与预览PDF"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "qianxin-browser",
+    "name": "奇安信浏览器",
+    "kind": "插件",
+    "category": "执行工具",
+    "summary": "为任务提供受控网页打开、内容读取、表单预填和成果预览能力。",
+    "publisher": "安全浏览能力中心",
+    "version": "v1.6",
+    "owned": true,
+    "enabled": true,
+    "details": [
+      "打开并读取网页",
+      "任务内多标签浏览",
+      "表单预填",
+      "成果预览与批注定位"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "computer-use",
+    "name": "Computer Use",
+    "kind": "插件",
+    "category": "执行工具",
+    "summary": "为任务提供受控的桌面应用与网页界面识别、点击、输入、滚动和状态回传能力。",
+    "publisher": "SuperAgent交互能力中心",
+    "version": "v1.0",
+    "owned": true,
+    "enabled": true,
+    "details": [
+      "识别当前界面与可操作对象",
+      "点击、输入与滚动",
+      "跨页面状态核对",
+      "操作结果截图与回执"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "government-sms",
+    "name": "政务短信",
+    "kind": "插件",
+    "category": "执行工具",
+    "summary": "为任务提供短信内容生成、号码校验、批量预览和受控发送能力。",
+    "publisher": "政务消息能力中心",
+    "version": "v1.0",
+    "owned": false,
+    "enabled": false,
+    "details": [
+      "短信内容生成",
+      "接收对象与号码校验",
+      "批次预览",
+      "发送结果回执"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  },
+  {
+    "id": "ai-memory",
+    "name": "AI Memory",
+    "kind": "插件",
+    "category": "执行工具",
+    "summary": "为任务提供有效记忆读取、经验沉淀、偏好更新和纠错结论写入能力。",
+    "publisher": "SuperAgent平台",
+    "version": "v1.4",
+    "owned": true,
+    "enabled": true,
+    "details": [
+      "匹配有效记忆",
+      "写入个人经验",
+      "更新偏好与规则",
+      "记录纠错结论"
+    ],
+    "sourceNote": "原有通用能力目录；当前本地工作区的能力配置。"
+  }
+]

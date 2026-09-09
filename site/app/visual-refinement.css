@@ -1,0 +1,860 @@
+/* Geometry and interaction rules are shared by both palettes. */
+html[data-theme] body {
+  background: var(--ui-canvas);
+  color: var(--ui-text);
+}
+html[data-theme]
+  :where(button, input, textarea, select, summary, a):focus-visible {
+  outline: 2px solid var(--ui-brand);
+  outline-offset: 3px;
+}
+html[data-theme] ::selection {
+  background: var(--ui-brand-soft);
+  color: var(--ui-text);
+}
+.fw-app {
+  color: var(--ui-text);
+  font-size: var(--ui-font-control);
+}
+.fw-app :where(input, select, textarea) {
+  color: var(--ui-text);
+}
+.fw-app :where(button, summary) {
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
+}
+.fw-app button:disabled {
+  opacity: 0.55;
+}
+.fw-sidebar,
+.fw-monitor {
+  background: var(--ui-canvas);
+}
+.fw-topbar {
+  background: var(--ui-surface);
+}
+.fw-top-title {
+  color: var(--ui-text);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.fw-assistant-context {
+  color: var(--ui-muted);
+  font-weight: 400;
+  white-space: nowrap;
+}
+.fw-theme-toggle {
+  margin-left: auto;
+}
+.fw-theme-toggle + .fw-top-action {
+  margin-left: 0;
+}
+.fw-app h1,
+.fw-app h2,
+.fw-app h3,
+.fw-brand strong {
+  color: var(--ui-text);
+}
+.fw-btn {
+  color: var(--ui-text);
+  border-color: var(--ui-border);
+  border-radius: 8px;
+  min-height: 36px;
+  font-weight: 500;
+}
+.fw-btn:hover {
+  background: var(--ui-hover);
+  border-color: var(--ui-border-strong);
+}
+.fw-btn.primary {
+  color: var(--ui-on-brand);
+  background: var(--ui-brand);
+  border-color: var(--ui-brand);
+}
+.fw-btn.primary:hover {
+  background: var(--ui-brand-hover);
+  border-color: var(--ui-brand-hover);
+}
+.fw-btn.small {
+  font-size: var(--ui-font-control);
+}
+.fw-tag {
+  background: var(--ui-hover);
+  color: var(--ui-muted);
+  border-color: transparent;
+  border-radius: 6px;
+}
+.fw-tag.blue {
+  color: var(--ui-brand);
+  background: var(--ui-brand-soft);
+}
+.fw-tag.green {
+  color: var(--ui-success);
+  background: var(--ui-success-soft);
+}
+.fw-tag.amber {
+  color: var(--ui-warning);
+  background: var(--ui-warning-soft);
+}
+.fw-avatar {
+  background: var(--ui-brand-soft);
+  color: var(--ui-brand);
+}
+.fw-app .composer-shell,
+.fw-composer-area > section {
+  background: var(--ui-raised);
+  border: 1px solid var(--ui-border-strong);
+  border-radius: 12px;
+  box-shadow: 0 3px 14px #00000006;
+}
+.fw-app .composer-shell:focus-within,
+.fw-composer-area > section:focus-within {
+  border-color: var(--ui-brand);
+  box-shadow: 0 0 0 2px var(--ui-brand-soft);
+}
+.fw-message-column {
+  max-width: 864px;
+  padding: 28px 32px 40px;
+}
+.fw-composer-area > section,
+.fw-history-footer {
+  max-width: 800px;
+}
+.fw-composer-area {
+  background: var(--ui-surface);
+}
+.fw-message-content {
+  font-size: var(--ui-font-body);
+  line-height: 1.75;
+  color: var(--ui-text);
+}
+.fw-turn {
+  position: relative;
+  margin: 0 0 32px;
+  min-width: 0;
+}
+.fw-message {
+  margin: 0 0 12px;
+}
+.fw-message.user {
+  margin: 0;
+  align-items: flex-end;
+}
+.fw-message.user .fw-message-content {
+  background: var(--ui-bubble);
+  color: var(--ui-text);
+  border: 0;
+  border-radius: 16px;
+  padding: 13px 18px;
+  max-width: 85%;
+}
+.fw-turn .fw-message:last-of-type {
+  margin-bottom: 0;
+}
+.fw-prose p {
+  margin-bottom: 12px;
+}
+.fw-prose :is(ul, ol) {
+  margin: 8px 0 12px;
+}
+.fw-prose strong {
+  font-weight: 600;
+  color: inherit;
+}
+.fw-turn-tools {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  height: 24px;
+  margin-top: 8px;
+  opacity: 0;
+  color: var(--ui-muted);
+  transition: opacity 140ms ease;
+}
+.fw-turn:hover > .fw-turn-tools,
+.fw-turn:focus-within > .fw-turn-tools {
+  opacity: 1;
+}
+.fw-turn.user .fw-turn-tools {
+  justify-content: flex-end;
+}
+.fw-turn-tools time {
+  font-size: var(--ui-font-meta);
+}
+.fw-copy {
+  position: static;
+  opacity: 1;
+  margin: 0;
+  color: var(--ui-muted);
+  padding: 4px;
+  border-radius: 6px;
+}
+.fw-copy:hover {
+  color: var(--ui-text);
+  background: var(--ui-hover);
+}
+.fw-turn.system {
+  margin: 20px 0 28px;
+}
+.fw-system-message {
+  border: 0;
+  padding: 0;
+  color: var(--ui-muted);
+  font-size: var(--ui-font-meta);
+}
+.fw-message.execution {
+  margin: 14px 0;
+}
+.fw-operation {
+  border: 0;
+  background: transparent;
+  border-radius: 8px;
+  font-size: var(--ui-font-control);
+}
+.fw-operation > summary {
+  padding: 7px 0;
+  gap: 8px;
+  color: var(--ui-muted);
+  font-size: var(--ui-font-control);
+  line-height: 1.5;
+  min-height: 34px;
+  align-items: center;
+}
+.fw-operation > summary:hover {
+  color: var(--ui-text);
+}
+.fw-operation > summary > span:first-of-type {
+  flex: 1;
+}
+.fw-operation > summary > svg:first-child {
+  color: inherit;
+}
+.fw-operation-title {
+  min-width: 0;
+}
+.fw-operation-risk,
+.fw-operation-status {
+  font-size: var(--ui-font-meta);
+  white-space: nowrap;
+  color: var(--ui-muted);
+}
+.fw-operation-risk.high {
+  color: var(--ui-warning);
+}
+.fw-operation.abnormal > summary,
+.fw-warning-text {
+  color: var(--ui-warning);
+}
+.fw-warning-text {
+  font-size: var(--ui-font-meta);
+}
+.fw-operation > .fw-safety-detail {
+  margin: 6px 0 12px 23px;
+  padding: 14px 18px;
+  border-left: 2px solid var(--ui-border-strong);
+  background: var(--ui-canvas);
+  border-radius: 0 8px 8px 0;
+}
+.fw-operation-alert {
+  color: var(--ui-warning);
+  font-size: var(--ui-font-control);
+}
+.fw-safety-detail .fw-checks li {
+  background: var(--ui-hover);
+}
+.fw-safety-detail .pass {
+  color: var(--ui-success);
+}
+.fw-safety-detail .fail {
+  color: var(--ui-danger);
+}
+.fw-decision {
+  background: var(--ui-raised);
+  border: 1px solid var(--ui-brand-border);
+  border-left: 3px solid var(--ui-brand);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin: 20px 0 0;
+  color: var(--ui-text);
+}
+.fw-decision > strong {
+  color: var(--ui-text);
+  font-size: var(--ui-font-body);
+}
+.fw-decision .fw-actions {
+  margin-top: 16px;
+}
+.fw-turn-artifacts {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+.fw-artifact-row {
+  background: var(--ui-raised);
+  border-color: var(--ui-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 0;
+}
+.fw-artifact-row:hover {
+  background: var(--ui-hover);
+  border-color: var(--ui-border-strong);
+}
+.fw-artifact-row strong {
+  color: var(--ui-text);
+}
+.fw-artifact-row small {
+  color: var(--ui-muted);
+}
+.fw-file-icon {
+  padding: 7px;
+  color: var(--ui-brand);
+  background: var(--ui-brand-soft);
+  border-radius: 6px;
+}
+.fw-source-line,
+.fw-source-entry {
+  font-size: var(--ui-font-meta);
+  color: var(--ui-muted);
+  margin: 12px 0 0;
+}
+.fw-source-line,
+.fw-source-entry > summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.fw-app .fw-source-entry > summary {
+  font-size: var(--ui-font-meta);
+  padding: 4px 0;
+  color: var(--ui-muted);
+}
+.fw-memory-references {
+  border: 0;
+}
+.fw-source-entry button {
+  color: var(--ui-brand);
+}
+.fw-monitor .fw-artifact-row {
+  margin: 8px 0;
+}
+.fw-paper {
+  background: #ffffff;
+  color: #20242c;
+  border-color: #e1e5eb;
+  box-shadow: var(--ui-shadow);
+}
+.fw-paper h1,
+.fw-paper h2,
+.fw-paper h3,
+.fw-paper strong {
+  color: #20242c;
+}
+.fw-paper footer {
+  color: #606977;
+  border-color: #e1e5eb;
+}
+.fw-preview-toolbar,
+.fw-annotation {
+  background: var(--ui-raised);
+  color: var(--ui-text);
+}
+.fw-modal {
+  background: var(--ui-raised);
+  box-shadow: var(--ui-shadow);
+  border: 1px solid var(--ui-border);
+  border-radius: 12px;
+}
+.fw-modal-backdrop {
+  background: var(--ui-overlay);
+}
+.fw-system,
+.fw-system-body {
+  background: var(--ui-surface);
+  color: var(--ui-text);
+}
+.fw-app :is(th, td) {
+  border-color: var(--ui-border);
+}
+.fw-app th {
+  background: var(--ui-canvas);
+  color: var(--ui-muted);
+}
+.fw-app td {
+  color: var(--ui-text);
+}
+.fw-app
+  :is(
+    .fw-catalog-list > button,
+    .fw-auto-item,
+    .fw-system-body,
+    .fw-detail-section
+  ) {
+  border-color: var(--ui-border);
+}
+.fw-app input::placeholder,
+.fw-app textarea::placeholder {
+  color: var(--ui-muted);
+  opacity: 1;
+}
+.fw-theme-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.fw-theme-options > button {
+  text-align: left;
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: 12px;
+  padding: 12px;
+  color: var(--ui-text);
+}
+.fw-theme-options > button:hover {
+  border-color: var(--ui-border-strong);
+}
+.fw-theme-options > button.selected {
+  border-color: var(--ui-brand);
+  box-shadow: 0 0 0 1px var(--ui-brand);
+}
+.fw-theme-options strong {
+  flex: 1;
+  font-size: var(--ui-font-control);
+}
+.fw-theme-options small {
+  display: block;
+  margin-top: 5px;
+}
+.fw-theme-swatch {
+  display: grid;
+  grid-template-columns: 24% 1fr;
+  gap: 7px;
+  height: 86px;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+}
+.fw-theme-swatch.light {
+  background: #f7f8fa;
+  border: 1px solid #e1e5eb;
+}
+.fw-theme-swatch.dark {
+  background: #181a1e;
+  border: 1px solid #363c46;
+}
+.fw-theme-swatch i {
+  grid-row: span 3;
+  background: #c5d4f5;
+  border-radius: 4px;
+}
+.fw-theme-swatch.dark i {
+  background: #435f93;
+}
+.fw-theme-swatch span {
+  background: #e1e5eb;
+  border-radius: 3px;
+}
+.fw-theme-swatch.dark span {
+  background: #363c46;
+}
+.fw-theme-swatch span:nth-child(3) {
+  width: 72%;
+}
+.fw-legacy-page [class*='text-[length:var(--ui-font-body)'] {
+  font-size: var(--ui-font-body) !important;
+}
+.fw-legacy-page [class*='text-[length:var(--ui-font-control)'] {
+  font-size: var(--ui-font-control) !important;
+}
+.fw-app .composer-shell [class*='text-[length:var(--ui-font-control)'],
+.fw-composer-area section [class*='text-[length:var(--ui-font-control)'] {
+  font-size: var(--ui-font-control) !important;
+}
+html[data-theme] [data-slot='dropdown-menu-content'],
+html[data-theme] [data-slot='dropdown-menu-sub-content'],
+html[data-theme] [data-slot='popover-content'],
+html[data-theme] [data-slot='dialog-content'] {
+  background: var(--ui-raised);
+  color: var(--ui-text);
+  border-color: var(--ui-border);
+  box-shadow: var(--ui-shadow);
+}
+@media (max-width: 900px) {
+  .fw-assistant-context {
+    display: none;
+  }
+}
+@media (max-width: 700px) {
+  .fw-message-column {
+    padding: 22px 20px 32px;
+  }
+  .fw-message.user .fw-message-content {
+    max-width: 94%;
+  }
+  .fw-operation > summary {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .fw-operation > summary > span:first-of-type {
+    flex-basis: calc(100% - 46px);
+  }
+  .fw-operation-risk {
+    margin-left: 24px;
+  }
+  .fw-operation > summary > svg:last-child {
+    margin-left: auto;
+  }
+  .fw-turn-tools {
+    opacity: 1;
+  }
+  .fw-theme-options {
+    gap: 10px;
+  }
+  .fw-legacy-page:has([data-settings-nav]) > div > div {
+    padding: 12px !important;
+  }
+  .fw-legacy-page [data-settings-nav] {
+    width: 100% !important;
+    display: flex;
+    overflow-x: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--ui-border);
+  }
+  .fw-legacy-page [data-settings-nav] > p,
+  .fw-legacy-page [data-settings-nav] button span span:last-child {
+    display: none;
+  }
+  .fw-legacy-page [data-settings-nav] > div {
+    display: flex;
+    gap: 4px;
+  }
+  .fw-legacy-page [data-settings-nav] button {
+    white-space: nowrap;
+  }
+  .fw-legacy-page [data-settings-nav] ~ section {
+    padding: 18px !important;
+    overflow: visible;
+  }
+  .fw-legacy-page div:has(> [data-settings-nav]) {
+    flex-direction: column;
+    min-height: 0;
+  }
+}
+.fw-prose ol {
+  list-style: decimal;
+}
+.fw-prose ul {
+  list-style: disc;
+}
+.fw-turn-tools {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 3px;
+}
+.fw-turn.user .fw-turn-tools {
+  right: 0;
+  left: auto;
+}
+html[data-theme] [data-slot='dropdown-menu-content'],
+html[data-theme] [data-slot='dropdown-menu-sub-content'],
+html[data-theme] [data-slot='popover-content'] {
+  max-width: calc(100vw - 24px);
+}
+.fw-theme-options {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.fw-operation[data-status='失败'] > summary,
+.fw-operation[data-status='已阻止'] > summary,
+.fw-operation[data-status='失败'] .fw-warning-text,
+.fw-operation[data-status='已阻止'] .fw-warning-text,
+.fw-operation-alert[data-status='失败'],
+.fw-operation-alert[data-status='已阻止'] {
+  color: var(--ui-danger);
+}
+.fw-operation-alert {
+  margin: 4px 0 12px 24px !important;
+}
+
+/* Navigation reserves footer space; all growing lists scroll in one middle region. */
+.fw-sidebar {
+  min-height: 0;
+  padding-top: 16px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+}
+.fw-sidebar > .fw-brand,
+.fw-sidebar > footer {
+  flex: 0 0 auto;
+}
+.fw-nav-scroll {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
+}
+.fw-nav-scroll .fw-task-list {
+  flex: none;
+  min-height: 0;
+  overflow: visible;
+}
+.fw-nav-scroll .fw-folder {
+  width: 100%;
+  overflow-wrap: anywhere;
+}
+.fw-sidebar footer > button:first-child > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+.fw-sidebar footer .fw-avatar,
+.fw-sidebar footer svg {
+  flex-shrink: 0;
+}
+.fw-sidebar footer small {
+  line-height: 1.5;
+}
+.fw-main {
+  position: relative;
+}
+.fw-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+.fw-settings-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  background: var(--ui-surface);
+  min-width: 0;
+}
+.fw-settings-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 0 0 auto;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--ui-border);
+}
+.fw-settings-header > button:last-child {
+  margin-left: auto;
+}
+.fw-monitor .fw-detail-link {
+  font-size: var(--ui-font-control);
+  line-height: 1.6;
+  gap: 10px;
+  align-items: flex-start;
+}
+.fw-monitor .fw-detail-link > span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.fw-monitor .fw-detail-link > svg {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+.fw-monitor .fw-detail-link small {
+  display: block;
+  font-size: var(--ui-font-meta);
+  line-height: 1.5;
+  margin-top: 2px;
+  color: var(--ui-muted);
+}
+.fw-monitor > details > p {
+  font-size: var(--ui-font-control);
+  line-height: 1.65;
+}
+/* Composer is one surface, not a native textarea nested inside another bordered form. */
+.fw-app section[aria-label='创建新任务'] textarea,
+.fw-composer-area textarea {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  min-height: 52px;
+  resize: none;
+  padding: 14px 16px 8px;
+  box-shadow: none;
+  font-size: var(--ui-font-control);
+}
+.fw-app section[aria-label='创建新任务'] textarea:focus-visible,
+.fw-composer-area textarea:focus-visible {
+  outline: none;
+}
+.fw-composer-area {
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+@media (max-width: 600px) {
+  .fw-settings-header {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+  .fw-settings-header strong {
+    display: none;
+  }
+}
+
+/* The account control is a compact, raised surface within the navigation. */
+.fw-sidebar footer {
+  border-top: 0;
+  padding-top: 10px;
+}
+.fw-sidebar footer > button.fw-account-button {
+  gap: 8px;
+  padding: 10px 9px;
+  border: 1px solid var(--ui-border);
+  border-radius: 12px;
+  background: var(--ui-raised);
+  box-shadow: 0 2px 5px color-mix(in srgb, var(--ui-text) 4%, transparent);
+}
+.fw-sidebar footer > button.fw-account-button:hover {
+  background: var(--ui-hover);
+  border-color: var(--ui-border-strong);
+}
+.fw-sidebar footer > button.fw-account-button:active {
+  background: var(--ui-brand-soft);
+}
+.fw-account-button .fw-avatar {
+  width: 30px;
+  height: 30px;
+}
+.fw-account-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.fw-account-name {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 7px;
+  align-items: baseline;
+}
+.fw-sidebar footer .fw-account-name strong {
+  font-weight: 600;
+  line-height: 1.5;
+}
+.fw-sidebar footer .fw-account-name small {
+  display: inline;
+  color: var(--ui-muted);
+}
+.fw-sidebar footer .fw-account-role {
+  color: var(--ui-muted);
+  line-height: 1.5;
+}
+.fw-account-button > svg {
+  width: 16px;
+  height: 16px;
+}
+.fw-nav-scrim {
+  display: none;
+}
+@media (max-width: 700px) {
+  .fw-app > .fw-nav-scrim {
+    display: block;
+    position: absolute;
+    inset: 54px 0 0;
+    z-index: 49;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    background: color-mix(in srgb, var(--ui-overlay) 45%, transparent);
+    backdrop-filter: blur(2px);
+    cursor: default;
+  }
+}
+@media (min-width: 701px) and (max-width: 900px) {
+  .fw-sidebar footer > button.fw-account-button {
+    padding: 9px 8px;
+    gap: 6px;
+  }
+  .fw-account-button .fw-avatar {
+    width: 26px;
+    height: 26px;
+  }
+  .fw-account-button > svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.fw-project-group {
+  margin-bottom: 4px;
+}
+.fw-project-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  border-radius: 8px;
+}
+.fw-project-row.active {
+  color: var(--ui-brand);
+}
+.fw-project-toggle {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 32px;
+}
+.fw-project-toggle[aria-expanded='true'] svg {
+  transform: rotate(90deg);
+}
+.fw-nav-scroll .fw-project-row .fw-folder {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 8px 8px 2px;
+  width: auto;
+  gap: 7px;
+  color: inherit;
+}
+.fw-project-row .fw-folder > span {
+  flex: 1;
+  min-width: 0;
+}
+.fw-project-row .fw-folder > svg {
+  flex-shrink: 0;
+}
+.fw-project-row .fw-folder > small {
+  font-size: var(--ui-font-meta);
+  color: var(--ui-muted);
+}
+.fw-nav-scroll .fw-project-tasks {
+  margin: 0 0 6px 18px;
+  padding-left: 6px;
+  border-left: 1px solid var(--ui-border);
+}
+.fw-project-tasks button {
+  padding: 8px;
+}
+
+/* 单位全称允许自然换行，不挤压账户姓名和设置入口。 */
+.fw-account-info .fw-account-role {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+.fw-sidebar footer > button.fw-account-button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  row-gap: 6px;
+}
+.fw-account-button .fw-account-info { display: contents; }
+.fw-account-button .fw-avatar { grid-column: 1; grid-row: 1; }
+.fw-account-button .fw-account-name { grid-column: 2; grid-row: 1; }
+.fw-account-button > svg { grid-column: 3; grid-row: 1; }
+.fw-account-button .fw-account-role {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  text-align: left;
+  color: var(--ui-muted);
+  font-size: var(--ui-font-meta);
+}

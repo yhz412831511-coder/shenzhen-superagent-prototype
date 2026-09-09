@@ -7,9 +7,17 @@ export const metadata: Metadata = {
   description: '面向政务工作人员的可信智能任务工作台仿真原型',
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="zh-CN">
+    <html
+      lang="zh-CN"
+      data-theme="light"
+      data-font-size="standard"
+      data-reduced-motion="false"
+      suppressHydrationWarning
+    >
       <body>{children}</body>
     </html>
   );

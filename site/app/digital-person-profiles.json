@@ -1,0 +1,158 @@
+{
+  "documentStatus": "待统一编码的初始资料；不代表应用已更新或真实政府数字人已发布",
+  "date": "2026-09-08",
+  "classificationNote": "项目建设复用现有分类；财政管理补入目录。岗位数字人为专业智能体类型。",
+  "agents": [
+    {
+      "id": "project-coordination-digital-person",
+      "name": "项目统筹处数字人",
+      "category": "项目建设",
+      "type": "岗位数字人",
+      "initialState": "created",
+      "owned": true,
+      "enabled": true,
+      "organization": "深圳市政务服务和数据管理局",
+      "office": "项目统筹处",
+      "rolePositioning": "政务信息化项目申报咨询与统筹服务",
+      "summary": "提供政务信息化项目申报与办理咨询，帮助申报单位明确申报步骤、资产关联、材料准备和后续处理要求。",
+      "officialDutySummary": "全市政务信息化项目统筹及相关平台建设；有关市级政务信息化服务项目立项审批。",
+      "dutySourceIds": [
+        "project-office"
+      ],
+      "serviceAudience": [
+        "本处室工作人员",
+        "获授权的项目申报单位经办人员"
+      ],
+      "services": [
+        "运维项目申报路径指引",
+        "基础信息与历史建设项目关联说明",
+        "运维资产关联与同步指引",
+        "申报材料准备和一致性检查指引",
+        "项管平台费用估算结果解读",
+        "审核反馈与修改方向咨询"
+      ],
+      "sampleQuestions": [
+        "领导让我申报本单位系统的运维项目，应该从哪里开始？",
+        "CDOS和一体化数字资源管理系统是什么关系？",
+        "关联资产后，还需要准备哪些申报材料？"
+      ],
+      "relatedSystems": [
+        "政务信息化项目全周期数字化管理平台",
+        "一体化数字资源管理系统"
+      ],
+      "businessSource": "用户运维故事、14张系统截图及后续有效组织资料；服务清单是产品设计，不是官网原文"
+    },
+    {
+      "id": "fiscal-fund-supervision-digital-person",
+      "name": "资金监管数字人",
+      "category": "财政管理",
+      "type": "岗位数字人",
+      "initialState": "created",
+      "owned": true,
+      "enabled": true,
+      "organization": "深圳市财政局",
+      "office": null,
+      "rolePositioning": "财政资金支付申请指导与监管咨询",
+      "summary": "提供财政资金支付申请咨询，帮助预算单位说明实际支付用途、核对申请信息和材料，并根据组织已采纳经验给出补充说明建议。",
+      "officialDutySummary": "依据财政局财政资金与国库管理职责，结合相关支付审核、资金动态监控工作提供咨询。",
+      "dutySourceIds": [
+        "finance-bureau",
+        "treasury-office",
+        "treasury-payment-center"
+      ],
+      "serviceAudience": [
+        "本单位经办人员",
+        "获授权的其他预算单位经办人员"
+      ],
+      "services": [
+        "支付申请准备指引",
+        "实际支付用途说明",
+        "申请信息和材料核对",
+        "疑点说明与补正咨询",
+        "组织已采纳经验的解释与应用"
+      ],
+      "sampleQuestions": [
+        "支付申请需要先准备哪些信息和材料？",
+        "收到支付用途说明不充分的反馈，应补充哪些信息？",
+        "这笔申请该按哪类业务说明用途？"
+      ],
+      "relatedSystems": [
+        "智慧财政支付系统",
+        "财政穿透式监管系统"
+      ],
+      "experienceMaintenance": {
+        "contributor": "当前财政局经办人员",
+        "adopter": "组织维护者",
+        "requiresAdoption": true,
+        "storyNewMemory": "支付用途备注核对与补充说明方法",
+        "newMemoryPreseeded": false,
+        "activation": "用户对话实际生成个人程序记忆，贡献获组织维护者采纳后，才加入同一数字人的可用经验"
+      },
+      "businessSource": "用户财政支付审查故事；基础指导内容为服务设计，不冒充正式支付审批规则",
+      "officialInfo": "所属单位确认为财政局；相关职责逐项标明国库处或国库支付中心来源，不把当前用户擅自指派到中心。"
+    }
+  ],
+  "sources": [
+    {
+      "id": "project-office",
+      "title": "项目统筹处",
+      "publisher": "深圳市政务服务和数据管理局",
+      "publishedAt": "2024-05-08",
+      "checkedAt": "2026-09-08",
+      "url": "https://www.sz.gov.cn/zwfwsjglj_2019/jgzn/nzjg/content/post_11276192.html",
+      "indexNumber": "11440300MB2C92413C/2024-00052",
+      "verifiedFacts": [
+        "内设机构名称为项目统筹处",
+        "职责包含全市政务信息化项目统筹与相关平台建设",
+        "职责包含有关市级政务信息化服务项目的立项审批",
+        "办公地址为市民中心C区"
+      ],
+      "retrieval": "官方页面的搜索索引可读，直接打开返回空正文；未保存完整网页快照"
+    },
+    {
+      "id": "finance-bureau",
+      "title": "深圳市财政局主要职能",
+      "publisher": "深圳市财政局",
+      "publishedAt": "2025-11-07",
+      "checkedAt": "2026-09-08",
+      "url": "https://szfb.sz.gov.cn/gkmlpt/content/12/12482/post_12482182.html",
+      "indexNumber": "11440300007541539G/2025-00452",
+      "verifiedFacts": [
+        "负责市级财政收支管理",
+        "承担地方财政国库管理制度与市本级财政资金调度等职责"
+      ],
+      "retrieval": "官方页面与搜索结果核验"
+    },
+    {
+      "id": "treasury-office",
+      "title": "国库处",
+      "publisher": "深圳市财政局",
+      "publishedAt": "2026-01-19",
+      "checkedAt": "2026-09-08",
+      "url": "https://szfb.sz.gov.cn/szsczjwzgkml/szsczjwzgkml/jgzn/nsjg/content/post_12607797.html",
+      "verifiedFacts": [
+        "职责包含地方财政国库管理制度",
+        "职责包含市本级预算单位银行账户管理、预算执行报表分析和财政资金调度"
+      ],
+      "retrieval": "官方页面搜索索引核验"
+    },
+    {
+      "id": "treasury-payment-center",
+      "title": "深圳市财政国库支付中心",
+      "publisher": "深圳市财政局",
+      "publishedAt": "2025-11-10",
+      "checkedAt": "2026-09-08",
+      "url": "https://szfb.sz.gov.cn/szsczjwzgkml/szsczjwzgkml/jgzn/zsjg/content/post_12484077.html",
+      "verifiedFacts": [
+        "为市财政局直属行政管理类事业单位",
+        "职责包括财政资金支付及拨付凭证审核、核算",
+        "职责包括国库集中支付资金动态监控"
+      ],
+      "retrieval": "官方页面与搜索结果核验"
+    }
+  ],
+  "implementationDefaults": [
+    "资金监管数字人作为当前用户参与建设的组织能力默认已获取并启用；项目统筹处已获取为用户明确要求。",
+    "目录和我的智能体读取同一记录；采纳后更新经验引用，不创建第三个或重复数字人。"
+  ]
+}

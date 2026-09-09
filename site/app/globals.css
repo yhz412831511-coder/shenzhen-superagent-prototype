@@ -1,6 +1,9 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
+@import './fiscal.css';
+@import './visual-theme.css';
+@import './visual-refinement.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -124,7 +127,7 @@
 
   body {
     @apply bg-background text-foreground;
-    min-width: 820px;
+    min-width: 0;
     margin: 0;
     font-family: var(--font-ui);
     text-rendering: optimizeLegibility;
