@@ -625,7 +625,7 @@ export function MemoryPage({
         .includes(q.toLowerCase())
     );
   });
-  const m = rows.find((x) => x.id === selectedId) || rows[0];
+  const m = rows.find((x) => x.id === selectedId);
   const r = m ? current(m) : undefined;
   const choose = (id: string) => {
     onSelect(id);
@@ -1244,9 +1244,11 @@ export function MemoryPage({
               </div>
             )
           ) : (
-            <p className="py-16 text-center text-[length:var(--ui-font-control)] text-[color:var(--ui-muted)]">
-              选择一条记忆查看内容与来源。
-            </p>
+            <div className="fw-split-detail-empty">
+              <BrainCircuit size={26} />
+              <strong>选择一条记忆查看详情</strong>
+              <p>可查看工作作用、适用范围、来源、版本和实际引用记录。</p>
+            </div>
           )}
         </div>
       </div>

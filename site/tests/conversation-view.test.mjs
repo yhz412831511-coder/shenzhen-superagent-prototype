@@ -255,6 +255,41 @@ test('内容级双栏只在行级反馈悬停和选中状态', () => {
   assert.match(baseline, /禁止把“左侧出现的区域”一律染成/);
 });
 
+test('AI 记忆从一级导航进入时不预选记录', () => {
+  const workbench = fs.readFileSync(
+    new URL('../app/fiscal-workbench.tsx', import.meta.url),
+    'utf8',
+  );
+  const memoryPage = fs.readFileSync(
+    new URL('../app/memory-page.tsx', import.meta.url),
+    'utf8',
+  );
+  const baseline = fs.readFileSync(
+    new URL('../WORKSPACE_UI_CONSISTENCY.md', import.meta.url),
+    'utf8',
+  );
+  assert.match(
+    workbench,
+    /if \(n\.id === 'memory'\) setSelectedMemory\(undefined\)/,
+  );
+  assert.match(
+    workbench,
+    /const openMemory = \(id: string\) => \{\s*setSelectedMemory\(id\);\s*setPage\('memory'\);\s*\};/s,
+  );
+  assert.match(
+    memoryPage,
+    /const m = rows\.find\(\(x\) => x\.id === selectedId\);/,
+  );
+  assert.doesNotMatch(
+    memoryPage,
+    /rows\.find\(\(x\) => x\.id === selectedId\) \|\| rows\[0\]/,
+  );
+  assert.match(memoryPage, /选择一条记忆查看详情/);
+  assert.match(memoryPage, /fw-split-detail-empty/);
+  assert.match(baseline, /不默认选中第一项/);
+  assert.match(baseline, /带明确对象 ID/);
+});
+
 test('工作台抬升控件和纸张预览各自保持正确表面', () => {
   const refinement = fs.readFileSync(
     new URL('../app/visual-refinement.css', import.meta.url),

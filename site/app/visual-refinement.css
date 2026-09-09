@@ -87,6 +87,21 @@ html[data-theme] ::selection {
 .fw-app :is(.fw-split-layout, .fw-split-list-pane, .fw-split-detail-pane) {
   background: var(--ui-center);
 }
+.fw-app .fw-split-detail-empty {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 8px;
+  min-height: 450px;
+  color: var(--ui-muted);
+  text-align: center;
+}
+.fw-app .fw-split-detail-empty p {
+  max-width: 320px;
+  margin: 0;
+  font-size: var(--ui-font-control);
+  line-height: 1.6;
+}
 .fw-app :is(.fw-nav-search, .fw-account-button, .composer-shell),
 .fw-app :is(input:not([type='checkbox']), textarea, select),
 .fw-app :is(.fw-catalog-list > button, .fw-auto-item),

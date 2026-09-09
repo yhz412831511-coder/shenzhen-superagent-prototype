@@ -2458,7 +2458,7 @@ export function Library({
             </button>
           )}
           {!hasSelection && (
-            <div className="fw-library-detail-empty">
+            <div className="fw-library-detail-empty fw-split-detail-empty">
               {area === 'knowledge' ? <Database size={26} /> : <FileText size={26} />}
               <strong>选择一项查看详情</strong>
               <p>可查看来源、权限、最近使用和任务使用边界。</p>
