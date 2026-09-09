@@ -1,3 +1,4 @@
+/* Contract: ../WORKSPACE_UI_CONSISTENCY.md */
 /* Geometry and interaction rules are shared by both palettes. */
 html[data-theme] body {
   background: var(--ui-canvas);
@@ -28,6 +29,16 @@ html[data-theme] ::selection {
   --ui-brand-hover: var(--ui-workspace-brand-hover);
   --ui-brand-soft: var(--ui-workspace-brand-soft);
   --ui-brand-border: var(--ui-workspace-brand-border);
+  --ui-content-list-hover: color-mix(
+    in srgb,
+    var(--ui-side) 28%,
+    var(--ui-center)
+  );
+  --ui-content-list-selected: color-mix(
+    in srgb,
+    var(--ui-brand-soft) 46%,
+    var(--ui-center)
+  );
   --line: var(--ui-workspace-border);
   color: var(--ui-text);
   font-size: var(--ui-font-control);
@@ -68,10 +79,13 @@ html[data-theme] ::selection {
     .fw-monitor,
     .tw-header,
     .tw-tabs,
-    .tw-browser-tools
-  ),
-.fw-app :is(.fw-library-list-pane, .fw-memory-list-pane, [data-settings-nav]) {
+    .tw-browser-tools,
+    [data-settings-nav]
+  ) {
   background: var(--ui-side);
+}
+.fw-app :is(.fw-split-layout, .fw-split-list-pane, .fw-split-detail-pane) {
+  background: var(--ui-center);
 }
 .fw-app :is(.fw-nav-search, .fw-account-button, .composer-shell),
 .fw-app :is(input:not([type='checkbox']), textarea, select),
@@ -113,6 +127,16 @@ html[data-theme] ::selection {
 .fw-app [data-testid='memory-page'] > div:last-child,
 .fw-app .fw-settings-page > div > div {
   background: var(--ui-center);
+}
+.fw-app .fw-split-list-item {
+  background: transparent;
+}
+.fw-app .fw-split-list-item:hover {
+  background: var(--ui-content-list-hover);
+}
+.fw-app .fw-split-list-item:is(.active, .is-selected) {
+  background: var(--ui-content-list-selected);
+  box-shadow: inset 2px 0 0 var(--ui-brand);
 }
 .fw-app .tw-dock .fw-module {
   background: var(--ui-side);

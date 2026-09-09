@@ -201,6 +201,10 @@ test('工作台全部页面共享同一表面层级', () => {
     new URL('../app/memory-page.tsx', import.meta.url),
     'utf8',
   );
+  const fiscalComponents = fs.readFileSync(
+    new URL('../app/fiscal-components.tsx', import.meta.url),
+    'utf8',
+  );
   const settingsPage = fs.readFileSync(
     new URL('../app/settings-page.tsx', import.meta.url),
     'utf8',
@@ -219,12 +223,36 @@ test('工作台全部页面共享同一表面层级', () => {
     refinement,
     /\.fw-app\s+:is\(\.fw-main,[\s\S]*background:\s*var\(--ui-center\)/,
   );
-  assert.match(refinement, /\.fw-library-list-pane/);
-  assert.match(memoryPage, /fw-memory-list-pane/);
-  assert.match(memoryPage, /fw-memory-detail-pane/);
+  assert.match(
+    refinement,
+    /\.fw-app :is\(\.fw-split-layout, \.fw-split-list-pane, \.fw-split-detail-pane\)\s*\{[^}]*background:\s*var\(--ui-center\)/s,
+  );
+  assert.match(memoryPage, /fw-memory-list-pane fw-split-list-pane/);
+  assert.match(memoryPage, /fw-memory-detail-pane fw-split-detail-pane/);
+  assert.match(fiscalComponents, /fw-library-list-pane fw-split-list-pane/);
+  assert.match(fiscalComponents, /fw-library-detail-pane fw-split-detail-pane/);
   assert.match(settingsPage, /fw-settings-page/);
   assert.match(settingsPage, /fw-settings-content/);
   assert.match(settingsPage, /data-settings-nav/);
+});
+
+test('内容级双栏只在行级反馈悬停和选中状态', () => {
+  const refinement = fs.readFileSync(
+    new URL('../app/visual-refinement.css', import.meta.url),
+    'utf8',
+  );
+  const baseline = fs.readFileSync(
+    new URL('../WORKSPACE_UI_CONSISTENCY.md', import.meta.url),
+    'utf8',
+  );
+  assert.match(refinement, /--ui-content-list-hover:/);
+  assert.match(refinement, /--ui-content-list-selected:/);
+  assert.match(
+    refinement,
+    /\.fw-app \.fw-split-list-item:is\(\.active, \.is-selected\)\s*\{[^}]*background:\s*var\(--ui-content-list-selected\)[^}]*box-shadow:\s*inset 2px 0 0 var\(--ui-brand\)/s,
+  );
+  assert.match(baseline, /内容级双栏/);
+  assert.match(baseline, /禁止把“左侧出现的区域”一律染成/);
 });
 
 test('工作台抬升控件和纸张预览各自保持正确表面', () => {

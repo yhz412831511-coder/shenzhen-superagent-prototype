@@ -794,8 +794,8 @@ export function MemoryPage({
           {state.notice}
         </output>
       )}
-      <div className="grid min-h-[460px] flex-1 grid-cols-1 overflow-hidden rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface)] min-[820px]:grid-cols-[minmax(210px,0.85fr)_minmax(320px,1.4fr)]">
-        <div className="fw-memory-list-pane border-r border-[var(--ui-border)]">
+      <div className="fw-split-layout grid min-h-[460px] flex-1 grid-cols-1 overflow-hidden rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface)] min-[820px]:grid-cols-[minmax(210px,0.85fr)_minmax(320px,1.4fr)]">
+        <div className="fw-memory-list-pane fw-split-list-pane border-r border-[var(--ui-border)]">
           <p className="border-b border-[var(--ui-border)] px-4 py-3 text-[length:var(--ui-font-meta)] text-[color:var(--ui-muted)]">
             {rows.length} 条记忆
           </p>
@@ -806,7 +806,7 @@ export function MemoryPage({
                 <button
                   key={item.id}
                   onClick={() => choose(item.id)}
-                  className={`block w-full border-b border-[var(--ui-border)] px-4 py-4 text-left ${m?.id === item.id && !creating ? 'border-l-2 border-l-[var(--ui-brand)] bg-[var(--ui-canvas)]' : 'hover:bg-[var(--ui-canvas)]'}`}
+                  className={`fw-split-list-item block w-full border-b border-[var(--ui-border)] px-4 py-4 text-left ${m?.id === item.id && !creating ? 'is-selected' : ''}`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <span className="text-[length:var(--ui-font-control)] font-medium leading-6 text-[color:var(--ui-text)]">
@@ -838,7 +838,7 @@ export function MemoryPage({
             )}
           </div>
         </div>
-        <div className="fw-memory-detail-pane min-w-0 p-5 lg:p-6">
+        <div className="fw-memory-detail-pane fw-split-detail-pane min-w-0 p-5 lg:p-6">
           {creating ? (
             <MemoryEditor key="new" onClose={() => setCreating(false)} />
           ) : m && r ? (

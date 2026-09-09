@@ -2391,8 +2391,8 @@ export function Library({
         </select>
       </div>
 
-      <div className={`fw-library-layout ${hasSelection ? 'has-selection' : ''}`}>
-        <section className="fw-library-list-pane" aria-label={area === 'knowledge' ? '知识库列表' : '个人资料列表'}>
+      <div className={`fw-library-layout fw-split-layout ${hasSelection ? 'has-selection' : ''}`}>
+        <section className="fw-library-list-pane fw-split-list-pane" aria-label={area === 'knowledge' ? '知识库列表' : '个人资料列表'}>
           <div className="fw-library-list-heading">
             <strong>
               {area === 'knowledge'
@@ -2410,7 +2410,7 @@ export function Library({
               <button
                 type="button"
                 key={item.id}
-                className={selectedId === item.id ? 'active' : ''}
+                className={`fw-split-list-item ${selectedId === item.id ? 'active' : ''}`}
                 onClick={() => choose(item.id)}
               >
                 <span className="fw-library-item-icon">
@@ -2431,7 +2431,7 @@ export function Library({
               <button
                 type="button"
                 key={item.catalogId}
-                className={selectedId === item.catalogId ? 'active' : ''}
+                className={`fw-split-list-item ${selectedId === item.catalogId ? 'active' : ''}`}
                 onClick={() => choose(item.catalogId)}
               >
                 <span className="fw-library-item-icon"><Database size={19} /></span>
@@ -2451,7 +2451,7 @@ export function Library({
           </div>
         </section>
 
-        <section className="fw-library-detail-pane" aria-label="资料详情">
+        <section className="fw-library-detail-pane fw-split-detail-pane" aria-label="资料详情">
           {hasSelection && (
             <button type="button" className="fw-library-mobile-back" onClick={clearSelection}>
               <ArrowLeft size={16} />返回列表
