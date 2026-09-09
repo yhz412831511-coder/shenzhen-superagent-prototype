@@ -2,6 +2,7 @@
   "light": {
     "surface": "#FFFFFF",
     "canvas": "#F7F8FA",
+    "side-surface": "#F3F4F6",
     "raised": "#FFFFFF",
     "hover": "#F0F2F5",
     "bubble": "#F0F2F5",
@@ -29,6 +30,7 @@
   "dark": {
     "surface": "#181A1E",
     "canvas": "#14161A",
+    "side-surface": "#111318",
     "raised": "#22252B",
     "hover": "#2B3038",
     "bubble": "#292D34",

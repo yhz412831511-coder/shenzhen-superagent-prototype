@@ -129,7 +129,14 @@ for (const name of ['light', 'dark'])
   test(name + '主题正文、辅助信息、操作色和状态色均达到4.5:1', () => {
     const p = palettes[name];
     for (const fg of ['text', 'muted', 'brand'])
-      for (const bg of ['surface', 'canvas', 'raised', 'hover', 'bubble'])
+      for (const bg of [
+        'surface',
+        'canvas',
+        'side-surface',
+        'raised',
+        'hover',
+        'bubble',
+      ])
         assert.ok(
           ratio(p[fg], p[bg]) >= 4.5,
           `${fg}/${bg}: ${ratio(p[fg], p[bg])}`,
@@ -137,7 +144,31 @@ for (const name of ['light', 'dark'])
     for (const color of ['brand', 'success', 'warning', 'danger'])
       assert.ok(ratio(p[color], p[color + '-soft']) >= 4.5, color);
     assert.ok(ratio(p.brand, p['on-brand']) >= 4.5);
+    assert.ok(
+      ratio(p.surface, p['side-surface']) >= 1.06,
+      `surface/side-surface: ${ratio(p.surface, p['side-surface'])}`,
+    );
   });
+
+test('任务三栏页使用独立侧栏表面，非任务页面不被全局染灰', () => {
+  const workbench = fs.readFileSync(
+    new URL('../app/fiscal-workbench.tsx', import.meta.url),
+    'utf8',
+  );
+  const refinement = fs.readFileSync(
+    new URL('../app/visual-refinement.css', import.meta.url),
+    'utf8',
+  );
+  assert.match(workbench, /page === 'task' && task \? 'fw-task-page'/);
+  assert.match(
+    refinement,
+    /\.fw-app\.fw-task-page \.fw-sidebar[\s\S]*background:\s*var\(--ui-side-surface\)/,
+  );
+  assert.doesNotMatch(
+    refinement,
+    /\.fw-(?:home|module|legacy-page)[^{]*\{[^}]*var\(--ui-side-surface\)/s,
+  );
+});
 
 test('历史确认请求关联后续执行，显示已确认但保留原始鉴权记录', () => {
   let s = workspaceReducer(initial(), { type: 'replay', kind: 'payment' });

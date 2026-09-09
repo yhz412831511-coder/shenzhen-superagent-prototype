@@ -32,6 +32,14 @@ html[data-theme] ::selection {
 .fw-monitor {
   background: var(--ui-canvas);
 }
+.fw-app.fw-task-page .fw-sidebar,
+.fw-app.fw-task-page .tw-dock,
+.fw-app.fw-task-page .fw-monitor,
+.fw-app.fw-task-page .tw-header,
+.fw-app.fw-task-page .tw-tabs,
+.fw-app.fw-task-page .tw-browser-tools {
+  background: var(--ui-side-surface);
+}
 .fw-topbar {
   background: var(--ui-surface);
 }

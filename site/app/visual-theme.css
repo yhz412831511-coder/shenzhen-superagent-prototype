@@ -3,6 +3,7 @@ html[data-theme='light'] {
   color-scheme: light;
   --ui-surface: #ffffff;
   --ui-canvas: #f7f8fa;
+  --ui-side-surface: #f3f4f6;
   --ui-raised: #ffffff;
   --ui-hover: #f0f2f5;
   --ui-bubble: #f0f2f5;
@@ -31,6 +32,7 @@ html[data-theme='dark'] {
   color-scheme: dark;
   --ui-surface: #181a1e;
   --ui-canvas: #14161a;
+  --ui-side-surface: #111318;
   --ui-raised: #22252b;
   --ui-hover: #2b3038;
   --ui-bubble: #292d34;

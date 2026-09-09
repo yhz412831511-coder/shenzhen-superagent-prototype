@@ -383,7 +383,7 @@ export function FiscalWorkbench() {
   const notification = state.notice || state.memory.notice;
   return (
     <div
-      className={`fw-app ${sidebar ? '' : 'sidebar-closed'} ${mobileNav ? 'mobile-nav-open' : ''}`}
+      className={`fw-app ${page === 'task' && task ? 'fw-task-page' : ''} ${sidebar ? '' : 'sidebar-closed'} ${mobileNav ? 'mobile-nav-open' : ''}`}
     >
       {mobileNav && sidebar && (
         <button
