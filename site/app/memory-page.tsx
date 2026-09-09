@@ -3,19 +3,23 @@ import { useState, type ReactNode } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
+  BookOpen,
   BrainCircuit,
+  Briefcase,
   Check,
   Clock3,
   FileText,
   History,
+  ListChecks,
   Plus,
   Search,
-  ShieldCheck,
+  Users,
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useMemory } from './memory-store';
 import {
+  applicationFor,
   contextFor,
   current,
   eligible,
@@ -372,14 +376,63 @@ export function MemoryEditor({
     </div>
   );
 }
+function KindIcon({ kind }: { kind: MemoryKind }) {
+  const Icon = {
+    working: Briefcase,
+    semantic: BookOpen,
+    procedural: ListChecks,
+    episodic: Clock3,
+    functional: Users,
+  }[kind];
+  return <Icon className="size-4" aria-hidden="true" />;
+}
+function ApplicationView({ revision }: { revision: ReturnType<typeof current> }) {
+  const application = applicationFor(revision);
+  return (
+    <section
+      className="overflow-hidden rounded-xl border border-[var(--ui-brand-border)] bg-[var(--ui-surface)]"
+      data-testid="memory-application"
+    >
+      <div className="flex items-start gap-3 border-b border-[var(--ui-brand-border)] bg-[var(--ui-brand-soft)] p-4">
+        <span className="mt-0.5 rounded-lg bg-[var(--ui-surface)] p-2 text-[color:var(--ui-brand)]">
+          <KindIcon kind={revision.payload.kind} />
+        </span>
+        <div>
+          <p className="text-[length:var(--ui-font-meta)] font-medium text-[color:var(--ui-brand)]">
+            工作作用
+          </p>
+          <p className="mt-1 text-[length:var(--ui-font-body)] font-medium leading-7 text-[color:var(--ui-text)]">
+            {application.workRole}
+          </p>
+        </div>
+      </div>
+      <div className="grid gap-px bg-[var(--ui-border)] sm:grid-cols-3">
+        {[
+          ['适用工作', application.applicableWork],
+          ['对工作的帮助', application.workBenefit],
+          ['责任边界', application.responsibilityBoundary],
+        ].map(([label, value]) => (
+          <div key={label} className="bg-[var(--ui-surface)] p-4">
+            <p className="text-[length:var(--ui-font-meta)] font-medium text-[color:var(--ui-muted)]">
+              {label}
+            </p>
+            <p className="mt-2 whitespace-pre-wrap text-[length:var(--ui-font-control)] leading-6 text-[color:var(--ui-text)]">
+              {value}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 function PayloadView({ payload: p }: { payload: Payload }) {
   return (
     <div className="space-y-3 text-[length:var(--ui-font-control)] leading-6 text-[color:var(--ui-text)]">
-      <p className="whitespace-pre-wrap rounded-lg bg-[var(--ui-canvas)] p-4">
-        {p.kind === 'working' ? p.work : textFor(p)}
-      </p>
       {p.kind === 'working' && (
         <>
+          <p className="whitespace-pre-wrap rounded-lg bg-[var(--ui-canvas)] p-4">
+            {p.work}
+          </p>
           <Meta label="工作事项" value={p.context || '未填写业务语境'} />
           <h3 className="text-[length:var(--ui-font-control)] font-medium">
             工作中的关键记忆
@@ -411,6 +464,9 @@ function PayloadView({ payload: p }: { payload: Payload }) {
       )}
       {p.kind === 'semantic' && (
         <>
+          <p className="whitespace-pre-wrap rounded-lg bg-[var(--ui-canvas)] p-4">
+            {p.definition}
+          </p>
           <Meta label="简称与称谓" value={p.aliases.join('、') || '无'} />
           <Meta label="适用语境" value={p.context} />
           {p.distinction && (
@@ -420,10 +476,51 @@ function PayloadView({ payload: p }: { payload: Payload }) {
         </>
       )}
       {p.kind === 'procedural' && (
-        <Meta label="适用条件" value={p.conditions || '本人工作'} />
+        <>
+          <p className="whitespace-pre-wrap rounded-lg bg-[var(--ui-canvas)] p-4">
+            {p.method}
+          </p>
+          <Meta label="适用条件" value={p.conditions || '本人工作'} />
+          <h3 className="pt-1 text-[length:var(--ui-font-control)] font-medium">
+            办理步骤
+          </h3>
+          <ol className="space-y-2">
+            {p.steps.map((step, index) => (
+              <li
+                key={step + index}
+                className="flex gap-3 rounded-lg border border-[var(--ui-border)] p-3"
+              >
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[var(--ui-brand-soft)] text-[length:var(--ui-font-meta)] font-semibold text-[color:var(--ui-brand)]">
+                  {index + 1}
+                </span>
+                <span>{step}</span>
+              </li>
+            ))}
+          </ol>
+          {!p.steps.length && (
+            <p className="text-[color:var(--ui-muted)]">尚未拆分办理步骤。</p>
+          )}
+          {p.exceptions && <Meta label="例外处理" value={p.exceptions} />}
+          {p.skill && <Meta label="关联Skill" value={p.skill} />}
+        </>
+      )}
+      {p.kind === 'episodic' && p.subtype === 'past' && (
+        <>
+          <Meta label="发生时间" value={p.occurredAt.slice(0, 10)} />
+          <Meta label="相关事项" value={p.context || '本人相关工作'} />
+          <div className="space-y-2 rounded-lg bg-[var(--ui-canvas)] p-4">
+            <p className="font-medium">当时发生</p>
+            <p className="whitespace-pre-wrap">{p.event}</p>
+          </div>
+          <Meta label="本人决定" value={p.decision || '未记录'} />
+          <Meta label="处理结果" value={p.outcome || '待核实'} />
+        </>
       )}
       {p.kind === 'episodic' && p.subtype === 'plan' && (
         <>
+          <p className="whitespace-pre-wrap rounded-lg bg-[var(--ui-canvas)] p-4">
+            {p.goal}
+          </p>
           <Meta label="适用语境" value={p.context || '本人工作'} />
           <Meta label="负责人" value={p.responsible} />
           <Meta label="时间／阶段" value={p.due || p.phase} />
@@ -443,6 +540,9 @@ function PayloadView({ payload: p }: { payload: Payload }) {
       )}
       {p.kind === 'functional' && (
         <>
+          <p className="whitespace-pre-wrap rounded-lg bg-[var(--ui-canvas)] p-4">
+            {p.responsibility}
+          </p>
           <Meta
             label="职能性质"
             value={p.subtype === 'formal' ? '正式职能说明' : '本事项实际分工'}
@@ -715,11 +815,15 @@ export function MemoryPage({
                     </span>
                   </div>
                   <p className="mt-1 line-clamp-2 text-[length:var(--ui-font-control)] leading-5 text-[color:var(--ui-muted)]">
-                    {contextFor(ir.payload) || kindLabels[ir.payload.kind]}
+                    {applicationFor(ir).workRole}
                   </p>
-                  <p className="mt-2 text-[length:var(--ui-font-meta)] text-[color:var(--ui-muted)]">
-                    {kindLabels[ir.payload.kind]} · v{ir.number}
-                  </p>
+                  <div className="mt-2 flex items-center gap-1.5 text-[length:var(--ui-font-meta)] text-[color:var(--ui-muted)]">
+                    <KindIcon kind={ir.payload.kind} />
+                    <span>
+                      {kindLabels[ir.payload.kind]} ·{' '}
+                      {contextFor(ir.payload) || '通用工作'} · v{ir.number}
+                    </span>
+                  </div>
                 </button>
               );
             })}
@@ -742,17 +846,23 @@ export function MemoryPage({
               />
             ) : (
               <div className="space-y-5">
-                <div>
-                  <div className="flex items-center gap-2 text-[length:var(--ui-font-meta)] text-[color:var(--ui-muted)]">
-                    <span>{kindLabels[r.payload.kind]}</span>
-                    <span>·</span>
-                    <span>{scopeLabels[m.scope]}</span>
-                    <span>· v{r.number}</span>
+                <div className="flex items-start gap-3">
+                  <span className="mt-0.5 rounded-lg bg-[var(--ui-brand-soft)] p-2 text-[color:var(--ui-brand)]">
+                    <KindIcon kind={r.payload.kind} />
+                  </span>
+                  <div>
+                    <div className="flex items-center gap-2 text-[length:var(--ui-font-meta)] text-[color:var(--ui-muted)]">
+                      <span>{kindLabels[r.payload.kind]}</span>
+                      <span>·</span>
+                      <span>{scopeLabels[m.scope]}</span>
+                      <span>· v{r.number}</span>
+                    </div>
+                    <h2 className="mt-1 text-[18px] font-semibold leading-7 text-[color:var(--ui-text)]">
+                      {r.title}
+                    </h2>
                   </div>
-                  <h2 className="mt-2 text-[18px] font-semibold leading-7 text-[color:var(--ui-text)]">
-                    {r.title}
-                  </h2>
                 </div>
+                <ApplicationView revision={r} />
                 <PayloadView payload={r.payload} />
                 {r.payload.kind === 'working' && (
                   <div className="space-y-2 text-[length:var(--ui-font-control)]">
@@ -1068,7 +1178,7 @@ export function MemoryPage({
                   open={uses.length > 0}
                 >
                   <summary className="cursor-pointer py-2 text-[color:var(--ui-muted)]">
-                    怎样影响了工作（{uses.length}次引用）
+                    实际引用记录（{uses.length}次）
                   </summary>
                   {uses.map((u, i) => (
                     <button
@@ -1086,7 +1196,7 @@ export function MemoryPage({
                   ))}
                   {!uses.length && (
                     <p className="py-3 text-[color:var(--ui-muted)]">
-                      尚未被任务使用。
+                      尚无实际引用记录。
                     </p>
                   )}
                 </details>
@@ -1136,77 +1246,6 @@ export function MemoryPage({
           )}
         </div>
       </div>
-      <details className="mt-5 text-[length:var(--ui-font-meta)] text-[color:var(--ui-muted)]">
-        <summary className="flex cursor-pointer items-center gap-2">
-          <ShieldCheck className="size-4" />
-          数据说明与辅助验证
-        </summary>
-        <p className="my-3 max-w-3xl leading-6">
-          当前为本地交互原型。“深小i”释义依据公开来源整理，链接见来源详情；其他预置术语、工作记录与分工为合成样例，正式财政职能待核实。任务中的提取采用确定性规则，未连接真实模型和业务系统。状态在当前页面会话内保留，刷新复位；页面关闭后周期提醒不运行。个人记忆不会自动共享。
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {m && (
-            <Button
-              variant="outline"
-              className={actionClass}
-              onClick={() =>
-                dispatch({ type: 'access', id: m.id, allowed: false })
-              }
-            >
-              验证来源权限撤回
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            className={actionClass}
-            onClick={() =>
-              state.memories
-                .filter(
-                  (x) => !readable(x) && current(x).status !== 'withdrawn',
-                )
-                .forEach((x) =>
-                  dispatch({ type: 'access', id: x.id, allowed: true }),
-                )
-            }
-          >
-            恢复样例访问权限
-          </Button>
-          {state.contributions
-            .filter((c) => c.status === 'submitted')
-            .map((c) => (
-              <span key={c.id} className="flex gap-1">
-                <Button
-                  variant="outline"
-                  className={actionClass}
-                  onClick={() =>
-                    dispatch({
-                      type: 'contribution',
-                      id: c.id,
-                      status: 'accepted',
-                      reply: '合成回执：贡献已采纳。',
-                    })
-                  }
-                >
-                  验证贡献采纳
-                </Button>
-                <Button
-                  variant="outline"
-                  className={actionClass}
-                  onClick={() =>
-                    dispatch({
-                      type: 'contribution',
-                      id: c.id,
-                      status: 'returned',
-                      reply: '请补充适用范围。',
-                    })
-                  }
-                >
-                  验证贡献退回
-                </Button>
-              </span>
-            ))}
-        </div>
-      </details>
     </div>
   );
 }

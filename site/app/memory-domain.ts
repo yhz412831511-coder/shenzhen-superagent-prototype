@@ -117,6 +117,13 @@ export type Revision = {
   reason: string;
   confirmedBy: string;
   supersedes?: string;
+  application?: MemoryApplication;
+};
+export type MemoryApplication = {
+  workRole: string;
+  applicableWork: string;
+  workBenefit: string;
+  responsibilityBoundary: string;
 };
 export type Memory = {
   id: string;
@@ -209,6 +216,69 @@ export const current = (m: Memory) =>
   m.revisions.find((r) => r.id === m.current)!;
 export const revisionFor = (m: Memory, id: string) =>
   m.revisions.find((r) => r.id === id);
+export function applicationFor(r: Revision): MemoryApplication {
+  if (r.application) return r.application;
+  const p = r.payload;
+  if (p.kind === 'working') {
+    const latestResult = [...p.keyPoints]
+      .reverse()
+      .find((point) => point.kind === 'result')?.text;
+    return {
+      workRole: '接续这项工作时，恢复已经完成的步骤、本人决定和当前结果。',
+      applicableWork: p.context || p.work,
+      workBenefit:
+        latestResult || '减少重复回看材料，从已经确认的工作状态继续处理。',
+      responsibilityBoundary:
+        '只保留当时的工作记录；当前结论仍需结合最新材料、授权和有效规则核对。',
+    };
+  }
+  if (p.kind === 'semantic')
+    return {
+      workRole: `任务中出现“${p.term}”时，按具体业务语境准确理解。`,
+      applicableWork: p.context,
+      workBenefit: `区分专业含义与相近说法，避免仅凭字面作出业务判断。`,
+      responsibilityBoundary:
+        p.distinction || '只解决术语理解，不代表已经取得对应系统权限或业务结论。',
+    };
+  if (p.kind === 'procedural')
+    return {
+      workRole: '再次办理同类事项时，复用已经确认的处理顺序和检查方法。',
+      applicableWork: p.conditions || '本人同类工作',
+      workBenefit: p.steps.length
+        ? `按${p.steps.length}个步骤组织办理，减少遗漏和反复确认。`
+        : p.method,
+      responsibilityBoundary:
+        p.exceptions || '遇到适用条件变化或材料冲突时，仍由本人确认处理方式。',
+    };
+  if (p.kind === 'episodic' && p.subtype === 'past')
+    return {
+      workRole: '遇到相近情况时，调取当时的事实、决定和处理结果。',
+      applicableWork: p.context || '相关后续工作',
+      workBenefit: p.outcome || '帮助判断哪些做法可以沿用，哪些事实需要重新核实。',
+      responsibilityBoundary:
+        '只说明该次经历及其结果，不自动推广为所有事项都适用的规则。',
+    };
+  if (p.kind === 'episodic')
+    return {
+      workRole: '在后续任务和周期回顾中保持下一步安排连续。',
+      applicableWork: p.context || '相关后续工作',
+      workBenefit: p.completion || '明确下一步完成条件，避免事项在任务切换后中断。',
+      responsibilityBoundary:
+        '工作规划可随实际反馈调整；没有明确日期时不补造期限。',
+    };
+  return {
+    workRole:
+      p.subtype === 'formal'
+        ? '判断该事项应由哪个机构提供职责依据和业务指导。'
+        : '明确当前事项中由谁办理、确认和承担最终动作。',
+    applicableWork: p.context || '相关职责与事项分工',
+    workBenefit: p.responsibility,
+    responsibilityBoundary:
+      p.subtype === 'formal'
+        ? '正式职能以公开或组织发布的有效文件为准，不据此替代具体事项审批。'
+        : '事项分工只对当前工作有效，不改写单位或处室的正式职责。',
+  };
+}
 export function readable(m: Memory, ref?: MemoryRef) {
   return Boolean(
     current(m).source.accessible &&
@@ -366,6 +436,10 @@ export function revise(
         title,
         payload,
         source: source ?? old.source,
+        application:
+          JSON.stringify(payload) === JSON.stringify(old.payload)
+            ? old.application
+            : undefined,
         recordedAt: iso(now),
         validFrom: iso(now),
         status,
@@ -1125,8 +1199,17 @@ export function memoryReducer(
                 number: 1,
                 payload: p,
                 title: r.title,
+                application: {
+                  ...applicationFor({ ...r, payload: p }),
+                  workRole:
+                    '向有权限的工作人员和专业智能体提供经组织采纳的工作经验。',
+                  workBenefit:
+                    '把个人办理经验转化为可复用的组织方法，后续咨询可引用同一受控版本。',
+                  responsibilityBoundary:
+                    '只使用组织维护者采纳的内容，不公开个人原话、任务附件或未提交字段。',
+                },
                 source: {
-                  label: '组织贡献回执（合成验证记录）',
+                  label: '组织经验采纳记录',
                   quote: c.content,
                   nature: 'published',
                   accessible: true,
