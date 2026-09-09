@@ -1,9 +1,0 @@
-site/node_modules/
-site/dist/
-site/gh-pages-dist/
-site/.wrangler/
-site/.vinext/
-site/.next/
-site/outputs/
-site/.env*
-.DS_Store
