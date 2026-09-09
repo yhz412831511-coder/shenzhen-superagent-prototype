@@ -12,6 +12,9 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
   AlertCircle,
+  Circle,
+  CircleCheckBig,
+  LoaderCircle,
   Zap,
   ArrowLeft,
   ArrowUpRight,
@@ -77,6 +80,7 @@ import {
   turnText,
   type OperationGroup,
 } from './conversation-view';
+import { taskProgress, type TaskProgressItem } from './task-progress';
 import {
   canUsePersonalItem,
   formatFileSize,
@@ -960,6 +964,30 @@ export function Conversation({
     </div>
   );
 }
+function TaskProgressRow({ item }: { item: TaskProgressItem }) {
+  const Icon =
+    item.status === 'completed'
+      ? CircleCheckBig
+      : item.status === 'in_progress'
+        ? LoaderCircle
+        : Circle;
+  const label = {
+    completed: '已完成',
+    in_progress: '执行中',
+    not_started: '未开始',
+  }[item.status];
+  return (
+    <li data-status={item.status}>
+      <Icon className="fw-task-progress-icon" size={17} aria-hidden="true" />
+      <span className="fw-visually-hidden">{label}：</span>
+      <span className="fw-task-progress-copy">
+        <span className="fw-task-progress-title">{item.title}</span>
+        {item.statusDetail && <small>{item.statusDetail}</small>}
+      </span>
+    </li>
+  );
+}
+
 export function Monitor({
   task,
   onOpen,
@@ -996,6 +1024,8 @@ export function Monitor({
   const attentionOperations=f?.operations.filter(op=>op.risk==='高'||op.status!=='成功'||(op.risk!=='无'&&(!op.checks.length||op.checks.some(check=>!check.passed))))||[];
   const operationGroups=conversationTurns(task,f?.operations).flatMap(turn=>turn.segments.flatMap(segment=>segment.kind==='operation-group'?[segment.group]:[]));
   const recentArtifacts=(f?.artifactIds||[]).slice(-3).reverse();
+  const progress=taskProgress(task,f);
+  const completedProgress=progress.filter(item=>item.status==='completed').length;
   const securitySection=<details className={attentionOperations.length?'fw-monitor-attention':''} open={attentionOperations.length>0}>
     <summary>安全与授权 <span>{attentionOperations.length?`${attentionOperations.length} 项需关注`:`${f?.operations.length||0} 项检查已记录`}</span></summary>
     {attentionOperations.map(op=><button className="fw-detail-link" key={op.id} onClick={()=>onOpen({kind:'operation',id:op.id})}><AlertCircle size={15}/><span>{operationTitle(op)}<small>{op.status==='待确认'?'需要本人确认':op.status==='成功'?'高风险操作已执行':op.status}</small></span><ArrowUpRight size={13}/></button>)}
@@ -1008,57 +1038,11 @@ export function Monitor({
       {!!attentionOperations.length&&securitySection}
       <details open>
         <summary>
-          处理进度{' '}
-          {f && !f.historical && f.stage !== 'complete' && (
-            <Tag>{f.status}</Tag>
-          )}
+          任务进度 <span>{completedProgress}/{progress.length}</span>
         </summary>
-        <p>{f ? stageNames[f.stage] : '依据当前任务内容继续办理'}</p>
-        {f?.decisions.slice(-1).map((d, i) => (
-          <p className="fw-small-line" key={i}>
-            <Check size={14} />
-            {d.text}
-          </p>
-        ))}
-        {!!f && f.decisions.length > 1 && (
-          <details className="fw-monitor-history">
-            <summary>查看此前 {f.decisions.length - 1} 项决定</summary>
-            {f.decisions.slice(0, -1).map((d, i) => (
-              <p className="fw-small-line" key={i}>
-                <Check size={14} />
-                {d.text}
-              </p>
-            ))}
-          </details>
-        )}
-        {f?.submission === 'user-reported' && (
-          <p className="fw-meta">
-            提交来源：本人告知已提交。尚未取得平台提交回执。
-          </p>
-        )}
-        {f?.submission === 'system-confirmed' && (
-          <p className="fw-meta">提交来源：项管平台正式提交回执。</p>
-        )}
-        {f?.tracking && (
-          <p className="fw-meta">
-            审核反馈追踪已创建；新反馈将生成独立跟进任务。
-          </p>
-        )}
-        {f &&
-          !f.historical &&
-          ['payment', 'maintenance'].includes(f.kind) &&
-          f.stage !== 'complete' && (
-            <Btn
-              small
-              onClick={() =>
-                document
-                  .querySelector('.fw-decision:last-of-type')
-                  ?.scrollIntoView({ behavior: 'smooth' })
-              }
-            >
-              定位当前待办
-            </Btn>
-          )}
+        <ol className="fw-task-progress">
+          {progress.map(item=><TaskProgressRow key={item.id} item={item}/>) }
+        </ol>
       </details>
       <details open>
         <summary>

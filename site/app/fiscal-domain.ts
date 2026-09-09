@@ -714,6 +714,7 @@ function gate(s: WorkspaceState, f: Flow, a: CommandAction) {
     s.nextOutcome = 'success';
     op.status = '失败';
     op.detail = '连接暂时不可用，没有取得执行成功回执。';
+    f.status = '执行失败';
     s.notice = op.detail;
     return false;
   }
@@ -1419,6 +1420,7 @@ function consult(
 ) {
   const agent = s.catalog.find((x) => x.id === agentId),
     f = s.flows[id];
+  f.status = '咨询处理中';
   if (
     !gate(s, f, {
       type: 'command',
@@ -1903,7 +1905,7 @@ export function workspaceReducer(
           id: a.id,
           kind: 'consultation',
           stage: 'consult',
-          status: '可继续咨询',
+          status: '准备咨询',
           source: '本人咨询 · 专业智能体',
           historical: false,
           stopped: false,
