@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   initialWorkspace,
   workspaceReducer as reduce,
@@ -8,7 +9,10 @@ import {
 } from '../app/fiscal-domain.ts';
 import {
   assets,
+  agentDetailProfiles,
+  digitalProfiles,
   fiscalAgent,
+  projectAgent,
   teachingExample,
   originalRemarks,
 } from '../app/fiscal-catalog.ts';
@@ -51,6 +55,93 @@ const prepared = () => {
 };
 const estimated = () =>
   cmd(cmd(prepared(), 'upload-materials', { confirmed: true }), 'estimate');
+
+test('两个岗位数字人初始版本具备完整基础能力资料', () => {
+  const s = initial();
+  assert.equal(digitalProfiles.agents.length, 2);
+  const sourceIds = new Set(digitalProfiles.sources.map((source) => source.id));
+  for (const profile of digitalProfiles.agents) {
+    const catalogEntry = s.catalog.find((entry) => entry.id === profile.id);
+    assert.equal(catalogEntry.version, '1.0');
+    assert.equal(catalogEntry.owned, true);
+    assert.equal(catalogEntry.enabled, true);
+    assert.ok(profile.initialCapabilities.length >= 5);
+    assert.ok(profile.requiredContext.length >= 5);
+    assert.ok(profile.expectedOutputs.length >= 5);
+    assert.ok(profile.serviceBoundaries.length >= 4);
+    assert.ok(profile.basisSourceIds.every((id) => sourceIds.has(id)));
+    for (const capability of profile.initialCapabilities) {
+      assert.ok(capability.title && capability.work && capability.result);
+      assert.ok(
+        ['官方职责衍生', '业务场景配置'].includes(capability.basisType),
+      );
+      assert.ok(capability.sourceIds.every((id) => sourceIds.has(id)));
+      if (capability.basisType === '官方职责衍生')
+        assert.ok(capability.sourceIds.length > 0);
+    }
+  }
+  assert.deepEqual(
+    digitalProfiles.agents.map((profile) => profile.id),
+    [projectAgent, fiscalAgent],
+  );
+});
+
+test('资金监管数字人保持财政局跨职能归属且不虚构处室', () => {
+  const profile = digitalProfiles.agents.find(
+    (agent) => agent.id === fiscalAgent,
+  );
+  assert.equal(profile.organization, '深圳市财政局');
+  assert.equal(profile.office, null);
+  assert.deepEqual(profile.dutySupport, [
+    '深圳市财政局',
+    '国库处',
+    '深圳市财政国库支付中心',
+  ]);
+  assert.equal(profile.organization.includes('资金监管处'), false);
+  assert.equal(profile.dutySupport.includes('资金监管处'), false);
+});
+
+test('岗位数字人详情按基础能力、输入输出、职责依据、边界和组织经验分层', () => {
+  const source = readFileSync(
+    new URL('../app/fiscal-components.tsx', import.meta.url),
+    'utf8',
+  );
+  const sections = [
+    '初始具备的基础能力',
+    '开展工作需要的信息与可形成的结果',
+    '职责依据',
+    '使用边界',
+    '后续增加的组织经验',
+  ].map((text) => source.indexOf(text));
+  assert.ok(sections.every((index) => index >= 0));
+  assert.deepEqual([...sections].sort((a, b) => a - b), sections);
+  assert.match(source, /初始基础能力始终可用/);
+});
+
+test('所有专业智能体共用完整详情框架', () => {
+  const professionalAgents = initial().catalog.filter(
+    (entry) => entry.kind === '专业智能体',
+  );
+  const detailedIds = new Set([
+    ...digitalProfiles.agents.map((profile) => profile.id),
+    ...agentDetailProfiles.profiles.map((profile) => profile.id),
+  ]);
+  assert.equal(professionalAgents.length, 12);
+  assert.equal(detailedIds.size, professionalAgents.length);
+  for (const entry of professionalAgents) assert.ok(detailedIds.has(entry.id));
+  for (const profile of agentDetailProfiles.profiles) {
+    const entry = professionalAgents.find((item) => item.id === profile.id);
+    assert.ok(entry);
+    assert.equal(profile.capabilityWork.length, entry.details.length);
+    assert.equal(profile.capabilityResults.length, entry.details.length);
+    assert.ok(profile.requiredContext.length >= 4);
+    assert.ok(profile.expectedOutputs.length >= 3);
+    assert.ok(profile.serviceBoundaries.length >= 3);
+    assert.ok(profile.sampleQuestions.length >= 2);
+    assert.ok(profile.basisLabel && profile.basisNote);
+  }
+});
+
 test('重演不会被页面时钟重复补跑上一个周期', () => {
   for (const kind of ['payment', 'maintenance']) {
     const s = reduce(replay(kind), { type: 'tick', now: now + 60000 });
@@ -427,8 +518,8 @@ test('同版本材料重复整理不复制成果，上传成功有独立材料�
   assert.equal(s.flows['replay-maintenance'].submission, 'draft');
 });
 test('输入改变使材料与估算过期，重新上传计算才可提交', () => {
-  let s = estimated(),
-    id = 'replay-maintenance',
+  let s = estimated();
+  const id = 'replay-maintenance',
     version = s.flows[id].version;
   s = cmd(s, 'save-project', { value: { months: '6' } });
   assert.ok(s.flows[id].version > version);
@@ -441,16 +532,16 @@ test('输入改变使材料与估算过期，重新上传计算才可提交', ()
   assert.equal(s.flows[id].estimate.total, 48);
 });
 test('待确认操作不能使用过期材料版本', () => {
-  let s = cmd(prepared(), 'upload-materials'),
-    id = 'replay-maintenance',
+  let s = cmd(prepared(), 'upload-materials');
+  const id = 'replay-maintenance',
     pending = s.flows[id].pending;
   s = cmd(s, 'save-project', { value: { months: '6' } });
   s = reduce(s, { ...pending, confirmed: true });
   assert.equal(s.flows[id].uploadedVersion, 0);
 });
 test('本人未提交不创建追踪；本人告知后主动建议', () => {
-  let s = cmd(estimated(), 'manual-submit'),
-    id = 'replay-maintenance';
+  let s = cmd(estimated(), 'manual-submit');
+  const id = 'replay-maintenance';
   s = cmd(s, 'track');
   assert.equal(s.automations.length, 1);
   s = reduce(s, { type: 'say', taskId: id, text: '我还没有提交' });

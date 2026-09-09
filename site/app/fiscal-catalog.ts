@@ -1,5 +1,6 @@
 import retained from './retained-catalog.json' with { type: 'json' };
 import profiles from './digital-person-profiles.json' with { type: 'json' };
+import agentDetails from './agent-detail-profiles.json' with { type: 'json' };
 export const systems = {
   payment: {
     name: '智慧财政支付系统',
@@ -48,6 +49,7 @@ export type CatalogEntry = {
   sourceNote?: string;
 };
 export const digitalProfiles = profiles;
+export const agentDetailProfiles = agentDetails;
 export const projectAgent = 'project-coordination-digital-person';
 export const fiscalAgent = 'fiscal-fund-supervision-digital-person';
 export const paymentSkill = 'payment-remark-review';

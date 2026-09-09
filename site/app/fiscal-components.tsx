@@ -26,6 +26,7 @@ import { useWorkspace } from './workspace-store';
 import { current, eligible, kindLabels, type WorkTask } from './memory-domain';
 import {
   assets,
+  agentDetailProfiles,
   digitalProfiles,
   fiscalAgent,
   paymentSkill,
@@ -33,6 +34,7 @@ import {
   systems,
   originalRemarks,
   knowledgeText,
+  type CatalogEntry,
   type SystemId,
 } from './fiscal-catalog';
 import {
@@ -59,6 +61,64 @@ export type Target = {
   annotationId?: string;
   id: string;
 };
+
+type AgentCapabilityDetail = {
+  title: string;
+  work: string;
+  result: string;
+  basisType: string;
+  sourceIds: string[];
+};
+
+type AgentDetailProfile = {
+  id: string;
+  type: string;
+  organization: string;
+  officialDutySummary: string;
+  dutySupport: string[];
+  rolePositioning: string;
+  serviceAudience: string[];
+  initialCapabilities: AgentCapabilityDetail[];
+  requiredContext: string[];
+  expectedOutputs: string[];
+  basisSourceIds: string[];
+  basisLabel: string;
+  basisNote: string;
+  serviceBoundaries: string[];
+  sampleQuestions: string[];
+};
+
+function agentProfileFor(entry: CatalogEntry): AgentDetailProfile | undefined {
+  if (entry.kind !== '专业智能体') return undefined;
+  const officialProfile = digitalProfiles.agents.find((agent) => agent.id === entry.id);
+  if (officialProfile) {
+    return {
+      ...officialProfile,
+      basisLabel: '业务场景资料',
+      basisNote: officialProfile.businessSource,
+    };
+  }
+
+  const configuredProfile = agentDetailProfiles.profiles.find(
+    (agent) => agent.id === entry.id,
+  );
+  if (!configuredProfile) return undefined;
+  return {
+    ...configuredProfile,
+    organization: entry.publisher,
+    officialDutySummary: entry.owned
+      ? `${entry.publisher}当前已配置${entry.category}领域的基础辅助能力。`
+      : `${entry.publisher}的目录共建方向，具体职责与业务规则待共建单位确认。`,
+    basisSourceIds: [],
+    initialCapabilities: entry.details.map((title, index) => ({
+      title,
+      work: configuredProfile.capabilityWork[index],
+      result: configuredProfile.capabilityResults[index],
+      basisType: configuredProfile.basisLabel,
+      sourceIds: [],
+    })),
+  };
+}
 export function Btn({
   children,
   onClick,
@@ -1629,7 +1689,7 @@ export function CatalogPage({
     );
   const activeKind = kind === '插件' || kind === '连接器' ? extensionTab : kind,
     entry = state.catalog.find((c) => c.id === id && c.kind === activeKind),
-    profile = digitalProfiles.agents.find((a) => a.id === id);
+    profile = entry ? agentProfileFor(entry) : undefined;
 
   const all = state.catalog.filter((c) => c.kind === activeKind),
     results = all.filter(
@@ -1675,7 +1735,10 @@ export function CatalogPage({
           <div>
             <h1>{entry.name}</h1>
             <p>
-              {entry.publisher} · {entry.category} · v{entry.version}
+              {entry.publisher} · {entry.category} ·{' '}
+              {entry.version.startsWith('v') || entry.version.startsWith('示例')
+                ? entry.version
+                : `v${entry.version}`}
             </p>
           </div>
           <Tag tone={entry.enabled ? 'green' : 'neutral'}>
@@ -1734,44 +1797,158 @@ export function CatalogPage({
           )}
         </div>
         {profile && (
+          <>
+            <section className="fw-section fw-agent-positioning">
+              <h2>岗位定位</h2>
+              <p className="fw-agent-duty-summary">
+                {profile.officialDutySummary}
+              </p>
+              <dl>
+                <dt>数字人类型</dt>
+                <dd>{profile.type}</dd>
+                <dt>组织归属</dt>
+                <dd>{profile.organization}</dd>
+                <dt>职责支撑</dt>
+                <dd>{profile.dutySupport.join('、')}</dd>
+                <dt>服务定位</dt>
+                <dd>{profile.rolePositioning}</dd>
+                <dt>服务对象</dt>
+                <dd>{profile.serviceAudience.join('、')}</dd>
+              </dl>
+            </section>
+
+            <section className="fw-section">
+              <div className="fw-section-heading">
+                <div>
+                  <h2>初始具备的基础能力</h2>
+                  <p>
+                    {entry.owned ? '当前' : '目录'}{' '}
+                    {entry.version.startsWith('v') || entry.version.startsWith('示例')
+                      ? entry.version
+                      : `v${entry.version}`}{' '}
+                    {entry.owned
+                      ? '已具备以下能力，后续组织经验在此基础上持续补充。'
+                      : '配置了以下基础能力，获取并启用后可使用。'}
+                  </p>
+                </div>
+                <Tag tone="blue">{entry.owned ? '初始可用' : '获取后可用'}</Tag>
+              </div>
+              <div className="fw-capability-grid">
+                {profile.initialCapabilities.map((capability) => {
+                  const capabilitySources = digitalProfiles.sources.filter((s) =>
+                    capability.sourceIds.includes(s.id),
+                  );
+                  return (
+                    <article className="fw-capability-card" key={capability.title}>
+                      <div className="fw-capability-card-title">
+                        <h3>{capability.title}</h3>
+                        <Tag
+                          tone={
+                            capability.basisType === '官方职责衍生'
+                              ? 'blue'
+                              : 'neutral'
+                          }
+                        >
+                          {capability.basisType}
+                        </Tag>
+                      </div>
+                      <p>{capability.work}</p>
+                      <div className="fw-capability-result">
+                        <strong>形成结果</strong>
+                        <span>{capability.result}</span>
+                      </div>
+                      {capabilitySources.length > 0 && (
+                        <p className="fw-meta">
+                          依据：{capabilitySources.map((s) => s.title).join('、')}
+                        </p>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className="fw-section">
+              <h2>开展工作需要的信息与可形成的结果</h2>
+              <div className="fw-agent-io-grid">
+                <div className="fw-agent-list-card">
+                  <h3>需要提供的信息</h3>
+                  <ul>
+                    {profile.requiredContext.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="fw-agent-list-card">
+                  <h3>可形成的结果</h3>
+                  <ul>
+                    {profile.expectedOutputs.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            <section className="fw-section">
+              <h2>职责依据</h2>
+              <p className="fw-section-note">
+                {profile.basisSourceIds.length > 0
+                  ? '官方职责和公开工作信息用于界定基础能力范围；具体系统操作来自本工作区业务资料。'
+                  : '当前仅展示目录能力或拟共建场景的配置依据；未经核对的内容不作为部门官方职责或办事依据。'}
+              </p>
+              <div className="fw-source-grid">
+                {digitalProfiles.sources
+                  .filter((s) => profile.basisSourceIds.includes(s.id))
+                  .map((s) => (
+                    <article className="fw-source-card" key={s.id}>
+                      <div>
+                        <Tag tone="blue">{s.basisType}</Tag>
+                        <small className="fw-meta">
+                          发布 {s.publishedAt} · 核对 {s.checkedAt}
+                        </small>
+                      </div>
+                      <h3>
+                        <a href={s.url} target="_blank" rel="noreferrer">
+                          {s.title} <ArrowUpRight size={14} />
+                        </a>
+                      </h3>
+                      <p>{s.verifiedFacts.join('；')}。</p>
+                    </article>
+                  ))}
+                <article className="fw-source-card">
+                  <div>
+                    <Tag>{profile.basisLabel}</Tag>
+                  </div>
+                  <h3>当前能力配置记录</h3>
+                  <p>{profile.basisNote}</p>
+                </article>
+              </div>
+            </section>
+
+            <section className="fw-section">
+              <h2>使用边界</h2>
+              <ul className="fw-boundary-list">
+                {profile.serviceBoundaries.map((item) => (
+                  <li key={item}>
+                    <ShieldCheck size={17} />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </>
+        )}
+        {!profile && (
           <section className="fw-section">
-            <h2>机构职责与服务范围</h2>
-            <p>{profile.officialDutySummary}</p>
-            <dl>
-              <dt>所属单位</dt>
-              <dd>{profile.organization}</dd>
-              <dt>对应岗位</dt>
-              <dd>{profile.rolePositioning}</dd>
-              <dt>服务对象</dt>
-              <dd>{profile.serviceAudience.join('、')}</dd>
-            </dl>
-            <h3>公开依据</h3>
-            {digitalProfiles.sources
-              .filter((s) => profile.dutySourceIds.includes(s.id))
-              .map((s) => (
-                <p key={s.id}>
-                  <a href={s.url} target="_blank" rel="noreferrer">
-                    {s.title} ↗
-                  </a>
-                  <small className="fw-meta">
-                    {' '}
-                    发布 {s.publishedAt} · 核对 {s.checkedAt}
-                  </small>
-                </p>
+            <h2>可以协助的工作</h2>
+            <ul>
+              {entry.details.map((x, i) => (
+                <li key={i}>{x}</li>
               ))}
-            <p className="fw-meta">
-              上述为机构公开职责；下面的数字人服务清单为本工作区能力设计，不代表官网已发布同名数字人。
-            </p>
+            </ul>
           </section>
         )}
-        <section className="fw-section">
-          <h2>可以协助的工作</h2>
-          <ul>
-            {entry.details.map((x, i) => (
-              <li key={i}>{x}</li>
-            ))}
-          </ul>
-        </section>
         {entry.system && (
           <section className="fw-section">
             <h2>当前身份与授权</h2>
@@ -1814,11 +1991,15 @@ export function CatalogPage({
             ))}
           </section>
         )}
-        {id === fiscalAgent && (
+        {profile && (
           <section className="fw-section">
-            <h2>可用组织经验</h2>
-            <p>由组织维护者采纳后供咨询使用；个人原始对话不进入对外答复。</p>
-            {state.memory.memories
+            <h2>后续增加的组织经验</h2>
+            <p>
+              {entry.owned
+                ? '初始基础能力始终可用；以下经验由组织维护者采纳后增加，个人原始对话不进入对外答复。'
+                : '当前尚未获取该智能体；获取后，组织经验只会在基础能力上增加，不会取代基础能力。'}
+            </p>
+            {id === fiscalAgent && state.memory.memories
               .filter(
                 (m) =>
                   m.scope !== 'personal' &&
@@ -1837,14 +2018,17 @@ export function CatalogPage({
                   <Tag tone="green">组织已采纳</Tag>
                 </button>
               ))}
-            {!state.memory.memories.some(
-              (m) =>
-                m.scope !== 'personal' &&
-                eligible(m, state.memory.now) &&
-                current(m).title.includes('支付'),
-            ) && (
+            {(id !== fiscalAgent ||
+              !state.memory.memories.some(
+                (m) =>
+                  m.scope !== 'personal' &&
+                  eligible(m, state.memory.now) &&
+                  current(m).title.includes('支付'),
+              )) && (
               <p className="fw-meta">
-                目前提供基础指导，尚无本次新贡献的有效组织方法。
+                {entry.owned
+                  ? '当前没有新增的有效组织方法，数字人仍可使用上述初始基础能力。'
+                  : '获取并启用后，可先使用上述基础能力；当前没有新增的组织方法。'}
               </p>
             )}
           </section>

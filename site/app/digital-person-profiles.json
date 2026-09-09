@@ -1,6 +1,6 @@
 {
-  "documentStatus": "待统一编码的初始资料；不代表应用已更新或真实政府数字人已发布",
-  "date": "2026-09-08",
+  "documentStatus": "岗位数字人初始能力资料",
+  "date": "2026-09-09",
   "classificationNote": "项目建设复用现有分类；财政管理补入目录。岗位数字人为专业智能体类型。",
   "agents": [
     {
@@ -19,6 +19,14 @@
       "dutySourceIds": [
         "project-office"
       ],
+      "basisSourceIds": [
+        "project-office",
+        "project-management-report",
+        "project-budget"
+      ],
+      "dutySupport": [
+        "项目统筹处"
+      ],
       "serviceAudience": [
         "本处室工作人员",
         "获授权的项目申报单位经办人员"
@@ -31,6 +39,76 @@
         "项管平台费用估算结果解读",
         "审核反馈与修改方向咨询"
       ],
+      "initialCapabilities": [
+        {
+          "title": "项目范围与当前阶段判断",
+          "work": "根据申报单位、项目类型和当前进度，区分立项、建设、验收、运营运维等阶段，提示应进入的办理环节。",
+          "result": "形成项目范围、当前阶段和需要向主管部门确认事项的说明。",
+          "basisType": "官方职责衍生",
+          "sourceIds": [
+            "project-office",
+            "project-management-report"
+          ]
+        },
+        {
+          "title": "立项与全生命周期路径说明",
+          "work": "说明立项、采购、实施、监督、验收、运营运维和后评价等阶段之间的关系。",
+          "result": "形成当前环节的后续办理路径和阶段衔接提示。",
+          "basisType": "官方职责衍生",
+          "sourceIds": [
+            "project-management-report",
+            "project-budget"
+          ]
+        },
+        {
+          "title": "历史项目与资产关联提示",
+          "work": "结合申报单位提供的历史建设项目和资产范围，说明关联、同步与核对时应关注的信息。",
+          "result": "形成历史项目和运维资产的关联提示及待核对项。",
+          "basisType": "业务场景配置",
+          "sourceIds": []
+        },
+        {
+          "title": "申报材料一致性核对",
+          "work": "核对项目名称、实施周期、资产范围、材料版本和平台字段是否保持一致。",
+          "result": "形成材料不一致项、缺失信息和修改建议清单。",
+          "basisType": "业务场景配置",
+          "sourceIds": []
+        },
+        {
+          "title": "平台费用结果解释",
+          "work": "读取项管平台已经形成的费用估算，说明估算口径、对应范围和需要本人确认的内容。",
+          "result": "形成平台估算结果说明，不将估算表述为批复金额。",
+          "basisType": "业务场景配置",
+          "sourceIds": []
+        },
+        {
+          "title": "审核反馈整理",
+          "work": "收到平台反馈后，按反馈对象、申报版本和问题类型整理修改方向。",
+          "result": "形成逐项修改清单、需补材料和下一步处理建议。",
+          "basisType": "业务场景配置",
+          "sourceIds": []
+        }
+      ],
+      "requiredContext": [
+        "申报单位和承办范围",
+        "项目类型及当前办理阶段",
+        "历史建设项目和资产范围",
+        "申报材料名称与版本",
+        "项管平台及资产系统当前状态"
+      ],
+      "expectedOutputs": [
+        "当前阶段的办理路径",
+        "待补信息和材料核对清单",
+        "历史项目与资产关联提示",
+        "平台费用估算结果说明",
+        "审核反馈修改清单"
+      ],
+      "serviceBoundaries": [
+        "不代替项目统筹处作出立项审批决定，也不表述项目已经获批。",
+        "不扩大经办人员在项管平台和一体化数字资源管理系统中的权限。",
+        "平台费用估算不是批复金额，正式金额以有效审批结果为准。",
+        "公开依据未明确的材料要求、办理时限和费用规则不补造。"
+      ],
       "sampleQuestions": [
         "领导让我申报本单位系统的运维项目，应该从哪里开始？",
         "CDOS和一体化数字资源管理系统是什么关系？",
@@ -40,7 +118,7 @@
         "政务信息化项目全周期数字化管理平台",
         "一体化数字资源管理系统"
       ],
-      "businessSource": "用户运维故事、14张系统截图及后续有效组织资料；服务清单是产品设计，不是官网原文"
+      "businessSource": "运维项目申报工作记录、14张系统截图及后续有效组织资料；相关平台操作能力为本工作区业务配置，不是官网发布事项"
     },
     {
       "id": "fiscal-fund-supervision-digital-person",
@@ -52,13 +130,23 @@
       "enabled": true,
       "organization": "深圳市财政局",
       "office": null,
-      "rolePositioning": "财政资金支付申请指导与监管咨询",
+      "rolePositioning": "财政资金支付与监管跨职能咨询",
       "summary": "提供财政资金支付申请咨询，帮助预算单位说明实际支付用途、核对申请信息和材料，并根据组织已采纳经验给出补充说明建议。",
-      "officialDutySummary": "依据财政局财政资金与国库管理职责，结合相关支付审核、资金动态监控工作提供咨询。",
+      "officialDutySummary": "组织归属深圳市财政局，由财政局财政收支与国库管理职责、国库处制度和预算执行职责、财政国库支付中心支付审核与动态监控职责共同支撑。",
       "dutySourceIds": [
         "finance-bureau",
         "treasury-office",
         "treasury-payment-center"
+      ],
+      "basisSourceIds": [
+        "finance-bureau",
+        "treasury-office",
+        "treasury-payment-center"
+      ],
+      "dutySupport": [
+        "深圳市财政局",
+        "国库处",
+        "深圳市财政国库支付中心"
       ],
       "serviceAudience": [
         "本单位经办人员",
@@ -70,6 +158,79 @@
         "申请信息和材料核对",
         "疑点说明与补正咨询",
         "组织已采纳经验的解释与应用"
+      ],
+      "initialCapabilities": [
+        {
+          "title": "支付申请准备指导",
+          "work": "根据预算单位拟办理的支付事项，提示需要说明的资金来源、支付对象、实际用途和支付依据。",
+          "result": "形成支付申请信息准备清单和需要补充确认的事项。",
+          "basisType": "官方职责衍生",
+          "sourceIds": [
+            "finance-bureau",
+            "treasury-payment-center"
+          ]
+        },
+        {
+          "title": "支付要素核对",
+          "work": "结合资金来源、预算指标、支付对象、合同标的和用途说明，检查关键要素是否相互对应。",
+          "result": "形成要素不一致项、待核实疑点和补充说明建议。",
+          "basisType": "业务场景配置",
+          "sourceIds": []
+        },
+        {
+          "title": "凭证与材料一致性检查",
+          "work": "核对拨付凭证、合同信息和支持材料中的对象、金额及用途是否一致。",
+          "result": "形成凭证与材料差异清单，供经办人员进一步核验。",
+          "basisType": "官方职责衍生",
+          "sourceIds": [
+            "treasury-payment-center"
+          ]
+        },
+        {
+          "title": "疑点分类与补正建议",
+          "work": "区分资金来源、用途表述、支付对象、合同标的和材料缺失等不同类型的疑点。",
+          "result": "形成疑点分类、补正信息清单和供本人确认的审查意见草稿。",
+          "basisType": "业务场景配置",
+          "sourceIds": []
+        },
+        {
+          "title": "国库集中支付与动态监控说明",
+          "work": "依据公开职责说明国库管理、支付审核、核算和动态监控各环节的职责关系。",
+          "result": "形成职责说明和需要转由对应机构处理的事项提示。",
+          "basisType": "官方职责衍生",
+          "sourceIds": [
+            "finance-bureau",
+            "treasury-office",
+            "treasury-payment-center"
+          ]
+        },
+        {
+          "title": "有效组织经验应用",
+          "work": "在基础能力之上引用组织维护者已经采纳且仍然有效的办理方法。",
+          "result": "形成带有经验名称和版本的补充办理建议，并保留实际引用记录。",
+          "basisType": "业务场景配置",
+          "sourceIds": []
+        }
+      ],
+      "requiredContext": [
+        "资金来源和预算指标",
+        "支付对象、金额与实际用途",
+        "合同标的和支付依据",
+        "拨付凭证及相关附件",
+        "业务系统返回的疑点或反馈"
+      ],
+      "expectedOutputs": [
+        "支付申请信息完整性清单",
+        "要素差异和待核实疑点清单",
+        "补充说明及材料建议",
+        "公开职责和适用规则提示",
+        "供本人确认的审查意见草稿"
+      ],
+      "serviceBoundaries": [
+        "该数字人是深圳市财政局跨职能组织能力，不对应名为“资金监管处”的机构。",
+        "不批准支付、不执行资金拨付，也不代替经办人员作出最终审查判断。",
+        "不读取未经授权的其他预算单位资料，完全访问也不能突破来源系统权限。",
+        "关键词命中只形成待核实疑点，不能直接作为违规结论。"
       ],
       "sampleQuestions": [
         "支付申请需要先准备哪些信息和材料？",
@@ -88,7 +249,7 @@
         "newMemoryPreseeded": false,
         "activation": "用户对话实际生成个人程序记忆，贡献获组织维护者采纳后，才加入同一数字人的可用经验"
       },
-      "businessSource": "用户财政支付审查故事；基础指导内容为服务设计，不冒充正式支付审批规则",
+      "businessSource": "财政支付审查工作记录及已采纳的组织经验；支付要素核对和疑点整理为本工作区业务配置，不是新增审批规则",
       "officialInfo": "所属单位确认为财政局；相关职责逐项标明国库处或国库支付中心来源，不把当前用户擅自指派到中心。"
     }
   ],
@@ -98,8 +259,9 @@
       "title": "项目统筹处",
       "publisher": "深圳市政务服务和数据管理局",
       "publishedAt": "2024-05-08",
-      "checkedAt": "2026-09-08",
-      "url": "https://www.sz.gov.cn/zwfwsjglj_2019/jgzn/nzjg/content/post_11276192.html",
+      "checkedAt": "2026-09-09",
+      "url": "https://www.sz.gov.cn/szzsj/gkmlpt/content/11/11276/post_11276193.html?jump=true",
+      "basisType": "官方职责",
       "indexNumber": "11440300MB2C92413C/2024-00052",
       "verifiedFacts": [
         "内设机构名称为项目统筹处",
@@ -107,15 +269,46 @@
         "职责包含有关市级政务信息化服务项目的立项审批",
         "办公地址为市民中心C区"
       ],
-      "retrieval": "官方页面的搜索索引可读，直接打开返回空正文；未保存完整网页快照"
+      "retrieval": "深圳市政府信息公开平台页面核验"
+    },
+    {
+      "id": "project-management-report",
+      "title": "深圳市政务服务和数据管理局2024年法治政府建设年度工作报告",
+      "publisher": "深圳市政务服务和数据管理局",
+      "publishedAt": "2025-01-20",
+      "checkedAt": "2026-09-09",
+      "url": "https://www.sz.gov.cn/cn/xxgk/fzzfjsndbg/gbmfzzfjsndbg/content/post_11974787.html",
+      "indexNumber": "",
+      "basisType": "公开制度与工作信息",
+      "verifiedFacts": [
+        "公开信息说明市级政务信息化项目管理覆盖立项、采购、实施和监督管理",
+        "公开信息提及立项审批、方案编制和验收管理等流程要求"
+      ],
+      "retrieval": "深圳政府在线公开页面核验"
+    },
+    {
+      "id": "project-budget",
+      "title": "2025年深圳市政务服务和数据管理局（本级）部门预算",
+      "publisher": "深圳市政务服务和数据管理局",
+      "publishedAt": "2025-04-03",
+      "checkedAt": "2026-09-09",
+      "url": "https://www.sz.gov.cn/szzsj/gkmlpt/content/12/12106/post_12106322.html",
+      "indexNumber": "11440300MB2C92413C/2025-00030",
+      "basisType": "公开预算说明",
+      "verifiedFacts": [
+        "项目统筹管理公开说明涉及立项审批、建设、应用、验收、运营运维和后评价",
+        "运维服务部分用于开展信息化系统日常运行维护并保障正常运行"
+      ],
+      "retrieval": "深圳市政府信息公开平台及其预算附件核验"
     },
     {
       "id": "finance-bureau",
       "title": "深圳市财政局主要职能",
       "publisher": "深圳市财政局",
       "publishedAt": "2025-11-07",
-      "checkedAt": "2026-09-08",
+      "checkedAt": "2026-09-09",
       "url": "https://szfb.sz.gov.cn/gkmlpt/content/12/12482/post_12482182.html",
+      "basisType": "官方职责",
       "indexNumber": "11440300007541539G/2025-00452",
       "verifiedFacts": [
         "负责市级财政收支管理",
@@ -128,8 +321,9 @@
       "title": "国库处",
       "publisher": "深圳市财政局",
       "publishedAt": "2026-01-19",
-      "checkedAt": "2026-09-08",
+      "checkedAt": "2026-09-09",
       "url": "https://szfb.sz.gov.cn/szsczjwzgkml/szsczjwzgkml/jgzn/nsjg/content/post_12607797.html",
+      "basisType": "官方职责",
       "verifiedFacts": [
         "职责包含地方财政国库管理制度",
         "职责包含市本级预算单位银行账户管理、预算执行报表分析和财政资金调度"
@@ -141,8 +335,9 @@
       "title": "深圳市财政国库支付中心",
       "publisher": "深圳市财政局",
       "publishedAt": "2025-11-10",
-      "checkedAt": "2026-09-08",
+      "checkedAt": "2026-09-09",
       "url": "https://szfb.sz.gov.cn/szsczjwzgkml/szsczjwzgkml/jgzn/zsjg/content/post_12484077.html",
+      "basisType": "官方职责",
       "verifiedFacts": [
         "为市财政局直属行政管理类事业单位",
         "职责包括财政资金支付及拨付凭证审核、核算",
