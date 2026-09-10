@@ -34,6 +34,8 @@ import {
   type LibraryState,
   type PersonalLibraryItem,
 } from './library-domain.ts';
+import { brainstormReducer, createBrainstormFlow, initialBrainstormState } from './brainstorm-domain.ts';
+import type { BrainstormAction, BrainstormEffect, BrainstormState } from './brainstorm-types.ts';
 
 export type Risk = '无' | '低' | '中' | '高';
 export type Command =
@@ -190,6 +192,7 @@ export type WorkspaceState = {
   workspaceFeedback?: { taskId: string; messageId: string; annotations: Annotation[] }[];
   memory: MemoryState;
   flows: Record<string, Flow>;
+  brainstorm: BrainstormState;
   artifacts: Record<string, Artifact>;
   catalog: CatalogEntry[];
   library: LibraryState;
@@ -205,6 +208,7 @@ export type WorkspaceState = {
 export type WorkspaceAction =
   | CommandAction
   | { type: 'memory'; action: MemoryAction }
+  | { type: 'brainstorm'; action: BrainstormAction }
   | {
       type: 'start';
       kind: 'payment' | 'maintenance';
@@ -241,6 +245,7 @@ export type WorkspaceAction =
       settings?: WorkTask['contexts'];
       permissionMode?: WorkTask['permissionMode'];
       commandMode?: WorkTask['commandMode'];
+      collaborationMode?: WorkTask['collaborationMode'];
     }
   | { type: 'annotate'; id: string; text: string }
   | { type: 'tick'; now: number }
@@ -275,6 +280,27 @@ function say(
   const m = { id: nextId(s, 'event'), role, text, at: iso(s.memory.now) };
   taskFor(s, id).messages.push(m);
   return m.id;
+}
+function applyBrainstormEffects(s: WorkspaceState, taskId: string, effects: BrainstormEffect[]) {
+  const flow = s.brainstorm.flows[taskId];
+  for (const effect of effects) {
+    if (effect.type === 'message') {
+      const messageId = say(s, taskId, effect.role, effect.text);
+      if (effect.anchor) flow.anchors[effect.anchor] = messageId;
+      continue;
+    }
+    const id = nextId(s, 'artifact');
+    s.artifacts[id] = {
+      id, taskId, name: effect.name, body: effect.body, source: effect.source,
+      version: flow.version, createdAt: iso(s.memory.now), annotations: [],
+      originMessageId: taskFor(s, taskId).messages.at(-1)?.id,
+    };
+    flow.artifactIds.push(id);
+    flow.artifactMeta.push({
+      artifactId: id, evidenceIds: effect.evidenceIds, nature: 'synthetic_working_version',
+      asOf: flow.factCutoff, verificationStatus: 'pending_review',
+    });
+  }
 }
 function workPoint(
   s: WorkspaceState,
@@ -1483,6 +1509,7 @@ function base(now: number): WorkspaceState {
   return {
     memory: initialMemoryState(now),
     flows: {},
+    brainstorm: initialBrainstormState(),
     artifacts: {},
     catalog: initialCatalog(),
     library: initialLibraryState(),
@@ -1623,6 +1650,28 @@ export function workspaceReducer(
     case 'memory':
       s.memory = memoryReducer(s.memory, a.action);
       break;
+    case 'brainstorm': {
+      const transition = brainstormReducer(s.brainstorm, a.action, iso(s.memory.now));
+      s.brainstorm = transition.state;
+      if (transition.notice) s.notice = transition.notice;
+      applyBrainstormEffects(s, a.action.taskId, transition.effects);
+      if (a.action.type === 'fact-gap-resolve') {
+        const flow = s.brainstorm.flows[a.action.taskId];
+        for (const artifactId of flow.artifactIds) {
+          const item = s.artifacts[artifactId];
+          if (!item) continue;
+          item.version = flow.version;
+          if (item.name === '年度工作报告事实底稿') item.body += a.action.resolution === 'keep_limited'
+            ? '\n\n处理决定：保留合成、待核及缺口状态标识，进入工作版本审阅。'
+            : '\n\n处理决定：未核定数值不进入主稿，事实底稿继续保留缺口位置。';
+          if (a.action.resolution === 'remove_from_draft' && item.name === '2026年度工作报告主稿') item.body = item.body.replace(
+            /合成示例显示，全程网办率为96\.4%，高频事项办理时限压缩32%。两项数据统计截止2026年11月30日，均待年终核定。/,
+            '相关年度服务成效待正式统计口径和年终数据核定后补入，当前工作版本不写入未核定数值。',
+          );
+        }
+      }
+      break;
+    }
     case 'workspace-feedback': {
       if (taskFor(s, a.taskId) && a.text.trim()) {
         const messageId = say(s, a.taskId, 'user', a.text.trim());
@@ -1633,6 +1682,19 @@ export function workspaceReducer(
     }
     case 'say': {
       const f = s.flows[a.taskId];
+      const brainstorm = s.brainstorm.flows[a.taskId];
+      if (brainstorm) {
+        if (brainstorm.stopped) {
+          s.notice = '任务已暂停，请恢复后继续。输入草稿已保留。';
+          break;
+        }
+        say(s, a.taskId, 'user', a.text);
+        taskFor(s, a.taskId).draftText = '';
+        say(s, a.taskId, 'assistant', brainstorm.phaseStatus === 'completed'
+          ? '已记录补充意见。当前四项成果仍保留为工作版本；如需变更，请发起新一轮审阅。'
+          : '已记录补充要求。请在当前步骤卡片中完成确认，系统会把变更继续带入后续综合。');
+        break;
+      }
       if (!f) {
         s.memory = memoryReducer(s.memory, {
           type: 'message',
@@ -1764,6 +1826,13 @@ export function workspaceReducer(
             : '任务已恢复，下一次操作将重新检查授权。',
         );
       }
+      const brainstorm = s.brainstorm.flows[a.taskId];
+      if (brainstorm) {
+        const transition = brainstormReducer(s.brainstorm, { type: a.stopped ? 'pause' : 'resume', taskId: a.taskId }, iso(s.memory.now));
+        s.brainstorm = transition.state;
+        if (transition.notice) s.notice = transition.notice;
+        applyBrainstormEffects(s, a.taskId, transition.effects);
+      }
       break;
     }
     case 'create-skill': {
@@ -1893,9 +1962,18 @@ export function workspaceReducer(
           contexts: a.settings,
           permissionMode: a.permissionMode,
           commandMode: a.commandMode,
+          collaborationMode: a.collaborationMode,
         },
       });
-      if (a.agentId) {
+      if (a.collaborationMode === 'brainstorm') {
+        const t = taskFor(s, a.id);
+        t.title = '2026年度工作报告';
+        t.messages = t.messages.filter((message) => message.role === 'user');
+        const created = createBrainstormFlow(a.id, a.text);
+        s.brainstorm.flows[a.id] = created.flow;
+        applyBrainstormEffects(s, a.id, created.effects);
+      }
+      if (a.agentId && a.collaborationMode !== 'brainstorm') {
         const t = taskFor(s, a.id);
         t.messages = t.messages.filter((x) => x.role === 'user');
         s.flows[a.id] = {

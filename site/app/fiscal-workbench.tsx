@@ -32,6 +32,7 @@ import { useWorkspace } from './workspace-store';
 import { useAppearance } from './appearance';
 import {
   TaskComposer,
+  type TaskCollaborationMode,
   type TaskCommandMode,
   type TaskPermissionMode,
 } from './task-composer';
@@ -55,6 +56,7 @@ import {
   type SystemViewState,
 } from './fiscal-components';
 import { conversationTurns } from './conversation-view';
+import { BrainstormHeaderStatus } from './brainstorm-components';
 type Page =
   | 'home'
   | 'task'
@@ -124,6 +126,7 @@ export function FiscalWorkbench() {
   const [draft, setDraft] = useState(''),
     [contexts, setContexts] = useState<SavedContext[]>([]),
     [commandMode, setCommandMode] = useState<TaskCommandMode>('standard'),
+    [collaborationMode, setCollaborationMode] = useState<TaskCollaborationMode>('standard'),
     [permissionMode, setPermissionMode] =
       useState<TaskPermissionMode>('standard');
   const [defaultModel, setDefaultModel] = useState<ModelMode>({
@@ -135,6 +138,7 @@ export function FiscalWorkbench() {
     [taskUi, setTaskUi] = useState<Record<string, Ui>>({});
   const task = state.memory.tasks.find((t) => t.id === activeId),
     flow = state.flows[activeId],
+    brainstormFlow = state.brainstorm.flows[activeId],
     ui = taskUi[activeId] || {
       tabs: [],
       model: defaultModel,
@@ -241,18 +245,19 @@ export function FiscalWorkbench() {
         type: 'new-task',
         id,
         text: value,
-        agentId,
+        agentId: collaborationMode === 'brainstorm' ? undefined : agentId,
         refs,
         settings: contexts,
         permissionMode,
         commandMode,
+        collaborationMode,
       });
       dispatch({
         type: 'memory',
         action: {
           type: 'task-settings',
           taskId: id,
-          settings: { commandMode, permissionMode },
+          settings: { commandMode, permissionMode, collaborationMode },
         },
       });
       setTaskUi((old) => ({
@@ -261,6 +266,7 @@ export function FiscalWorkbench() {
       }));
       setDraft('');
       setContexts([]);
+      setCollaborationMode('standard');
       openTask(id);
     }
   };
@@ -327,6 +333,11 @@ export function FiscalWorkbench() {
             })
           : setPermissionMode(mode)
       }
+      collaborationMode={page === 'task' ? task?.collaborationMode || 'standard' : collaborationMode}
+      onCollaborationModeChange={(mode) => page === 'task' && task
+        ? dispatch({ type: 'memory', action: { type: 'task-settings', taskId: task.id, settings: { collaborationMode: mode } } })
+        : setCollaborationMode(mode)}
+      lockedCollaborationMode={page === 'task'}
       modelMode={page === 'task' ? ui.model : defaultModel}
       onModelModeChange={(mode) =>
         page === 'task' ? updateUi({ model: mode }) : setDefaultModel(mode)
@@ -336,7 +347,9 @@ export function FiscalWorkbench() {
         page === 'task' ? updateUi({ routing }) : setDefaultRouting(routing)
       }
       placeholder={
-        flow?.stage === 'findings'
+        brainstormFlow
+          ? '补充材料、口径或工作版本要求…'
+          : flow?.stage === 'findings'
           ? '告诉我支付用途应该怎样核对…'
           : flow?.stage === 'manual'
             ? '完成手动提交后，在这里告诉我…'
@@ -680,6 +693,18 @@ export function FiscalWorkbench() {
                     {flow.stopped ? <Play size={16} /> : <Pause size={16} />}
                   </button>
                 )}
+              </>
+            )}
+            {page === 'task' && brainstormFlow && (
+              <>
+                <BrainstormHeaderStatus flow={brainstormFlow} />
+                {brainstormFlow.phaseStatus !== 'completed' ? <button
+                  className="fw-icon"
+                  aria-label={brainstormFlow.stopped ? '恢复任务' : '暂停任务'}
+                  onClick={() => dispatch({ type: 'stop', taskId: task!.id, stopped: !brainstormFlow.stopped })}
+                >
+                  {brainstormFlow.stopped ? <Play size={16} /> : <Pause size={16} />}
+                </button> : null}
               </>
             )}
             {page === 'task' && (

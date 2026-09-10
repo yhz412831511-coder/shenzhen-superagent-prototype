@@ -1,5 +1,7 @@
 import type { Flow } from './fiscal-domain';
 import type { WorkTask } from './memory-domain';
+import type { BrainstormFlow } from './brainstorm-types.ts';
+import { brainstormProgress } from './brainstorm-selectors.ts';
 
 export type TaskProgressStatus =
   | 'completed'
@@ -171,7 +173,8 @@ function genericProgress(task: WorkTask) {
 }
 
 /** A task-facing view of business progress. It never infers work from chat copy or audit records. */
-export function taskProgress(task: WorkTask, flow?: Flow): TaskProgressItem[] {
+export function taskProgress(task: WorkTask, flow?: Flow, brainstorm?: BrainstormFlow): TaskProgressItem[] {
+  if (brainstorm) return brainstormProgress(brainstorm);
   if (!flow) return genericProgress(task);
   if (flow.kind === 'payment') return linearProgress(paymentSteps, flow);
   if (flow.kind === 'maintenance') return linearProgress(maintenanceSteps, flow);

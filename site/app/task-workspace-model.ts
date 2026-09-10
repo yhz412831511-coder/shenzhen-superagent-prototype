@@ -1,4 +1,6 @@
-export type WorkspaceTarget = { kind: 'system' | 'artifact' | 'operation' | 'operation-group' | 'capability' | 'file'; id: string };
+export type WorkspaceTarget =
+  | { kind: 'system' | 'artifact' | 'operation' | 'operation-group' | 'capability' | 'file'; id: string; annotationId?: string }
+  | { kind: 'brainstorm'; id: string; entity: 'role' | 'topic' | 'conflict' | 'fact' | 'review'; annotationId?: string };
 export type BrowserTab = { id: string; history: WorkspaceTarget[]; cursor: number };
 export type Annotation = {
   id: string; target: WorkspaceTarget; title: string; version: string;
@@ -6,7 +8,7 @@ export type Annotation = {
   x: number; y: number; width: number; height: number;
 };
 export type SandboxFile = { path: string; data: number[]; mime: string };
-export const targetKey = (target: WorkspaceTarget) => target.kind + ':' + target.id;
+export const targetKey = (target: WorkspaceTarget) => target.kind === 'brainstorm' ? `${target.kind}:${target.entity}:${target.id}` : `${target.kind}:${target.id}`;
 export function openBrowserTarget(tabs: BrowserTab[], target: WorkspaceTarget) {
   const existing = tabs.find(tab => tab.history[tab.cursor] && targetKey(tab.history[tab.cursor]) === targetKey(target));
   if (existing) return { tabs, active: existing.id };

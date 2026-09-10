@@ -24,6 +24,7 @@ import {
   Sparkles,
   Target,
   Upload,
+  UsersRound,
   Zap,
 } from 'lucide-react';
 
@@ -47,6 +48,7 @@ import type { TaskContext } from './knowledge-memory-pages';
 
 export type TaskCommandMode = 'standard' | 'plan' | 'goal' | 'browser';
 export type TaskPermissionMode = 'standard' | 'confirm' | 'full';
+export type TaskCollaborationMode = 'standard' | 'brainstorm';
 
 const commandOptions: Array<{
   value: Exclude<TaskCommandMode, 'standard'>;
@@ -197,6 +199,9 @@ export function TaskComposer({
   onCommandModeChange,
   permissionMode,
   onPermissionModeChange,
+  collaborationMode,
+  onCollaborationModeChange,
+  lockedCollaborationMode = false,
   modelMode,
   onModelModeChange,
   routing,
@@ -215,6 +220,9 @@ export function TaskComposer({
   onCommandModeChange: (mode: TaskCommandMode) => void;
   permissionMode: TaskPermissionMode;
   onPermissionModeChange: (mode: TaskPermissionMode) => void;
+  collaborationMode: TaskCollaborationMode;
+  onCollaborationModeChange: (mode: TaskCollaborationMode) => void;
+  lockedCollaborationMode?: boolean;
   modelMode: ModelMode;
   onModelModeChange: (mode: ModelMode) => void;
   routing: RoutingConfig;
@@ -279,7 +287,7 @@ export function TaskComposer({
   const permission = permissionOptions.find(
     (item) => item.value === permissionMode,
   )!;
-  const hasContextRow = Boolean(activeCommand || contexts.length);
+  const hasContextRow = Boolean(activeCommand || contexts.length || collaborationMode === 'brainstorm');
   const collapsedContextLimit = activeCommand ? 1 : 2;
   const visibleContexts = contextExpanded
     ? contexts
@@ -331,6 +339,12 @@ export function TaskComposer({
               >
                 ×
               </button>
+            </span>
+          ) : null}
+          {collaborationMode === 'brainstorm' ? (
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--ui-border)] bg-[var(--ui-brand-soft)] px-2 py-1 text-[length:var(--ui-font-meta)] font-medium text-[color:var(--ui-brand)]">
+              <UsersRound className="size-3" />脑暴协作
+              {!lockedCollaborationMode ? <button type="button" onClick={() => onCollaborationModeChange('standard')} aria-label="退出脑暴协作模式" className="ml-0.5 grid size-4 place-items-center rounded hover:bg-black/5">×</button> : null}
             </span>
           ) : null}
           {visibleContexts.map((context) => {
@@ -549,6 +563,19 @@ export function TaskComposer({
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
               ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<Button type="button" variant="ghost" size="sm" className="task-composer__text-control" disabled={lockedCollaborationMode} />}>
+              <UsersRound className="size-3.5 text-[color:var(--ui-brand)]" />
+              {collaborationMode === 'brainstorm' ? '脑暴协作' : '单人任务'}
+              {!lockedCollaborationMode ? <ChevronDown className="size-3 text-[color:var(--ui-muted)]" /> : null}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" side="top" sideOffset={8} className="w-[286px] rounded-xl border border-[var(--ui-border)] p-1.5 shadow-[var(--ui-shadow)]">
+              <p className="px-2 py-2 text-[length:var(--ui-font-meta)] font-medium uppercase tracking-[0.08em] text-[color:var(--ui-muted)]">协作方式</p>
+              <DropdownMenuItem onClick={() => onCollaborationModeChange('standard')} className="min-h-12 items-start px-2 py-2"><FileText className="mt-0.5"/><span className="min-w-0 flex-1"><span className="block font-medium">单人任务</span><span className="block text-[length:var(--ui-font-meta)] text-[color:var(--ui-muted)]">由超级智能体直接处理当前工作</span></span>{collaborationMode === 'standard' ? <Check/> : null}</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onCollaborationModeChange('brainstorm')} className="min-h-12 items-start px-2 py-2"><UsersRound className="mt-0.5 text-[color:var(--ui-brand)]"/><span className="min-w-0 flex-1"><span className="block font-medium">脑暴协作</span><span className="block text-[length:var(--ui-font-meta)] text-[color:var(--ui-muted)]">多岗位贡献、询证与用户裁决</span></span>{collaborationMode === 'brainstorm' ? <Check/> : null}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 

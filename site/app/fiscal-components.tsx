@@ -89,17 +89,9 @@ import {
   personalItemContext,
   type PersonalLibraryItem,
 } from './library-domain';
-export type Target = {
-  kind:
-    | 'system'
-    | 'artifact'
-    | 'operation'
-    | 'operation-group'
-    | 'capability'
-    | 'file';
-  annotationId?: string;
-  id: string;
-};
+import type { WorkspaceTarget } from './task-workspace-model.ts';
+import { BrainstormAttachment, BrainstormMonitorSections } from './brainstorm-components';
+export type Target = WorkspaceTarget;
 
 type AgentCapabilityDetail = {
   title: string;
@@ -724,7 +716,8 @@ export function Conversation({
   onMemory: (id: string) => void;
 }) {
   const { state, dispatch } = useWorkspace(),
-    flow = state.flows[task.id];
+    flow = state.flows[task.id],
+    brainstorm = state.brainstorm.flows[task.id];
   const { value: appearance } = useAppearance();
   const initialScroll = useRef(task.savedScroll);
   const lastScroll = useRef(task.savedScroll);
@@ -763,8 +756,8 @@ export function Conversation({
     last.current = task.messages.length;
     return () => cancelAnimationFrame(frame);
   }, [task.messages]);
-  const arts =
-    flow?.artifactIds.map((id) => state.artifacts[id]).filter(Boolean) || [];
+  const artifactIds = flow?.artifactIds || brainstorm?.artifactIds || [];
+  const arts = artifactIds.map((id) => state.artifacts[id]).filter(Boolean);
   const turns = conversationTurns(
     task,
     flow?.operations,
@@ -825,6 +818,7 @@ export function Conversation({
                     {m.text.includes('程序记忆候选')&&flow?.candidate&&<details className="fw-inline-memory fw-source-entry"><summary><BrainCircuit size={14}/>查看本次整理的方法</summary><p>{flow.candidate.conditions}</p><ol>{flow.candidate.steps.map((x,i)=><li key={i}>{x}</li>)}</ol><p>例外：{flow.candidate.exceptions}</p>{flow.memoryId&&<Btn small onClick={()=>onMemory(flow.memoryId!)}>打开关联记忆</Btn>}</details>}
                   </>}
                 </div>}
+                {brainstorm ? <BrainstormAttachment flow={brainstorm} messageId={m.id} onOpen={onOpen}/> : null}
               </article>;
             })}
             {turn.artifacts.length > 0 && (
@@ -1000,7 +994,8 @@ export function Monitor({
   onShowFiles?: () => void;
 }) {
   const { state } = useWorkspace(),
-    f = state.flows[task.id];
+    f = state.flows[task.id],
+    brainstorm = state.brainstorm.flows[task.id];
   const memories = state.memory.memories.filter(
     (m) =>
       current(m).source.taskId === task.id ||
@@ -1021,8 +1016,9 @@ export function Monitor({
       f?.operations.flatMap((o) => (o.system ? [o.system] : [])) || [],
     ),
   ];
-  const recentArtifacts=(f?.artifactIds||[]).slice(-3).reverse();
-  const progress=taskProgress(task,f);
+  const artifactIds=f?.artifactIds||brainstorm?.artifactIds||[];
+  const recentArtifacts=artifactIds.slice(-3).reverse();
+  const progress=taskProgress(task,f,brainstorm);
   const completedProgress=progress.filter(item=>item.status==='completed').length;
   return (
     <aside className="fw-monitor">
@@ -1037,7 +1033,7 @@ export function Monitor({
       </details>
       <details open>
         <summary>
-          材料与成果 <span>{f?.artifactIds.length || 0}</span>
+          材料与成果 <span>{artifactIds.length}</span>
         </summary>
         {recentArtifacts.map((id) => (
           <ArtifactRow
@@ -1046,9 +1042,10 @@ export function Monitor({
             onOpen={() => onOpen({ kind: 'artifact', id })}
           />
         ))}
-        {!f?.artifactIds.length && <p className="fw-meta">尚未形成成果。</p>}
-        {(f?.artifactIds.length||0)>3&&<button className="fw-monitor-more" onClick={onShowFiles}>查看其余 {(f?.artifactIds.length||0)-3} 项成果<ArrowUpRight size={13}/></button>}
+        {!artifactIds.length && <p className="fw-meta">尚未形成成果。</p>}
+        {artifactIds.length>3&&<button className="fw-monitor-more" onClick={onShowFiles}>查看其余 {artifactIds.length-3} 项成果<ArrowUpRight size={13}/></button>}
       </details>
+      {brainstorm ? <BrainstormMonitorSections flow={brainstorm} onOpen={onOpen}/> : null}
       <details>
         <summary>
           系统与能力 <span>{usedSystems.length + usedCapabilities.length}</span>

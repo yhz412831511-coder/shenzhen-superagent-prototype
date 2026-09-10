@@ -114,6 +114,7 @@ export function brainstormReducer(
   action: BrainstormAction,
   at: string,
 ): BrainstormTransition {
+  const taskId = action.taskId;
   const original = previous.flows[action.taskId];
   if (!original) return blocked(previous, action.taskId, '当前任务不是脑暴协作。');
   if (original.stopped && action.type !== 'resume')
@@ -262,14 +263,25 @@ export function brainstormReducer(
   }
   if (action.type === 'artifacts-generate') {
     if (flow.phaseStatus !== 'outline_ready') return blocked(previous, action.taskId, '请先确认综合大纲。');
+    const highImpact = flow.conflicts.find((item) => item.kind === 'high_impact');
+    const selectedOption = highImpact?.options.find((item) => item.id === highImpact.selectedOptionId);
+    const decisionLine = selectedOption
+      ? `\n\n## 用户决定\n\n选择“${selectedOption.label}”：${selectedOption.impact}\n\n边界：工作版本取舍，不代表领导审定或正式承诺。`
+      : '';
+    const reportBody = selectedOption
+      ? brainstormArtifactBodies.report.replace(
+          '坚持治理实效导向，将人工智能和数据要素作为增长点，以安全合规、责任清晰和事实可核验为边界。',
+          selectedOption.impact,
+        )
+      : brainstormArtifactBodies.report;
     advance(flow, 'drafting_delivery', 'fact_gap_attention');
     change('artifacts/generate', flow.id, 'outline', 'four_artifacts', '生成一份主稿和三项支撑材料', '超级智能体');
     effects.push(
       { type: 'message', role: 'assistant', text: '主稿初版和三项支撑材料已经形成。两项合成数值仍待年终核定，另有两项事实缺口未写入具体数值；请明确缺口处理方式。', anchor: 'gaps' },
-      { type: 'artifact', name: '2026年度工作报告主稿', body: brainstormArtifactBodies.report, source: '13个岗位合成贡献／用户决定／合成示例事实', evidenceIds: ['fact-online-rate', 'fact-time-reduction', 'conflict-ai-balance'] },
+      { type: 'artifact', name: '2026年度工作报告主稿', body: reportBody, source: '13个岗位合成贡献／用户决定／合成示例事实', evidenceIds: ['fact-online-rate', 'fact-time-reduction', 'conflict-ai-balance'] },
       { type: 'artifact', name: '年度工作报告事实底稿', body: brainstormArtifactBodies.facts, source: '岗位授权摘要／合成示例事实／待补材料', evidenceIds: flow.facts.map((item) => item.id) },
       { type: 'artifact', name: '中央—广东省—深圳市政策响应矩阵', body: brainstormArtifactBodies.policies, source: '待核验政策位置，不代表已发布政策', evidenceIds: flow.policies.map((item) => item.id) },
-      { type: 'artifact', name: '分歧与用户决定记录', body: brainstormArtifactBodies.decisions, source: '协同询证记录／业务骨干工作版本决定', evidenceIds: flow.conflicts.map((item) => item.id) },
+      { type: 'artifact', name: '分歧与用户决定记录', body: brainstormArtifactBodies.decisions + decisionLine, source: '协同询证记录／业务骨干工作版本决定', evidenceIds: flow.conflicts.map((item) => item.id) },
     );
     return { state, effects };
   }
@@ -278,6 +290,7 @@ export function brainstormReducer(
     flow.facts.filter((item) => item.verificationStatus !== 'verified').forEach((item) => {
       item.resolution = action.resolution;
     });
+    flow.version += 1;
     flow.phaseStatus = 'awaiting_working_version_confirmation';
     change('fact-gap/resolve', flow.id, 'pending', action.resolution, action.resolution === 'keep_limited' ? '保留合成／待核限定并继续' : '从主稿移除未核定数值');
     effects.push(
@@ -300,5 +313,5 @@ export function brainstormReducer(
     );
     return { state, effects };
   }
-  return blocked(previous, action.taskId, '当前事件不适用于此任务状态。');
+  return blocked(previous, taskId, '当前事件不适用于此任务状态。');
 }

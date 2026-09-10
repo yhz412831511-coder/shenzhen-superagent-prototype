@@ -163,6 +163,7 @@ export type TaskSettings = {
   contexts?: SavedContext[];
   commandMode?: 'standard' | 'plan' | 'goal' | 'browser';
   permissionMode?: 'standard' | 'confirm' | 'full';
+  collaborationMode?: 'standard' | 'brainstorm';
   draftText?: string;
 };
 export type WorkTask = TaskSettings & {

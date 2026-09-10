@@ -7,6 +7,7 @@ import { ArtifactPreview, Btn, CatalogPage, Monitor, OperationGroupDetail, Safet
 import { conversationTurns } from './conversation-view';
 import { annotationsText, navigateTab, openBrowserTarget, safeFilename, targetKey, type Annotation, type BrowserTab, type WorkspaceTarget, type SandboxFile } from './task-workspace-model';
 import { updateSession, runSandbox, sessionFor, subscribeSandbox } from './sandbox-client';
+import { BrainstormObjectView } from './brainstorm-components';
 import './task-workspace.css';
 
 type DockState = {
@@ -85,7 +86,7 @@ export function TaskWorkspace({taskId,request,visible,onClose,onMemory,onConsult
   useEffect(()=>subscribeSandbox(()=>tick(n=>n+1)),[]);
   const open=useCallback((target:WorkspaceTarget)=>setDock(old=>{
     const result=openBrowserTarget(old.tabs,target);
-    const value={...old,...result,view:'浏览器' as const, mode:'' as const, address:''};
+    const value={...old,...result,view:'浏览器' as const, mode:'' as const, address:'',...(target.kind==='brainstorm'&&target.entity==='review'?{expanded:true}:{})};
     caches.set(taskId,value);return value;
   }),[taskId]);
   useEffect(()=>{let active=true;if(request&&caches.get(taskId)?.lastRequest!==request)queueMicrotask(()=>{if(active){open(request);setDock(old=>{const note=state.workspaceFeedback?.filter(f=>f.taskId===taskId).flatMap(f=>f.annotations).find(n=>n.id===request.annotationId);const value={...old,lastRequest:request,...(note?{draft:note,positions:{...old.positions,[targetKey(note.target)]:Math.max(0,note.y-20)}}:{})};caches.set(taskId,value);return value;});}});return()=>{active=false;};},[request,open,taskId,state.workspaceFeedback]); // requests are task-scoped objects
@@ -108,8 +109,8 @@ export function TaskWorkspace({taskId,request,visible,onClose,onMemory,onConsult
     const key=target?targetKey(target):'blank';
     if(content.current) content.current.scrollTop=dock.positions?.[key]||0;
   },[target, dock.positions]);
-  const title=(t:WorkspaceTarget)=>t.kind==='system'?systems[t.id as SystemId]?.name||'系统':t.kind==='artifact'?state.artifacts[t.id]?.name||'成果':t.kind==='file'?t.id.split('/').pop()||'文件':t.kind==='capability'?state.catalog.find(c=>c.id===t.id)?.name||'能力':t.kind==='operation-group'?'执行记录':'安全与授权';
-  const version=(t:WorkspaceTarget)=>t.kind==='artifact'?'v'+state.artifacts[t.id]?.version:t.kind==='system'?'v'+(flow?.version||1)+' · '+(flow?.submission||'draft'):'当前会话';
+  const title=(t:WorkspaceTarget)=>t.kind==='brainstorm'?({role:'职责岗位',topic:'跨处室主题',conflict:'分歧与决定',fact:'事实证据',review:'三栏审阅'} as const)[t.entity]:t.kind==='system'?systems[t.id as SystemId]?.name||'系统':t.kind==='artifact'?state.artifacts[t.id]?.name||'成果':t.kind==='file'?t.id.split('/').pop()||'文件':t.kind==='capability'?state.catalog.find(c=>c.id===t.id)?.name||'能力':t.kind==='operation-group'?'执行记录':'安全与授权';
+  const version=(t:WorkspaceTarget)=>t.kind==='artifact'?'v'+state.artifacts[t.id]?.version:t.kind==='system'?'v'+(flow?.version||1)+' · '+(flow?.submission||'draft'):t.kind==='brainstorm'?'协作记录 · v'+(state.brainstorm.flows[taskId]?.version||1):'当前会话';
   const addFile=(file:SandboxFile)=>{
     if(session.running){setNotice('请等待终端执行结束后添加文件。');return;}
     if(file.data.length>20*1024*1024 || session.files.reduce((n,f)=>n+f.data.length,0)+file.data.length>40*1024*1024){setNotice('单文件上限20MB，任务沙箱上限40MB。');return;}
@@ -132,6 +133,7 @@ export function TaskWorkspace({taskId,request,visible,onClose,onMemory,onConsult
     update({draft:note});
   };
   const renderTarget=(t:WorkspaceTarget):ReactNode=>{
+    if(t.kind==='brainstorm')return <BrainstormObjectView taskId={taskId} target={t} onOpen={navigate}/>;
     if(t.kind==='artifact')return <ArtifactPreview artifact={state.artifacts[t.id]?.taskId===taskId?state.artifacts[t.id]:undefined} onBack={onClose}/>;
     if(t.kind==='file')return <FilePreview file={session.files.find(f=>f.path===t.id)}/>;
     if(t.kind==='system')return flow?<SystemPage system={t.id as SystemId} flow={flow} onOpen={open} view={dock.systemViews[t.id]} onViewChange={patch=>update({systemViews:{...dock.systemViews,[t.id]:{...dock.systemViews[t.id],...patch}}})}/>:<p>此任务尚无关联系统数据。</p>;
