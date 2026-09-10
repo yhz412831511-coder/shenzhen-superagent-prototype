@@ -60,6 +60,10 @@ test('准备区使用连续工作单并保留七主题全局盘点', () => {
     styles,
     /\.bc-preparation-nav li\.current\s*\{[^}]*border-bottom-color:\s*var\(--ui-brand\)/s,
   );
+  assert.match(
+    styles,
+    /\.fw-app dl\.bc-definition-rows\s*\{[^}]*display:\s*block;[^}]*grid-template-columns:\s*none;/s,
+  );
 });
 
 test('脑暴进度固定为六个业务阶段', () => {

@@ -925,7 +925,11 @@
 .bc-preparation-body {
   padding: 12px 2px 13px;
 }
-.bc-definition-rows {
+.fw-app dl.bc-definition-rows {
+  display: block;
+  grid-template-columns: none;
+  gap: 0;
+  padding: 0;
   margin: 0;
   border-top: 1px solid var(--ui-border);
 }
