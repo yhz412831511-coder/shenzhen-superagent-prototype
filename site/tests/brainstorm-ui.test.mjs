@@ -12,6 +12,9 @@ test('统一输入器提供脑暴协作入口，任务创建后模式锁定', ()
   const workbench = read('../app/fiscal-workbench.tsx');
   assert.match(composer, /协作方式/);
   assert.match(composer, /多岗位贡献、询证与用户裁决/);
+  assert.match(composer, />常规模式</);
+  assert.doesNotMatch(composer, /单人任务|单人模式/);
+  assert.match(composer, /onCollaborationModeChange\('standard'\)/);
   assert.match(workbench, /collaborationMode/);
   assert.match(workbench, /lockedCollaborationMode=\{page === 'task'\}/);
 });
@@ -31,11 +34,32 @@ test('对话卡、任务概览和三栏审阅均接入现有任务壳', () => {
 
 test('融合版在原任务框架中呈现完整协作故事', () => {
   const components = read('../app/brainstorm-components.tsx');
-  assert.match(components, /查看13岗完整输出/);
+  assert.match(components, /查看13岗独立输出/);
+  assert.match(components, /先形成年度报告全局主题盘点/);
+  assert.match(components, /开始AI主题第一轮讨论/);
   assert.match(components, /进入第二轮询证/);
   assert.match(components, /用户裁决与版本变化/);
   assert.match(components, /从初步汇集到两轮岗位互证/);
   assert.match(components, /新增准入条件/);
+});
+
+test('准备区使用连续工作单并保留七主题全局盘点', () => {
+  const components = read('../app/brainstorm-components.tsx');
+  const styles = read('../app/brainstorm.css');
+  assert.match(components, /function PreparationSheet/);
+  assert.match(components, /function ParticipantGroups/);
+  assert.match(components, /function TopicScanTable/);
+  assert.match(components, /function PriorityReason/);
+  assert.match(components, /议题边界/);
+  assert.match(components, /参与职责/);
+  assert.match(components, /材料范围/);
+  assert.match(components, /主题盘点/);
+  assert.match(styles, /\.bc-preparation-sheet\s*\{[^}]*border-radius:\s*0;/s);
+  assert.match(styles, /\.bc-preparation-sheet\s*\{[^}]*box-shadow:\s*none;/s);
+  assert.match(
+    styles,
+    /\.bc-preparation-nav li\.current\s*\{[^}]*border-bottom-color:\s*var\(--ui-brand\)/s,
+  );
 });
 
 test('脑暴进度固定为六个业务阶段', () => {

@@ -47,6 +47,9 @@ export type BrainstormTopic = {
   id: string;
   title: string;
   summary: string;
+  assessment: string;
+  attentionLabel: string;
+  priority: 'recommended_first' | 'normal' | 'linked';
   participantIds: string[];
   contributionIds: string[];
   status: 'pending' | 'ready' | 'needs_attention';

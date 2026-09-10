@@ -74,6 +74,202 @@ function CompactReceipt({ title, detail }: { title: string; detail: string }) {
   );
 }
 
+type PreparationStep = 'issue' | 'participants' | 'scope' | 'topics';
+
+const preparationSteps: Array<{ id: PreparationStep; label: string }> = [
+  { id: 'issue', label: '议题边界' },
+  { id: 'participants', label: '参与职责' },
+  { id: 'scope', label: '材料范围' },
+  { id: 'topics', label: '主题盘点' },
+];
+
+function PreparationStepNav({ active }: { active: PreparationStep }) {
+  const activeIndex = preparationSteps.findIndex((item) => item.id === active);
+  return (
+    <ol className="bc-preparation-nav" aria-label="年度报告协作准备进度">
+      {preparationSteps.map((item, index) => (
+        <li
+          key={item.id}
+          className={
+            index < activeIndex
+              ? 'complete'
+              : index === activeIndex
+                ? 'current'
+                : 'upcoming'
+          }
+          aria-current={index === activeIndex ? 'step' : undefined}
+        >
+          <span>{index + 1}</span>
+          {item.label}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function PreparationSheet({
+  active,
+  title,
+  description,
+  children,
+}: {
+  active: PreparationStep;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="bc-preparation-sheet">
+      <header>
+        <div>
+          <span>年度报告协作准备 · 合成工作示例</span>
+          <strong>{title}</strong>
+        </div>
+        <p>{description}</p>
+      </header>
+      <PreparationStepNav active={active} />
+      <div className="bc-preparation-body">{children}</div>
+    </section>
+  );
+}
+
+function DefinitionRows({
+  rows,
+}: {
+  rows: Array<{ label: string; value: string }>;
+}) {
+  return (
+    <dl className="bc-definition-rows">
+      {rows.map((row) => (
+        <div key={row.label}>
+          <dt>{row.label}</dt>
+          <dd>{row.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+const participantGroupLabels: Record<string, string> = {
+  synthesis: '综合统稿组',
+  strategy: '发展制度组',
+  service: '政务服务组',
+  'data-project': '数据项目组',
+  security: '基础设施与安全组',
+};
+
+function ParticipantGroups({
+  flow,
+  onOpen,
+}: {
+  flow: BrainstormFlow;
+  onOpen: OpenTarget;
+}) {
+  const { dispatch } = useWorkspace();
+  const groups = [...new Set(flow.participants.map((item) => item.groupId))];
+  return (
+    <div className="bc-participant-groups">
+      {groups.map((group) => {
+        const members = flow.participants.filter(
+          (item) => item.groupId === group,
+        );
+        return (
+          <section className="bc-participant-group" key={group}>
+            <header>
+              <strong>{participantGroupLabels[group]}</strong>
+              <span>{members.length}个岗位</span>
+            </header>
+            <div>
+              {members.map((item) => (
+                <label key={item.id}>
+                  <input
+                    type="checkbox"
+                    checked={item.selected}
+                    onChange={() =>
+                      dispatch({
+                        type: 'brainstorm',
+                        action: {
+                          type: 'participants-toggle',
+                          taskId: flow.taskId,
+                          participantId: item.id,
+                        },
+                      })
+                    }
+                  />
+                  <span>{item.name}</span>
+                  <button
+                    type="button"
+                    aria-label={`查看${item.name}职责依据`}
+                    onClick={() =>
+                      onOpen({
+                        kind: 'brainstorm',
+                        entity: 'role',
+                        id: item.id,
+                      })
+                    }
+                  >
+                    职责依据
+                    <ArrowUpRight size={13} />
+                  </button>
+                </label>
+              ))}
+            </div>
+          </section>
+        );
+      })}
+    </div>
+  );
+}
+
+function TopicScanTable({ flow }: { flow: BrainstormFlow }) {
+  return (
+    <table className="bc-topic-scan" aria-label="年度报告七主题盘点">
+      <thead>
+        <tr>
+          <th>年度报告主题</th>
+          <th>岗位覆盖</th>
+          <th>当前关注</th>
+          <th>处理判断</th>
+        </tr>
+      </thead>
+      <tbody>
+        {flow.topics.map((topic) => (
+          <tr
+            className={
+              topic.priority === 'recommended_first' ? 'recommended' : ''
+            }
+            key={topic.id}
+          >
+            <th scope="row">
+              {topic.title}
+              {topic.priority === 'recommended_first' ? (
+                <em>建议优先</em>
+              ) : null}
+            </th>
+            <td>{topic.participantIds.length}个岗位</td>
+            <td>{topic.attentionLabel}</td>
+            <td>{topic.assessment}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function PriorityReason() {
+  return (
+    <div className="bc-priority-reason">
+      <strong>为何建议先处理人工智能＋政务</strong>
+      <p>
+        8个岗位分别从发展、制度、数据、应用、基础设施、安全和统稿职责提出独立意见，形成3项实质分歧；这些分歧会改变2027年任务排序和上线安全边界。
+      </p>
+      <small>
+        这是处理顺序建议，不是已启动讨论。完成该主题后，系统仍会回到其余六个主题并形成完整年度报告大纲。
+      </small>
+    </div>
+  );
+}
+
 function IssueCard({ flow }: { flow: BrainstormFlow }) {
   const { dispatch } = useWorkspace();
   const [draft, setDraft] = useState({
@@ -100,25 +296,20 @@ function IssueCard({ flow }: { flow: BrainstormFlow }) {
       />
     );
   return (
-    <Card eyebrow="步骤 1 · 议题准备" title={flow.issue.title}>
-      <dl className="bc-grid">
-        <div>
-          <dt>工作目标</dt>
-          <dd>{flow.issue.goal}</dd>
-        </div>
-        <div>
-          <dt>汇报对象</dt>
-          <dd>{flow.issue.audience}</dd>
-        </div>
-        <div>
-          <dt>时间范围</dt>
-          <dd>{flow.issue.period}</dd>
-        </div>
-        <div>
-          <dt>交付成果</dt>
-          <dd>{flow.issue.outputs.join('、')}</dd>
-        </div>
-      </dl>
+    <PreparationSheet
+      active="issue"
+      title="确认这份年度报告要解决什么问题"
+      description="先锁定汇报对象、时间范围和交付边界，再确定需要哪些职责岗位参与。"
+    >
+      <DefinitionRows
+        rows={[
+          { label: '议题', value: flow.issue.title },
+          { label: '工作目标', value: flow.issue.goal },
+          { label: '汇报对象', value: flow.issue.audience },
+          { label: '时间范围', value: flow.issue.period },
+          { label: '交付成果', value: flow.issue.outputs.join('、') },
+        ]}
+      />
       {!flow.issue.confirmed ? (
         <details className="bc-edit">
           <summary>调整议题卡</summary>
@@ -163,7 +354,7 @@ function IssueCard({ flow }: { flow: BrainstormFlow }) {
           </Action>
         </div>
       ) : null}
-    </Card>
+    </PreparationSheet>
   );
 }
 
@@ -175,7 +366,6 @@ function ParticipantsCard({
   onOpen: OpenTarget;
 }) {
   const { dispatch } = useWorkspace();
-  const groups = [...new Set(flow.participants.map((item) => item.groupId))];
   if (flow.phaseStatus !== 'awaiting_participants')
     return (
       <CompactReceipt
@@ -184,63 +374,15 @@ function ParticipantsCard({
       />
     );
   return (
-    <Card eyebrow="步骤 2 · 参与岗位" title="五个议题组 · 13个职责岗位">
+    <PreparationSheet
+      active="participants"
+      title="确认哪些职责视角必须进入年度报告"
+      description="按五个议题组组织13个职责岗位；岗位只为本任务提交材料、回应质疑和说明边界。"
+    >
       <p className="bc-help">
         岗位依据公开职责设置，只在本任务中承担材料贡献，不加入“专业智能”目录。
       </p>
-      <div className="bc-groups">
-        {groups.map((group) => (
-          <section key={group}>
-            <strong>
-              {
-                (
-                  {
-                    synthesis: '综合统稿组',
-                    strategy: '发展制度组',
-                    service: '政务服务组',
-                    'data-project': '数据项目组',
-                    security: '基础设施与安全组',
-                  } as Record<string, string>
-                )[group]
-              }
-            </strong>
-            {flow.participants
-              .filter((item) => item.groupId === group)
-              .map((item) => (
-                <label key={item.id}>
-                  <input
-                    type="checkbox"
-                    checked={item.selected}
-                    disabled={flow.phaseStatus !== 'awaiting_participants'}
-                    onChange={() =>
-                      dispatch({
-                        type: 'brainstorm',
-                        action: {
-                          type: 'participants-toggle',
-                          taskId: flow.taskId,
-                          participantId: item.id,
-                        },
-                      })
-                    }
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onOpen({
-                        kind: 'brainstorm',
-                        entity: 'role',
-                        id: item.id,
-                      })
-                    }
-                  >
-                    {item.name}
-                    <ArrowUpRight size={13} />
-                  </button>
-                </label>
-              ))}
-          </section>
-        ))}
-      </div>
+      <ParticipantGroups flow={flow} onOpen={onOpen} />
       {flow.phaseStatus === 'awaiting_participants' ? (
         <div className="bc-actions">
           <Action
@@ -256,7 +398,7 @@ function ParticipantsCard({
           </Action>
         </div>
       ) : null}
-    </Card>
+    </PreparationSheet>
   );
 }
 
@@ -275,7 +417,11 @@ function ScopeCard({ flow }: { flow: BrainstormFlow }) {
       />
     );
   return (
-    <Card eyebrow="步骤 2 · 材料授权" title="按最小必要范围调用材料">
+    <PreparationSheet
+      active="scope"
+      title="按最小必要范围确认材料调用"
+      description="岗位组合已确定。此处只决定本轮可以读取什么，不扩大跨处室材料或个人记忆权限。"
+    >
       <ul className="bc-scope">
         <li className="on">
           <CheckCircle2 />
@@ -322,7 +468,7 @@ function ScopeCard({ flow }: { flow: BrainstormFlow }) {
           </Action>
         </div>
       ) : null}
-    </Card>
+    </PreparationSheet>
   );
 }
 
@@ -344,51 +490,41 @@ function SynthesisCard({
       />
     );
   return (
-    <Card
-      eyebrow="步骤 3 · 主题贡献"
-      title={collected ? round.title : '准备汇集岗位贡献'}
+    <PreparationSheet
+      active="topics"
+      title={
+        collected
+          ? '七主题盘点已形成，请确认优先处理顺序'
+          : '先形成年度报告全局主题盘点'
+      }
+      description={
+        collected
+          ? 'V0独立贡献已经保留。系统根据岗位覆盖、分歧影响和材料缺口提出处理顺序建议。'
+          : '先收集13个岗位的独立输出并盘点七个年度报告主题，不直接进入某一个主题讨论。'
+      }
     >
       {collected ? (
         <>
-          <p className="bc-round-description">{round.description}</p>
-          <div className="bc-contribution-list">
-            {round.entries.slice(0, 6).map((entry) => (
-              <button
-                type="button"
-                key={entry.participantId}
-                onClick={() =>
-                  onOpen({
-                    kind: 'brainstorm',
-                    entity: 'role',
-                    id: entry.participantId,
-                  })
-                }
-              >
-                <strong>
-                  {
-                    flow.participants.find(
-                      (item) => item.id === entry.participantId,
-                    )?.name
-                  }
-                </strong>
-                <span>{entry.statement}</span>
-                <small>{entry.outcome}</small>
-              </button>
-            ))}
+          <div className="bc-v0-receipt">
+            <span>阶段输出</span>
+            <strong>{round.title}</strong>
+            <small>{round.artifacts.join(' · ')}</small>
           </div>
-          <div className="bc-round-summary">
-            <span>
-              <strong>阶段成果</strong>
-              {round.artifacts.join(' · ')}
-            </span>
-            <span className="attention">
-              <strong>继续原因</strong>
-              {round.continuationReason}
-            </span>
-          </div>
+          <TopicScanTable flow={flow} />
+          <PriorityReason />
         </>
       ) : (
-        <p>将按跨处室主题归并13个岗位的结构化贡献，不按机构逐段拼稿。</p>
+        <DefinitionRows
+          rows={[
+            { label: '输入', value: '13个职责岗位的独立结构化输出' },
+            { label: '盘点范围', value: '年度报告七个跨处室主题' },
+            {
+              label: '盘点结果',
+              value: '岗位覆盖、当前关注、处理判断和建议顺序',
+            },
+            { label: '边界', value: '只形成V0和主题盘点，不自动发起讨论' },
+          ]}
+        />
       )}
       {['collecting', 'partial_ready'].includes(flow.phaseStatus) ? (
         <div className="bc-actions">
@@ -398,7 +534,7 @@ function SynthesisCard({
                 onOpen({ kind: 'brainstorm', entity: 'round', id: 'v0' })
               }
             >
-              查看13岗完整输出
+              查看13岗独立输出
             </Action>
           ) : null}
           <Action
@@ -413,11 +549,11 @@ function SynthesisCard({
               })
             }
           >
-            {collected ? '开始第一轮讨论' : '开始汇集贡献'}
+            {collected ? '开始AI主题第一轮讨论' : '开始主题盘点'}
           </Action>
         </div>
       ) : null}
-    </Card>
+    </PreparationSheet>
   );
 }
 

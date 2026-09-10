@@ -310,12 +310,12 @@ export function brainstormReducer(
       {
         type: 'message',
         role: 'user',
-        text: '确认按当前范围使用材料，开始汇集岗位贡献。',
+        text: '确认按当前范围使用材料，开始形成年度报告主题盘点。',
       },
       {
         type: 'message',
         role: 'assistant',
-        text: '调用范围已确认。下一步将按七个跨处室主题汇集结构化贡献；无可靠材料的字段保留待补充。',
+        text: '调用范围已确认。下一步先汇集13个岗位的独立输出，并形成年度报告七个主题的完整盘点；系统只会推荐优先处理顺序，不会直接发起讨论。',
         anchor: 'synthesis',
       },
     );
@@ -342,7 +342,7 @@ export function brainstormReducer(
     });
     flow.phaseStatus = 'partial_ready';
     flow.rounds[0].status = 'completed';
-    flow.rounds[1].status = 'active';
+    flow.rounds[1].status = 'pending';
     change(
       'contribution/receive',
       flow.id,
@@ -354,7 +354,7 @@ export function brainstormReducer(
     effects.push({
       type: 'message',
       role: 'assistant',
-      text: '13个岗位已完成独立贡献，已保留V0初步汇集版。当前发现建设顺序、准入条件和评价方式尚未统一，需要进入第一轮岗位互证。',
+      text: '13个岗位已完成独立贡献，V0初步汇集版和七主题盘点已经形成。人工智能＋政务涉及8个岗位、3项实质分歧，并影响2027年任务排序和安全边界，建议优先处理；请由你确认是否先进入该主题。',
       anchor: 'synthesis',
     });
     return { state, effects };
@@ -372,6 +372,13 @@ export function brainstormReducer(
       flow.rounds[1].status = 'completed';
       flow.rounds[2].status = 'active';
       change(
+        'topic/prioritize',
+        'ai-government',
+        'recommended_first',
+        'confirmed_first',
+        '用户确认先处理人工智能＋政务主题',
+      );
+      change(
         'inquiry/round-1',
         high.id,
         'pending',
@@ -379,12 +386,19 @@ export function brainstormReducer(
         '建设方式与准入条件形成三项一致、三项未决',
         '超级智能体',
       );
-      effects.push({
-        type: 'message',
-        role: 'assistant',
-        text: '第一轮岗位互证已完成：不以场景数量为首要成绩、稳定数据和可评测结果是试点条件、共性能力统一沉淀。仍有三项事实、责任和顺序问题，需要用具体场景进入第二轮补证。',
-        anchor: 'round',
-      });
+      effects.push(
+        {
+          type: 'message',
+          role: 'user',
+          text: '按建议先处理“人工智能＋政务”主题，开始第一轮讨论。',
+        },
+        {
+          type: 'message',
+          role: 'assistant',
+          text: '第一轮岗位互证已完成：不以场景数量为首要成绩、稳定数据和可评测结果是试点条件、共性能力统一沉淀。仍有三项事实、责任和顺序问题，需要用具体场景进入第二轮补证。该主题处理后仍会回到其余六个主题和完整年度报告大纲。',
+          anchor: 'round',
+        },
+      );
       return { state, effects };
     }
     flow.phaseStatus = 'awaiting_high_impact_decision';

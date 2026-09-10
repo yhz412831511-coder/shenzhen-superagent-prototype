@@ -30,6 +30,9 @@ test('脑暴协作完成六阶段闭环并生成四项一致成果', () => {
   transition = act(transition.state, { type: 'participants-confirm' });
   transition = act(transition.state, { type: 'scope-confirm' });
   transition = act(transition.state, { type: 'collect' });
+  assert.equal(transition.state.flows[taskId].phaseStatus, 'partial_ready');
+  assert.equal(transition.state.flows[taskId].rounds[0].status, 'completed');
+  assert.equal(transition.state.flows[taskId].rounds[1].status, 'pending');
   assert.equal(
     transition.state.flows[taskId].topics.filter(
       (item) => item.status === 'ready',
@@ -37,6 +40,16 @@ test('脑暴协作完成六阶段闭环并生成四项一致成果', () => {
     7,
   );
   transition = act(transition.state, { type: 'inquire' });
+  assert.equal(transition.effects[0].role, 'user');
+  assert.match(transition.effects[0].text, /按建议先处理/);
+  assert.ok(
+    transition.state.flows[taskId].eventLog.some(
+      (item) =>
+        item.type === 'topic/prioritize' &&
+        item.entityId === 'ai-government' &&
+        item.to === 'confirmed_first',
+    ),
+  );
   assert.equal(
     transition.state.flows[taskId].conflicts.find(
       (item) => item.kind === 'ordinary',

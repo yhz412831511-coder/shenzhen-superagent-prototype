@@ -20,6 +20,17 @@ test('脑暴协作固定为13个岗位、5个议题组和7个跨处室主题', (
   );
   assert.equal(brainstormTopics.length, 7);
   assert.equal(brainstormTopics[0].id, 'ai-government');
+  assert.ok(
+    brainstormTopics.every(
+      (item) => item.attentionLabel && item.assessment && item.priority,
+    ),
+  );
+  assert.equal(
+    brainstormTopics.filter((item) => item.priority === 'recommended_first')
+      .length,
+    1,
+  );
+  assert.equal(brainstormTopics[0].participantIds.length, 8);
   assert.equal(brainstormContributions.length, 13);
   assert.ok(
     brainstormParticipants.every((item) => item.contributionIds.length === 1),
