@@ -64,6 +64,16 @@ function Card({
   );
 }
 
+function CompactReceipt({ title, detail }: { title: string; detail: string }) {
+  return (
+    <div className="bc-receipt">
+      <CheckCircle2 size={14} />
+      <strong>{title}</strong>
+      <span>{detail}</span>
+    </div>
+  );
+}
+
 function IssueCard({ flow }: { flow: BrainstormFlow }) {
   const { dispatch } = useWorkspace();
   const [draft, setDraft] = useState({
@@ -82,6 +92,13 @@ function IssueCard({ flow }: { flow: BrainstormFlow }) {
         value: draft[field],
       },
     });
+  if (flow.issue.confirmed)
+    return (
+      <CompactReceipt
+        title="议题与交付边界已确认"
+        detail={`${flow.issue.audience} · ${flow.issue.period}`}
+      />
+    );
   return (
     <Card eyebrow="步骤 1 · 议题准备" title={flow.issue.title}>
       <dl className="bc-grid">
@@ -159,6 +176,13 @@ function ParticipantsCard({
 }) {
   const { dispatch } = useWorkspace();
   const groups = [...new Set(flow.participants.map((item) => item.groupId))];
+  if (flow.phaseStatus !== 'awaiting_participants')
+    return (
+      <CompactReceipt
+        title="参与岗位已确认"
+        detail={`${flow.participants.filter((item) => item.selected).length}个职责岗位 · 5个议题组`}
+      />
+    );
   return (
     <Card eyebrow="步骤 2 · 参与岗位" title="五个议题组 · 13个职责岗位">
       <p className="bc-help">
@@ -243,6 +267,13 @@ function ScopeCard({ flow }: { flow: BrainstormFlow }) {
       type: 'brainstorm',
       action: { type: 'scope-toggle', taskId: flow.taskId, field },
     });
+  if (flow.sourceScopes.confirmed)
+    return (
+      <CompactReceipt
+        title="材料与授权范围已确认"
+        detail="公开职责 · 岗位授权摘要 · 最小必要共享"
+      />
+    );
   return (
     <Card eyebrow="步骤 2 · 材料授权" title="按最小必要范围调用材料">
       <ul className="bc-scope">
@@ -303,54 +334,222 @@ function SynthesisCard({
   onOpen: OpenTarget;
 }) {
   const { dispatch } = useWorkspace();
-  const ready = flow.phaseStatus === 'partial_ready';
   const collected = flow.topics.some((topic) => topic.status === 'ready');
+  const round = flow.rounds.find((item) => item.id === 'v0')!;
+  if (collected && flow.phaseStatus !== 'partial_ready')
+    return (
+      <CompactReceipt
+        title="V0 独立贡献已保留"
+        detail={`${flow.participants.filter((item) => item.status === 'submitted').length}岗输出 · 岗位输出清单 · 初步汇集稿`}
+      />
+    );
   return (
     <Card
       eyebrow="步骤 3 · 主题贡献"
-      title={collected ? '七个主题已形成初步综合' : '准备汇集岗位贡献'}
+      title={collected ? round.title : '准备汇集岗位贡献'}
     >
       {collected ? (
         <>
-          <div className="bc-topics">
-            {flow.topics.map((topic) => (
+          <p className="bc-round-description">{round.description}</p>
+          <div className="bc-contribution-list">
+            {round.entries.slice(0, 6).map((entry) => (
               <button
-                key={topic.id}
                 type="button"
+                key={entry.participantId}
                 onClick={() =>
-                  onOpen({ kind: 'brainstorm', entity: 'topic', id: topic.id })
+                  onOpen({
+                    kind: 'brainstorm',
+                    entity: 'role',
+                    id: entry.participantId,
+                  })
                 }
               >
-                <span>{topic.title}</span>
-                <small>{topic.contributionIds.length}项贡献</small>
-                <ArrowUpRight size={14} />
+                <strong>
+                  {
+                    flow.participants.find(
+                      (item) => item.id === entry.participantId,
+                    )?.name
+                  }
+                </strong>
+                <span>{entry.statement}</span>
+                <small>{entry.outcome}</small>
               </button>
             ))}
           </div>
-          <p className="bc-summary">6项共识 · 1项普通冲突 · 1项高影响冲突</p>
+          <div className="bc-round-summary">
+            <span>
+              <strong>阶段成果</strong>
+              {round.artifacts.join(' · ')}
+            </span>
+            <span className="attention">
+              <strong>继续原因</strong>
+              {round.continuationReason}
+            </span>
+          </div>
         </>
       ) : (
         <p>将按跨处室主题归并13个岗位的结构化贡献，不按机构逐段拼稿。</p>
       )}
       {['collecting', 'partial_ready'].includes(flow.phaseStatus) ? (
         <div className="bc-actions">
+          {collected ? (
+            <Action
+              onClick={() =>
+                onOpen({ kind: 'brainstorm', entity: 'round', id: 'v0' })
+              }
+            >
+              查看13岗完整输出
+            </Action>
+          ) : null}
           <Action
             primary
             onClick={() =>
               dispatch({
                 type: 'brainstorm',
                 action: {
-                  type: ready ? 'inquire' : 'collect',
+                  type: collected ? 'inquire' : 'collect',
                   taskId: flow.taskId,
                 },
               })
             }
           >
-            {ready ? '发起协同询证' : '开始汇集贡献'}
+            {collected ? '开始第一轮讨论' : '开始汇集贡献'}
           </Action>
         </div>
       ) : null}
     </Card>
+  );
+}
+
+const effectLabel = {
+  origin: '主张',
+  add: '补充',
+  challenge: '质疑',
+  correct: '校正',
+  keep: '保留',
+} as const;
+
+function InquiryRoundCard({
+  flow,
+  onOpen,
+}: {
+  flow: BrainstormFlow;
+  onOpen: OpenTarget;
+}) {
+  const { dispatch } = useWorkspace();
+  const round = flow.rounds.find((item) => item.id === 'v1')!;
+  if (flow.phaseStatus !== 'inquiring')
+    return (
+      <CompactReceipt
+        title="V1 第一轮讨论已完成"
+        detail={`${round.consensus.length}项一致 · ${round.conflicts.length}项问题进入第二轮 · ${round.artifacts.length}项阶段成果`}
+      />
+    );
+  return (
+    <RoundCard
+      flow={flow}
+      roundId="v1"
+      onOpen={onOpen}
+      action={
+        <Action
+          primary
+          onClick={() =>
+            dispatch({
+              type: 'brainstorm',
+              action: { type: 'inquire', taskId: flow.taskId },
+            })
+          }
+        >
+          进入第二轮询证
+        </Action>
+      }
+    />
+  );
+}
+
+function RoundCard({
+  flow,
+  roundId,
+  onOpen,
+  action,
+}: {
+  flow: BrainstormFlow;
+  roundId: 'v1' | 'v2';
+  onOpen: OpenTarget;
+  action?: React.ReactNode;
+}) {
+  const round = flow.rounds.find((item) => item.id === roundId)!;
+  return (
+    <section className="bc-round-card">
+      <header>
+        <div>
+          <span>步骤 4 · 协同询证</span>
+          <strong>{round.title}</strong>
+          <small>{round.description}</small>
+        </div>
+        <b>{round.id.toUpperCase()}</b>
+      </header>
+      <div className="bc-round-focus">
+        <span>讨论焦点</span>
+        <strong>{round.focus}</strong>
+        <em>{round.conflicts.length}项未决</em>
+      </div>
+      <div className="bc-round-table-head">
+        <span>职责岗位</span>
+        <span>作用</span>
+        <span>明确主张／回应</span>
+        <span>结果</span>
+      </div>
+      <div className="bc-round-table">
+        {round.entries.slice(0, 7).map((entry) => (
+          <button
+            type="button"
+            key={entry.participantId}
+            onClick={() =>
+              onOpen({
+                kind: 'brainstorm',
+                entity: 'role',
+                id: entry.participantId,
+              })
+            }
+          >
+            <strong>
+              {
+                flow.participants.find(
+                  (item) => item.id === entry.participantId,
+                )?.name
+              }
+            </strong>
+            <i className={`effect-${entry.effect}`}>
+              {effectLabel[entry.effect]}
+            </i>
+            <span>{entry.statement}</span>
+            <small>{entry.outcome}</small>
+          </button>
+        ))}
+      </div>
+      <div className="bc-round-summary two-column">
+        <span>
+          <strong>本轮形成的一致</strong>
+          {round.consensus.join('；')}
+        </span>
+        <span className="attention">
+          <strong>仍需处理的矛盾</strong>
+          {round.conflicts.join('；')}
+        </span>
+      </div>
+      <footer>
+        <small>阶段成果：{round.artifacts.join(' · ')}</small>
+        <Action
+          onClick={() =>
+            onOpen({ kind: 'brainstorm', entity: 'round', id: round.id })
+          }
+        >
+          查看完整论证
+        </Action>
+        {action}
+      </footer>
+    </section>
   );
 }
 
@@ -363,65 +562,80 @@ function DecisionCard({
 }) {
   const { dispatch } = useWorkspace();
   const conflict = flow.conflicts.find((item) => item.kind === 'high_impact')!;
+  if (conflict.status === 'resolved')
+    return (
+      <CompactReceipt
+        title="V3 用户裁决已记录"
+        detail={`${conflict.options.find((item) => item.id === conflict.selectedOptionId)?.label} · 已同步主稿与决定记录`}
+      />
+    );
   return (
-    <Card eyebrow="步骤 4 · 高影响决定" title={conflict.title}>
-      <p>{conflict.summary}</p>
-      <button
-        type="button"
-        className="bc-link"
-        onClick={() =>
-          onOpen({ kind: 'brainstorm', entity: 'conflict', id: conflict.id })
-        }
-      >
-        查看两轮询证与影响范围 <ArrowUpRight size={14} />
-      </button>
-      <div className="bc-options">
-        {conflict.options.map((option) => (
-          <button
-            key={option.id}
-            type="button"
-            disabled={conflict.status === 'resolved'}
-            className={
-              option.id === conflict.selectedOptionId ||
-              (conflict.status !== 'resolved' && option.recommended)
-                ? 'recommended'
-                : ''
-            }
-            onClick={() =>
-              dispatch({
-                type: 'brainstorm',
-                action: {
-                  type: 'decision-resolve',
-                  taskId: flow.taskId,
-                  conflictId: conflict.id,
-                  optionId: option.id,
-                },
-              })
-            }
-          >
-            <strong>
-              {option.label}
-              {option.id === conflict.selectedOptionId
-                ? ' · 已选择'
-                : conflict.status !== 'resolved' && option.recommended
-                  ? ' · 建议'
-                  : ''}
-            </strong>
-            <span>{option.impact}</span>
-          </button>
-        ))}
-      </div>
-      <p className="bc-boundary">
-        <ShieldCheck size={15} />
-        本决定仅用于工作版本取舍，不代表领导审定。
-      </p>
-    </Card>
+    <>
+      <RoundCard flow={flow} roundId="v2" onOpen={onOpen} />
+      <section className="bc-decision-card">
+        <header>
+          <span>步骤 5 · 用户裁决</span>
+          <strong>{conflict.title}</strong>
+          <small>{conflict.summary}</small>
+        </header>
+        <button
+          type="button"
+          className="bc-link"
+          onClick={() =>
+            onOpen({ kind: 'brainstorm', entity: 'evolution', id: flow.id })
+          }
+        >
+          对照V0初步汇集与V2协作收敛 <ArrowUpRight size={14} />
+        </button>
+        <div className="bc-options">
+          {conflict.options.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              className={option.recommended ? 'recommended' : ''}
+              onClick={() =>
+                dispatch({
+                  type: 'brainstorm',
+                  action: {
+                    type: 'decision-resolve',
+                    taskId: flow.taskId,
+                    conflictId: conflict.id,
+                    optionId: option.id,
+                  },
+                })
+              }
+            >
+              <strong>
+                {option.label}
+                {option.recommended ? ' · 建议' : ''}
+              </strong>
+              <span>{option.impact}</span>
+            </button>
+          ))}
+        </div>
+        <p className="bc-boundary">
+          <ShieldCheck size={15} />
+          本决定仅用于工作版本取舍，不代表领导审定。
+        </p>
+      </section>
+    </>
   );
 }
 
 function OutlineCard({ flow }: { flow: BrainstormFlow }) {
   const { dispatch } = useWorkspace();
   const confirmed = flow.phaseStatus === 'outline_ready';
+  if (
+    !['awaiting_outline_confirmation', 'outline_ready'].includes(
+      flow.phaseStatus,
+    )
+  )
+    return (
+      <CompactReceipt
+        title="综合大纲已确认"
+        detail="用户决定已应用到任务排序、场景表述和承诺边界"
+      />
+    );
   return (
     <Card eyebrow="步骤 5 · 综合大纲" title="一份推荐主稿的统一结构">
       <ol className="bc-outline">
@@ -466,6 +680,13 @@ function GapCard({
   onOpen: OpenTarget;
 }) {
   const { dispatch } = useWorkspace();
+  if (flow.phaseStatus !== 'fact_gap_attention')
+    return (
+      <CompactReceipt
+        title="事实缺口处理已记录"
+        detail="合成、待核与缺失内容均保留明确状态"
+      />
+    );
   return (
     <Card eyebrow="步骤 6 · 事实缺口" title="明确未核内容的处理方式">
       <div className="bc-gaps">
@@ -491,41 +712,37 @@ function GapCard({
             </button>
           ))}
       </div>
-      {flow.phaseStatus === 'fact_gap_attention' ? (
-        <div className="bc-actions">
-          <Action
-            primary
-            onClick={() =>
-              dispatch({
-                type: 'brainstorm',
-                action: {
-                  type: 'fact-gap-resolve',
-                  taskId: flow.taskId,
-                  resolution: 'keep_limited',
-                },
-              })
-            }
-          >
-            保留限定并继续
-          </Action>
-          <Action
-            onClick={() =>
-              dispatch({
-                type: 'brainstorm',
-                action: {
-                  type: 'fact-gap-resolve',
-                  taskId: flow.taskId,
-                  resolution: 'remove_from_draft',
-                },
-              })
-            }
-          >
-            移除未核定数值
-          </Action>
-        </div>
-      ) : (
-        <p className="bc-help">缺口处理方式已记录。</p>
-      )}
+      <div className="bc-actions">
+        <Action
+          primary
+          onClick={() =>
+            dispatch({
+              type: 'brainstorm',
+              action: {
+                type: 'fact-gap-resolve',
+                taskId: flow.taskId,
+                resolution: 'keep_limited',
+              },
+            })
+          }
+        >
+          保留限定并继续
+        </Action>
+        <Action
+          onClick={() =>
+            dispatch({
+              type: 'brainstorm',
+              action: {
+                type: 'fact-gap-resolve',
+                taskId: flow.taskId,
+                resolution: 'remove_from_draft',
+              },
+            })
+          }
+        >
+          移除未核定数值
+        </Action>
+      </div>
     </Card>
   );
 }
@@ -612,6 +829,8 @@ export function BrainstormAttachment({
   if (anchor === 'scope') return <ScopeCard flow={flow} />;
   if (anchor === 'synthesis')
     return <SynthesisCard flow={flow} onOpen={onOpen} />;
+  if (anchor === 'round')
+    return <InquiryRoundCard flow={flow} onOpen={onOpen} />;
   if (anchor === 'decision')
     return <DecisionCard flow={flow} onOpen={onOpen} />;
   if (anchor === 'outline') return <OutlineCard flow={flow} />;
@@ -643,47 +862,56 @@ export function BrainstormMonitorSections({
   flow: BrainstormFlow;
   onOpen: OpenTarget;
 }) {
-  const submitted = flow.participants.filter(
-    (item) => item.status === 'submitted',
-  ).length;
+  const selected = flow.conflicts.find(
+    (item) => item.kind === 'high_impact',
+  )?.selectedOptionId;
   return (
     <>
       <details open className="bc-monitor">
-        <summary>协作态势</summary>
+        <summary>协作过程</summary>
+        {flow.rounds.map((round) => (
+          <button
+            key={round.id}
+            className={round.status === 'active' ? 'current' : ''}
+            onClick={() =>
+              onOpen({ kind: 'brainstorm', entity: 'round', id: round.id })
+            }
+          >
+            {round.status === 'completed' ? (
+              <CheckCircle2 />
+            ) : round.status === 'active' ? (
+              <UsersRound />
+            ) : (
+              <span className="bc-monitor-dot" />
+            )}
+            <span>
+              {round.id.toUpperCase()} {round.title.replace(/^.*：/, '')}
+              <strong>
+                {round.status === 'completed'
+                  ? '已形成'
+                  : round.status === 'active'
+                    ? '进行中'
+                    : '等待'}
+              </strong>
+              <small>{round.artifacts.length}项阶段成果</small>
+            </span>
+          </button>
+        ))}
         <button
+          className={
+            flow.phaseStatus === 'awaiting_high_impact_decision'
+              ? 'current'
+              : ''
+          }
           onClick={() =>
-            onOpen({ kind: 'brainstorm', entity: 'review', id: flow.id })
+            onOpen({ kind: 'brainstorm', entity: 'evolution', id: flow.id })
           }
         >
-          <UsersRound />
+          {selected ? <CheckCircle2 /> : <AlertTriangle />}
           <span>
-            参与岗位
-            <strong>
-              {flow.participants.filter((item) => item.selected).length}/13
-            </strong>
-            <small>{submitted}个已提交贡献</small>
-          </span>
-        </button>
-        <button
-          onClick={() =>
-            onOpen({
-              kind: 'brainstorm',
-              entity: 'conflict',
-              id: 'conflict-ai-balance',
-            })
-          }
-        >
-          <AlertTriangle />
-          <span>
-            分歧与决定
-            <strong>
-              {
-                flow.conflicts.filter((item) => item.status === 'resolved')
-                  .length
-              }
-              /{flow.conflicts.length}
-            </strong>
-            <small>{flow.decisions.length}项用户决定</small>
+            V3 用户裁决与版本变化
+            <strong>{selected ? '已记录' : '等待决定'}</strong>
+            <small>主稿差异与协作增益回执</small>
           </span>
         </button>
       </details>
@@ -717,6 +945,213 @@ export function BrainstormMonitorSections({
   );
 }
 
+function BrainstormRoundWorkspace({
+  flow,
+  roundId,
+  onOpen,
+}: {
+  flow: BrainstormFlow;
+  roundId: string;
+  onOpen: OpenTarget;
+}) {
+  const round =
+    flow.rounds.find((item) => item.id === roundId) || flow.rounds[0];
+  return (
+    <section className="bc-argument-workspace">
+      <header>
+        <div>
+          <span>协作论证 · {round.id.toUpperCase()}</span>
+          <h2>{round.title}</h2>
+          <p>{round.description}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() =>
+            onOpen({ kind: 'brainstorm', entity: 'evolution', id: flow.id })
+          }
+        >
+          查看版本变化 <ArrowUpRight size={14} />
+        </button>
+      </header>
+      <div className="bc-argument-focus">
+        <span>讨论焦点</span>
+        <strong>{round.focus}</strong>
+        <em>{round.conflicts.length}项未决</em>
+      </div>
+      <div className="bc-argument-head">
+        <span>职责岗位</span>
+        <span>作用</span>
+        <span>明确主张／回应</span>
+        <span>依据状态</span>
+        <span>结果</span>
+      </div>
+      <div className="bc-argument-rows">
+        {round.entries.map((entry) => (
+          <button
+            type="button"
+            key={entry.participantId}
+            onClick={() =>
+              onOpen({
+                kind: 'brainstorm',
+                entity: 'role',
+                id: entry.participantId,
+              })
+            }
+          >
+            <strong>
+              {
+                flow.participants.find(
+                  (item) => item.id === entry.participantId,
+                )?.name
+              }
+            </strong>
+            <i className={`effect-${entry.effect}`}>
+              {effectLabel[entry.effect]}
+            </i>
+            <span>{entry.statement}</span>
+            <small>{entry.basisStatus}</small>
+            <em>{entry.outcome}</em>
+          </button>
+        ))}
+      </div>
+      <div className="bc-argument-outcomes">
+        <section>
+          <h3>本轮形成的一致</h3>
+          <ul>
+            {round.consensus.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
+        <section className="attention">
+          <h3>仍需处理的矛盾</h3>
+          <ul>
+            {round.conflicts.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
+      </div>
+      <footer>
+        <strong>阶段成果</strong>
+        <span>{round.artifacts.join(' · ')}</span>
+        <small>继续原因：{round.continuationReason}</small>
+      </footer>
+    </section>
+  );
+}
+
+function BrainstormEvolutionWorkspace({ flow }: { flow: BrainstormFlow }) {
+  const selected = flow.conflicts
+    .find((item) => item.kind === 'high_impact')
+    ?.options.find(
+      (item) =>
+        item.id ===
+        flow.conflicts.find((entry) => entry.kind === 'high_impact')
+          ?.selectedOptionId,
+    );
+  return (
+    <section className="bc-evolution-workspace">
+      <header>
+        <span>协作增益</span>
+        <h2>从初步汇集到两轮岗位互证</h2>
+        <p>
+          比较相同议题、相同材料范围下，结论因职责补证和相互质疑发生的变化。
+        </p>
+      </header>
+      <div className="bc-version-compare">
+        <article>
+          <strong>{flow.evolution.baselineTitle}</strong>
+          <p>{flow.evolution.baselineText}</p>
+        </article>
+        <article>
+          <strong>
+            {selected
+              ? `V3 ${selected.label}工作版本`
+              : flow.evolution.convergedTitle}
+          </strong>
+          <p>{selected?.impact || flow.evolution.convergedText}</p>
+        </article>
+      </div>
+      <div className="bc-change-ledger">
+        <div className="bc-change-head">
+          <span>变化类型</span>
+          <span>相关岗位</span>
+          <span>具体变化</span>
+          <span>结果影响</span>
+        </div>
+        {flow.evolution.changes.map((change) => (
+          <div key={change.text}>
+            <i>
+              {
+                (
+                  {
+                    added_condition: '补充条件',
+                    corrected_boundary: '纠正边界',
+                    formed_dependency: '形成协同',
+                    reduced_claim: '降级表述',
+                  } as const
+                )[change.kind]
+              }
+            </i>
+            <span>
+              {change.participantIds
+                .map(
+                  (id) =>
+                    flow.participants.find((item) => item.id === id)?.name,
+                )
+                .join('、')}
+            </span>
+            <strong>{change.text}</strong>
+            <small>{change.impact}</small>
+          </div>
+        ))}
+      </div>
+      <div className="bc-gain-receipt">
+        <span>
+          <strong>
+            {
+              flow.evolution.changes.filter(
+                (item) => item.kind === 'added_condition',
+              ).length
+            }
+          </strong>
+          新增准入条件
+        </span>
+        <span>
+          <strong>
+            {
+              flow.evolution.changes.filter(
+                (item) =>
+                  item.kind === 'corrected_boundary' ||
+                  item.kind === 'reduced_claim',
+              ).length
+            }
+          </strong>
+          风险或无依据表述被纠正
+        </span>
+        <span>
+          <strong>
+            {
+              flow.evolution.changes.filter(
+                (item) => item.kind === 'formed_dependency',
+              ).length
+            }
+          </strong>
+          跨处室依赖被明确
+        </span>
+        <span>
+          <strong>1</strong>高影响方向由用户决定
+        </span>
+      </div>
+      <p className="bc-boundary">
+        <ShieldCheck size={15} />
+        以上为合成工作示例，不代表真实处室意见、正式规划或已核定任务。
+      </p>
+    </section>
+  );
+}
+
 export function BrainstormObjectView({
   taskId,
   target,
@@ -729,8 +1164,21 @@ export function BrainstormObjectView({
   const { state } = useWorkspace();
   const flow = state.brainstorm.flows[taskId];
   if (!flow) return <p>未找到脑暴协作记录。</p>;
+  if (target.entity === 'round')
+    return (
+      <BrainstormRoundWorkspace
+        flow={flow}
+        roundId={target.id}
+        onOpen={onOpen}
+      />
+    );
+  if (target.entity === 'evolution')
+    return <BrainstormEvolutionWorkspace flow={flow} />;
   if (target.entity === 'role') {
     const item = flow.participants.find((entry) => entry.id === target.id);
+    const contribution = flow.contributions.find(
+      (entry) => entry.participantId === item?.id,
+    );
     return item ? (
       <article className="bc-object">
         <span>职责岗位</span>
@@ -751,7 +1199,38 @@ export function BrainstormObjectView({
               {item.status === 'submitted' ? '已提交结构化贡献' : '等待汇集'}
             </dd>
           </div>
+          <div>
+            <dt>明确主张</dt>
+            <dd>{contribution?.position}</dd>
+          </div>
+          <div>
+            <dt>依据状态</dt>
+            <dd>{contribution?.basisStatus}</dd>
+          </div>
+          <div>
+            <dt>对主稿的影响</dt>
+            <dd>{contribution?.draftImpact}</dd>
+          </div>
         </dl>
+        {contribution?.questions.length ? (
+          <>
+            <h3>向相关岗位提出的问题</h3>
+            <ul className="bc-question-list">
+              {contribution.questions.map((question) => (
+                <li key={question.text}>
+                  <strong>
+                    {
+                      flow.participants.find(
+                        (entry) => entry.id === question.participantId,
+                      )?.name
+                    }
+                  </strong>
+                  {question.text}
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : null}
       </article>
     ) : (
       <p>岗位不存在。</p>
@@ -780,6 +1259,45 @@ export function BrainstormObjectView({
           {topic.contributionIds.length}项结构化贡献 ·{' '}
           {topic.status === 'ready' ? '已形成初步综合' : '等待汇集'}
         </p>
+        {topic.id === 'ai-government' ? (
+          <>
+            <h3>协作变化</h3>
+            <ul className="bc-question-list">
+              {flow.evolution.changes.slice(0, 4).map((change) => (
+                <li key={change.text}>
+                  <strong>{change.impact}</strong>
+                  {change.text}
+                </li>
+              ))}
+            </ul>
+            <div className="bc-actions">
+              <Action
+                onClick={() =>
+                  onOpen({
+                    kind: 'brainstorm',
+                    entity: 'round',
+                    id:
+                      flow.rounds.find((item) => item.status === 'active')
+                        ?.id || 'v2',
+                  })
+                }
+              >
+                查看当前轮次论证
+              </Action>
+              <Action
+                onClick={() =>
+                  onOpen({
+                    kind: 'brainstorm',
+                    entity: 'evolution',
+                    id: flow.id,
+                  })
+                }
+              >
+                查看版本变化
+              </Action>
+            </div>
+          </>
+        ) : null}
       </article>
     ) : (
       <p>主题不存在。</p>
@@ -808,6 +1326,16 @@ export function BrainstormObjectView({
             <dd>{conflict.category}</dd>
           </div>
         </dl>
+        <h3>两轮论证结果</h3>
+        <ul className="bc-question-list">
+          {flow.rounds.slice(1).map((round) => (
+            <li key={round.id}>
+              <strong>{round.title}</strong>
+              {round.consensus.join('；')}。仍需处理：
+              {round.conflicts.join('；')}。
+            </li>
+          ))}
+        </ul>
         {conflict.selectedOptionId ? (
           <p className="bc-boundary">
             <CheckCircle2 />

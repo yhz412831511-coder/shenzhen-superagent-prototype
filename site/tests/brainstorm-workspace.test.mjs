@@ -25,6 +25,7 @@ function generated(optionId = 'balanced') {
     { type: 'scope-confirm' },
     { type: 'collect' },
     { type: 'inquire' },
+    { type: 'inquire' },
     { type: 'decision-resolve', conflictId: 'conflict-ai-balance', optionId },
     { type: 'outline-confirm' },
     { type: 'artifacts-generate' },
@@ -60,14 +61,16 @@ test('四项成果进入统一成果库，并保持同一任务和来源边界',
       '工作版本 · 合成示例内容',
     ),
   );
-  assert.ok(state.artifacts[flow.artifactIds[3]].body.includes('采用平衡主线'));
+  assert.ok(
+    state.artifacts[flow.artifactIds[3]].body.includes('场景牵引、分层准入'),
+  );
 });
 
-test('创新选项改变主稿，移除未核数值会同步改写成果版本', () => {
+test('快速铺开选项改变主稿，移除未核数值会同步改写成果版本', () => {
   let state = generated('innovation');
   let flow = state.brainstorm.flows[taskId];
   const reportId = flow.artifactIds[0];
-  assert.match(state.artifacts[reportId].body, /前瞻性更强/);
+  assert.match(state.artifacts[reportId].body, /同步申报并建设场景/);
   state = action(state, {
     type: 'fact-gap-resolve',
     resolution: 'remove_from_draft',

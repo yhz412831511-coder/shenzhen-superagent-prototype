@@ -1,6 +1,6 @@
 export type WorkspaceTarget =
   | { kind: 'system' | 'artifact' | 'operation' | 'operation-group' | 'capability' | 'file'; id: string; annotationId?: string }
-  | { kind: 'brainstorm'; id: string; entity: 'role' | 'topic' | 'conflict' | 'fact' | 'review'; annotationId?: string };
+  | { kind: 'brainstorm'; id: string; entity: 'role' | 'topic' | 'conflict' | 'fact' | 'round' | 'evolution' | 'review'; annotationId?: string };
 export type BrowserTab = { id: string; history: WorkspaceTarget[]; cursor: number };
 export type Annotation = {
   id: string; target: WorkspaceTarget; title: string; version: string;

@@ -22,7 +22,20 @@ test('对话卡、任务概览和三栏审阅均接入现有任务壳', () => {
   assert.match(conversation, /BrainstormAttachment/);
   assert.match(conversation, /BrainstormMonitorSections/);
   assert.match(workspace, /BrainstormObjectView/);
-  assert.match(workspace, /target\.entity\s*===\s*'review'/);
+  assert.match(
+    workspace,
+    /\['round','evolution','review'\]\.includes\(target\.entity\)/,
+  );
+  assert.match(workspace, /\['round','evolution','review'\]/);
+});
+
+test('融合版在原任务框架中呈现完整协作故事', () => {
+  const components = read('../app/brainstorm-components.tsx');
+  assert.match(components, /查看13岗完整输出/);
+  assert.match(components, /进入第二轮询证/);
+  assert.match(components, /用户裁决与版本变化/);
+  assert.match(components, /从初步汇集到两轮岗位互证/);
+  assert.match(components, /新增准入条件/);
 });
 
 test('脑暴进度固定为六个业务阶段', () => {
