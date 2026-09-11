@@ -16,6 +16,10 @@ const participant = (
   dutyBasisDate = '2024',
 ): BrainstormParticipant => ({
   id,
+  organizationCarrierId:
+    id === 'project-planning'
+      ? 'project-coordination-digital-person'
+      : `role-carrier-${id}`,
   name,
   groupId,
   dutyBasis: `深圳市政务服务和数据管理局公开机构职责（${dutyBasisDate}年资料，实施前复核）`,

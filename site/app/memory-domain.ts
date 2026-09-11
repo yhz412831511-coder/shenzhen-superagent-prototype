@@ -153,6 +153,8 @@ export type SavedContext = {
     | '知识库'
     | 'Memory'
     | '专业智能体'
+    | '组织智能载体'
+    | '场景工作智能体'
     | 'Skill'
     | '插件'
     | '连接器';

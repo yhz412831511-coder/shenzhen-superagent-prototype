@@ -165,6 +165,8 @@ export type Flow = {
     | 'system-confirmed';
   tracking?: string;
   agentId?: string;
+  sceneAgentId?: string;
+  roleAgentIds?: string[];
   folder: string;
 };
 export type Automation = {
@@ -241,6 +243,8 @@ export type WorkspaceAction =
       id: string;
       text: string;
       agentId?: string;
+      sceneAgentId?: string;
+      roleAgentIds?: string[];
       refs?: MemoryRef[];
       settings?: WorkTask['contexts'];
       permissionMode?: WorkTask['permissionMode'];
@@ -1984,7 +1988,9 @@ export function workspaceReducer(
           kind: 'consultation',
           stage: 'consult',
           status: '准备咨询',
-          source: '本人咨询 · 专业智能体',
+          source: a.sceneAgentId
+            ? '本人工作 · 场景工作智能体'
+            : '本人咨询 · 组织智能载体',
           historical: false,
           stopped: false,
           version: 1,
@@ -2005,6 +2011,8 @@ export function workspaceReducer(
           submission: 'draft',
           tracking: undefined,
           agentId: a.agentId,
+          sceneAgentId: a.sceneAgentId,
+          roleAgentIds: [...new Set(a.roleAgentIds || [])],
           folder: '',
         };
         consult(s, a.id, a.agentId, a.text);

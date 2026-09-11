@@ -57,6 +57,8 @@ import {
 } from './fiscal-components';
 import { conversationTurns } from './conversation-view';
 import { BrainstormHeaderStatus } from './brainstorm-components';
+import { ProfessionalIntelligencePage } from './professional-intelligence-page';
+import { organizationCarrierIds } from './professional-intelligence-domain';
 type Page =
   | 'home'
   | 'task'
@@ -117,6 +119,10 @@ export function FiscalWorkbench() {
     [folder, setFolder] = useState(''),
     [folderEditor, setFolderEditor] = useState(false),
     [folderName, setFolderName] = useState('');
+  const [sceneReplacement, setSceneReplacement] = useState<{
+    current: SavedContext;
+    next: SavedContext;
+  }>();
   const [expandedProjects, setExpandedProjects] = useState<string[]>(
     state.folders,
   );
@@ -187,7 +193,7 @@ export function FiscalWorkbench() {
       };
     });
   };
-  const addContext = (ctx: SavedContext) => {
+  const commitContext = (ctx: SavedContext) => {
     if (page === 'task' && task)
       dispatch({
         type: 'memory',
@@ -196,29 +202,68 @@ export function FiscalWorkbench() {
           taskId: task.id,
           settings: {
             contexts: [
-              ...(task.contexts || []).filter((c) => c.id !== ctx.id),
+              ...(task.contexts || []).filter(
+                (c) =>
+                  c.id !== ctx.id &&
+                  !(
+                    ctx.kind === '场景工作智能体' &&
+                    c.kind === '场景工作智能体'
+                  ),
+              ),
               ctx,
             ],
           },
         },
       });
     else {
-      setContexts((old) => [...old.filter((x) => x.id !== ctx.id), ctx]);
+      setContexts((old) => [
+        ...old.filter(
+          (x) =>
+            x.id !== ctx.id &&
+            !(
+              ctx.kind === '场景工作智能体' &&
+              x.kind === '场景工作智能体'
+            ),
+        ),
+        ctx,
+      ]);
       setPage('home');
     }
+  };
+  const addContext = (ctx: SavedContext) => {
+    const available = page === 'task' && task ? task.contexts || [] : contexts;
+    const currentScene = available.find(
+      (item) => item.kind === '场景工作智能体' && item.id !== ctx.id,
+    );
+    if (ctx.kind === '场景工作智能体' && currentScene) {
+      setSceneReplacement({ current: currentScene, next: ctx });
+      return;
+    }
+    commitContext(ctx);
   };
   const addCatalogToTask = (id: string) => {
     const c = state.catalog.find((c) => c.id === id);
     if (c)
       addContext({
         id: c.id,
-        kind: c.kind as SavedContext['kind'],
+        kind: organizationCarrierIds.has(c.id)
+          ? '组织智能载体'
+          : c.kind === '场景工作智能体'
+            ? '场景工作智能体'
+            : (c.kind as SavedContext['kind']),
         label: c.name,
       });
   };
   const consult = (id: string, text: string) => {
     const taskId = 'consult-' + (state.memory.counter + 1);
-    dispatch({ type: 'new-task', id: taskId, text, agentId: id });
+    dispatch({
+      type: 'new-task',
+      id: taskId,
+      text,
+      agentId: id,
+      sceneAgentId: organizationCarrierIds.has(id) ? undefined : id,
+      roleAgentIds: organizationCarrierIds.has(id) ? [id] : [],
+    });
     openTask(taskId);
   };
   const activeContexts =
@@ -240,12 +285,25 @@ export function FiscalWorkbench() {
     } else {
       const id = 'task-' + (state.memory.counter + 1);
       const refs = contexts.flatMap((x) => (x.memoryRef ? [x.memoryRef] : []));
-      const agentId = contexts.find((x) => x.kind === '专业智能体')?.id;
+      const sceneAgentId = contexts.find(
+        (x) => x.kind === '场景工作智能体',
+      )?.id;
+      const roleAgentIds = contexts
+        .filter((x) => x.kind === '组织智能载体')
+        .map((x) => x.id);
+      const agentId =
+        sceneAgentId ||
+        roleAgentIds[0] ||
+        contexts.find((x) => x.kind === '专业智能体')?.id;
       dispatch({
         type: 'new-task',
         id,
         text: value,
         agentId: collaborationMode === 'brainstorm' ? undefined : agentId,
+        sceneAgentId:
+          collaborationMode === 'brainstorm' ? undefined : sceneAgentId,
+        roleAgentIds:
+          collaborationMode === 'brainstorm' ? undefined : roleAgentIds,
         refs,
         settings: contexts,
         permissionMode,
@@ -818,15 +876,17 @@ export function FiscalWorkbench() {
           {page === 'library' && (
             <Library onOpenTask={openTask} onUse={addContext} />
           )}
-          {['agents', 'skills', 'extensions'].includes(page) && (
+          {page === 'agents' && (
+            <ProfessionalIntelligencePage
+              onConsult={consult}
+              onUse={addCatalogToTask}
+            />
+          )}
+          {['skills', 'extensions'].includes(page) && (
             <CatalogPage
               key={page}
               kind={
-                page === 'agents'
-                  ? '专业智能体'
-                  : page === 'skills'
-                    ? 'Skill'
-                    : '插件'
+                page === 'skills' ? 'Skill' : '插件'
               }
               onConsult={consult}
               onMemory={openMemory}
@@ -921,6 +981,27 @@ export function FiscalWorkbench() {
                 创建
               </Btn>
             </div>
+          </dialog>
+        </div>
+      )}
+      {sceneReplacement && (
+        <div className="pi-dialog-backdrop">
+          <dialog open className="pi-dialog pi-replace-dialog" aria-labelledby="pi-replace-title">
+            <header>
+              <div>
+                <span>更换主场景</span>
+                <h2 id="pi-replace-title">确认替换场景工作智能体</h2>
+              </div>
+              <button type="button" aria-label="关闭替换确认" onClick={() => setSceneReplacement(undefined)}><X size={17} /></button>
+            </header>
+            <div className="pi-replace-copy">
+              <p>当前任务已选择“{sceneReplacement.current.label}”。</p>
+              <p>替换为“{sceneReplacement.next.label}”后，组织智能载体和其他任务上下文保持不变。</p>
+            </div>
+            <footer>
+              <button type="button" onClick={() => setSceneReplacement(undefined)}>取消</button>
+              <button className="pi-primary" type="button" onClick={() => { commitContext(sceneReplacement.next); setSceneReplacement(undefined); }}>确认替换</button>
+            </footer>
           </dialog>
         </div>
       )}

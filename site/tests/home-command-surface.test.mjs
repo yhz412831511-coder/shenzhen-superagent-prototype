@@ -23,7 +23,7 @@ test('首页保持原任务数据与打开行为', () => {
   assert.match(component, /\{!folder && composer\(true\)\}/);
 });
 
-test('一级能力目录使用确认名称且内部能力类型保持不变', () => {
+test('一级能力目录保持确认名称并为专业智能使用独立页面', () => {
   const component = read('../app/fiscal-workbench.tsx');
 
   assert.match(component, /\{ id: 'agents', title: '专业智能', icon: Bot \}/);
@@ -34,8 +34,10 @@ test('一级能力目录使用确认名称且内部能力类型保持不变', ()
   );
   assert.match(
     component,
-    /page === 'agents'[\s\S]*?\? '专业智能体'[\s\S]*?page === 'skills'[\s\S]*?\? 'Skill'[\s\S]*?: '插件'/,
+    /page === 'agents'[\s\S]*?<ProfessionalIntelligencePage/,
   );
+  assert.match(component, /\['skills', 'extensions'\]\.includes\(page\)/);
+  assert.match(component, /page === 'skills' \? 'Skill' : '插件'/);
 });
 
 test('首页采用任务指挥界面的尺寸与连续清单', () => {

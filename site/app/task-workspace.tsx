@@ -8,6 +8,7 @@ import { conversationTurns } from './conversation-view';
 import { annotationsText, navigateTab, openBrowserTarget, safeFilename, targetKey, type Annotation, type BrowserTab, type WorkspaceTarget, type SandboxFile } from './task-workspace-model';
 import { updateSession, runSandbox, sessionFor, subscribeSandbox } from './sandbox-client';
 import { BrainstormObjectView } from './brainstorm-components';
+import { ProfessionalIntelligencePage } from './professional-intelligence-page';
 import './task-workspace.css';
 
 type DockState = {
@@ -139,7 +140,11 @@ export function TaskWorkspace({taskId,request,visible,onClose,onMemory,onConsult
     if(t.kind==='system')return flow?<SystemPage system={t.id as SystemId} flow={flow} onOpen={open} view={dock.systemViews[t.id]} onViewChange={patch=>update({systemViews:{...dock.systemViews,[t.id]:{...dock.systemViews[t.id],...patch}}})}/>:<p>此任务尚无关联系统数据。</p>;
     if(t.kind==='operation-group'){const group=operationGroups.find(candidate=>candidate.id===t.id);return <div className="tw-detail">{group?<OperationGroupDetail group={group} onOpen={navigate}/>:<p>执行记录不存在。</p>}</div>;}
     if(t.kind==='operation'){const op=flow?.operations.find(o=>o.id===t.id);return <div className="tw-detail">{op?<SafetyDetail op={op}/>:<p>操作记录不存在。</p>}</div>;}
-    return <CatalogPage initialId={t.id} kind={state.catalog.find(c=>c.id===t.id)?.kind==='专业智能体'?'专业智能体':'Skill'} onBack={onClose} onConsult={onConsult} onMemory={onMemory} onUse={onUse}/>;
+    const catalogKind = state.catalog.find(c=>c.id===t.id)?.kind;
+    if (catalogKind === '组织智能载体' || catalogKind === '场景工作智能体') {
+      return <ProfessionalIntelligencePage initialId={t.id} initialView={catalogKind === '组织智能载体' ? 'organization' : 'scene'} onConsult={onConsult} onUse={onUse}/>;
+    }
+    return <CatalogPage initialId={t.id} kind={catalogKind==='专业智能体'?'专业智能体':'Skill'} onBack={onClose} onConsult={onConsult} onMemory={onMemory} onUse={onUse}/>;
   };
   if(!task)return null;
   return <div ref={panel} tabIndex={-1} hidden={!visible} className={'tw-dock '+(dock.expanded?'expanded':'')} style={{'--dock-width':dock.width+'px'} as CSSProperties} aria-label="任务工作区">

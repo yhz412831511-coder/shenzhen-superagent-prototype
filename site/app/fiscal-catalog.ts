@@ -1,6 +1,7 @@
 import retained from './retained-catalog.json' with { type: 'json' };
 import profiles from './digital-person-profiles.json' with { type: 'json' };
 import agentDetails from './agent-detail-profiles.json' with { type: 'json' };
+import { builtOrganizationCarriers, unitForCarrier } from './professional-intelligence-domain.ts';
 export const systems = {
   payment: {
     name: '智慧财政支付系统',
@@ -55,17 +56,17 @@ export const fiscalAgent = 'fiscal-fund-supervision-digital-person';
 export const paymentSkill = 'payment-remark-review';
 export function initialCatalog(): CatalogEntry[] {
   return [
-    ...profiles.agents.map((a) => ({
+    ...builtOrganizationCarriers.map((a) => ({
       id: a.id,
-      name: a.name,
-      kind: '专业智能体',
-      category: a.category,
-      summary: a.summary,
-      publisher: a.organization,
+      name: a.displayName,
+      kind: '组织智能载体',
+      category: '组织岗位',
+      summary: a.summary || '',
+      publisher: unitForCarrier(a.id)?.formalName || '',
       version: '1.0',
       owned: true,
       enabled: true,
-      details: a.services,
+      details: a.services || [],
     })),
     {
       id: paymentSkill,

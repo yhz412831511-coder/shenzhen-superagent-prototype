@@ -101,7 +101,11 @@ const permissionOptions: Array<{
 function contextIcon(kind: TaskContext['kind']) {
   if (kind === '资料') return LibraryBig;
   if (kind === '知识库') return Database;
-  if (kind === '专业智能体') return Bot;
+  if (
+    kind === '专业智能体' ||
+    kind === '组织智能载体' ||
+    kind === '场景工作智能体'
+  ) return Bot;
   if (kind === 'Skill') return Zap;
   if (kind === '插件' || kind === '连接器') return PlugZap;
   return BrainCircuit;
@@ -113,7 +117,11 @@ function contextTone(kind: TaskContext['kind']) {
   if (kind === '知识库' || kind === '连接器') {
     return 'border-[var(--ui-border)] bg-[var(--ui-canvas)] text-[color:var(--ui-muted)]';
   }
-  if (kind === '专业智能体') {
+  if (
+    kind === '专业智能体' ||
+    kind === '组织智能载体' ||
+    kind === '场景工作智能体'
+  ) {
     return 'border-[var(--ui-border)] bg-[var(--ui-canvas)] text-[color:var(--ui-brand)]';
   }
   if (kind === '插件') {
@@ -124,6 +132,8 @@ function contextTone(kind: TaskContext['kind']) {
 
 function contextPrefix(kind: TaskContext['kind']) {
   if (kind === '专业智能体') return '@ 专业智能体';
+  if (kind === '组织智能载体') return '@ 组织智能载体';
+  if (kind === '场景工作智能体') return '@ 场景工作智能体';
   if (kind === 'Skill') return '/ Skill';
   return kind;
 }
@@ -234,7 +244,7 @@ export function TaskComposer({
   const { state } = useWorkspace();
   const [contextExpanded, setContextExpanded] = useState(false);
   const contextGroups = [
-    ...['专业智能体', 'Skill', '插件', '连接器', '知识库'].map((kind) => ({
+    ...['组织智能载体', '场景工作智能体', 'Skill', '插件', '连接器', '知识库'].map((kind) => ({
       label: kind,
       icon: contextIcon(kind as TaskContext['kind']),
       items: state.catalog

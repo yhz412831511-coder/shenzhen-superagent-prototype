@@ -31,6 +31,7 @@ export type VerificationStatus =
 
 export type BrainstormParticipant = {
   id: string;
+  organizationCarrierId: string;
   name: string;
   groupId: string;
   dutyBasis: string;

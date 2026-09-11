@@ -5,6 +5,7 @@
 @import './visual-theme.css';
 @import './visual-refinement.css';
 @import './brainstorm.css';
+@import './professional-intelligence.css';
 
 @custom-variant dark (&:is(.dark *));
 

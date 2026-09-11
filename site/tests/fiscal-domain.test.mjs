@@ -17,6 +17,7 @@ import {
   originalRemarks,
 } from '../app/fiscal-catalog.ts';
 import { current, refFor, eligible } from '../app/memory-domain.ts';
+import { builtOrganizationCarriers } from '../app/professional-intelligence-domain.ts';
 const now = Date.parse('2026-09-08T09:00:00+08:00');
 const initial = () => initialWorkspace(now);
 const replay = (kind) => reduce(initial(), { type: 'replay', kind });
@@ -118,19 +119,21 @@ test('岗位数字人详情按基础能力、输入输出、职责依据、边�
   assert.match(source, /初始基础能力始终可用/);
 });
 
-test('所有专业智能体共用完整详情框架', () => {
-  const professionalAgents = initial().catalog.filter(
-    (entry) => entry.kind === '专业智能体',
+test('场景工作智能体具备完整详情，组织载体具备受控内容', () => {
+  const sceneAgents = initial().catalog.filter(
+    (entry) => entry.kind === '场景工作智能体',
   );
-  const detailedIds = new Set([
-    ...digitalProfiles.agents.map((profile) => profile.id),
-    ...agentDetailProfiles.profiles.map((profile) => profile.id),
-  ]);
-  assert.equal(professionalAgents.length, 12);
-  assert.equal(detailedIds.size, professionalAgents.length);
-  for (const entry of professionalAgents) assert.ok(detailedIds.has(entry.id));
+  const detailedIds = new Set(agentDetailProfiles.profiles.map((profile) => profile.id));
+  assert.equal(sceneAgents.length, 10);
+  assert.equal(detailedIds.size, sceneAgents.length);
+  assert.equal(builtOrganizationCarriers.length, 14);
+  for (const entry of sceneAgents) assert.ok(detailedIds.has(entry.id));
+  for (const carrier of builtOrganizationCarriers) {
+    assert.ok(carrier.summary);
+    assert.ok(carrier.services?.length >= 3);
+  }
   for (const profile of agentDetailProfiles.profiles) {
-    const entry = professionalAgents.find((item) => item.id === profile.id);
+    const entry = sceneAgents.find((item) => item.id === profile.id);
     assert.ok(entry);
     assert.equal(profile.capabilityWork.length, entry.details.length);
     assert.equal(profile.capabilityResults.length, entry.details.length);
@@ -709,7 +712,7 @@ test('办理咨询先规划并发现已获取数字人，再调用返回路径�
   const messages = taskFor(s, id).messages;
   const discovery = s.flows[id].operations.find((o) => o.cmd === 'discover-capability');
   const found = messages.findIndex((m) => m.id === discovery.messageId);
-  assert.match(discovery.detail, /项目统筹处数字人.*已获取/);
+  assert.match(discovery.detail, /项目统筹处.*已获取/);
   assert.equal(messages.some((m) => m.text.includes('我会先确认运维项目')), false);
   const result = messages.findIndex((m) => m.text.includes('数字人已返回办理指引'));
   const op = s.flows[id].operations.find((o) => o.cmd === 'guide');
