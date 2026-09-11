@@ -5,9 +5,9 @@
 .pi-tabs button { position: relative; border: 0; background: transparent; color: var(--ui-muted); padding: 0 0 13px; font: inherit; cursor: pointer; }
 .pi-tabs button[aria-current="page"] { color: var(--ui-text); font-weight: 650; }
 .pi-tabs button[aria-current="page"]::after { content: ""; position: absolute; height: 2px; left: 0; right: 0; bottom: -1px; background: var(--ui-brand); border-radius: 2px; }
-.pi-search { width: min(320px, 32vw); height: 38px; margin-top: 2px; display: flex; align-items: center; gap: 8px; padding: 0 10px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-canvas); color: var(--ui-muted); }
+.fw-app label.pi-search { width: min(320px, 32vw); height: 38px; margin: 2px 0 0; display: flex; flex-direction: row; align-items: center; gap: 8px; padding: 0 10px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-canvas); color: var(--ui-muted); }
 .pi-search:focus-within { border-color: var(--ui-brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-brand) 12%, transparent); }
-.pi-search input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: var(--ui-text); font: inherit; }
+.fw-app .pi-search input:not([type='checkbox']) { min-width: 0; width: auto; height: auto; flex: 1; border: 0; border-radius: 0; outline: 0; padding: 0; background: transparent; color: var(--ui-text); font: inherit; }
 .pi-search button { display: grid; place-items: center; padding: 3px; border: 0; background: transparent; color: var(--ui-muted); cursor: pointer; }
 .pi-workspace { min-height: 0; flex: 1; display: grid; grid-template-columns: minmax(210px, 26%) minmax(230px, 29%) minmax(360px, 1fr); }
 .pi-pane { min-width: 0; min-height: 0; overflow: auto; background: var(--ui-surface); }
@@ -63,7 +63,7 @@
   .pi-header h1 { font-size: 19px; margin-bottom: 12px; }
   .pi-tabs { gap: 18px; }
   .pi-tabs button { padding-bottom: 11px; font-size: 13px; }
-  .pi-search { width: 100%; margin-top: 12px; }
+  .fw-app label.pi-search { width: 100%; margin: 12px 0 0; }
   .pi-workspace { display: block; }
   .pi-pane { display: none; height: 100%; border-right: 0; }
   .pi-workspace[data-mobile-step="index"] .pi-unit-pane,
