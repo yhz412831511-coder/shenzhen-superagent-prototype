@@ -172,8 +172,261 @@ html[data-theme] ::selection {
 .fw-theme-toggle {
   margin-left: auto;
 }
+.fw-product-switcher + .fw-theme-toggle {
+  margin-left: 0;
+}
 .fw-theme-toggle + .fw-top-action {
   margin-left: 0;
+}
+
+.fw-product-menu {
+  width: min(300px, calc(100vw - 24px));
+  padding: 6px;
+  border: 1px solid var(--ui-border);
+  border-radius: 12px;
+  background: var(--ui-raised);
+  color: var(--ui-text);
+  box-shadow: var(--ui-shadow);
+}
+.fw-product-menu-heading {
+  padding: 8px 10px 7px;
+  color: var(--ui-muted);
+  font-size: var(--ui-font-meta);
+  font-weight: 650;
+}
+.fw-product-menu-item {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 18px;
+  gap: 10px;
+  align-items: center;
+  min-height: 54px;
+  padding: 7px 9px;
+  border-radius: 9px;
+  outline: none;
+  cursor: pointer;
+}
+.fw-product-menu-item:hover,
+.fw-product-menu-item:focus,
+.fw-product-menu-item[data-highlighted] {
+  background: var(--ui-hover);
+}
+.fw-product-menu-item[aria-current='page'] {
+  background: var(--ui-brand-soft);
+}
+.fw-product-menu-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  color: var(--ui-brand);
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+}
+.fw-product-menu-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.fw-product-menu-copy strong {
+  font-size: var(--ui-font-control);
+  font-weight: 650;
+}
+.fw-product-menu-copy small {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.fw-product-menu-check {
+  color: var(--ui-brand);
+}
+
+.fw-product-portal {
+  background: var(--ui-canvas);
+}
+.fw-product-portal-sidebar {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 var(--ui-sidebar-width);
+  width: var(--ui-sidebar-width);
+  min-height: 0;
+  padding: 16px 12px 12px;
+  color: var(--ui-text);
+  background: var(--ui-side-surface);
+  border-right: 1px solid var(--ui-border);
+}
+.fw-product-portal-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 4px 7px 12px;
+}
+.fw-product-portal-brand > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 10px;
+  color: var(--ui-on-brand);
+  background: var(--ui-brand);
+}
+.fw-product-portal-brand > div,
+.fw-product-portal-account > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+.fw-product-portal-brand strong {
+  font-size: var(--ui-font-control);
+}
+.fw-product-portal-brand small,
+.fw-product-portal-account small {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.fw-product-portal-sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-top: 12px;
+}
+.fw-product-portal-sidebar nav > div {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  color: var(--ui-muted);
+}
+.fw-product-portal-sidebar nav > div.active {
+  color: var(--ui-brand);
+  font-weight: 650;
+  background: var(--ui-brand-soft);
+}
+.fw-product-portal-account {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: auto;
+  padding: 10px 7px 2px;
+  border-top: 1px solid var(--ui-border);
+}
+.fw-product-portal-account strong {
+  font-size: var(--ui-font-control);
+}
+.fw-product-portal-main {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: clamp(28px, 5vw, 64px);
+  background: var(--ui-canvas);
+}
+.fw-product-portal-main > header,
+.fw-product-portal-main > section {
+  width: min(100%, 1060px);
+  margin-inline: auto;
+}
+.fw-product-portal-main > header h1 {
+  margin-top: 6px;
+  font-size: clamp(28px, 4vw, 42px);
+  color: var(--ui-text);
+}
+.fw-product-portal-main > header p {
+  margin-top: 8px;
+  color: var(--ui-muted);
+  font-size: var(--ui-font-subtitle);
+}
+.fw-product-portal-kicker {
+  color: var(--ui-brand);
+  font-size: var(--ui-font-meta);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.fw-product-portal-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 32px;
+}
+.fw-product-portal-grid article {
+  display: flex;
+  min-height: 154px;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--ui-border);
+  border-radius: 14px;
+  background: var(--ui-surface);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--ui-brand) 7%, transparent);
+}
+.fw-product-portal-grid article > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border-radius: 10px;
+  color: var(--ui-brand);
+  background: var(--ui-brand-soft);
+}
+.fw-product-portal-grid h2 {
+  margin: 2px 0 7px;
+  font-size: var(--ui-font-subtitle);
+}
+.fw-product-portal-grid p {
+  margin: 0;
+  color: var(--ui-muted);
+  font-size: var(--ui-font-control);
+  line-height: 1.7;
+}
+html[data-theme='light'] .fw-product-portal-sidebar {
+  color: var(--ui-nav-text);
+  background: var(--ui-nav-surface);
+  border-right-color: var(--ui-nav-border);
+}
+html[data-theme='light'] .fw-product-portal-brand > span {
+  color: #ffffff;
+  background: #1677e8;
+}
+html[data-theme='light']
+  .fw-product-portal-sidebar
+  :is(.fw-product-portal-brand small, .fw-product-portal-account small) {
+  color: var(--ui-nav-muted);
+}
+html[data-theme='light'] .fw-product-portal-sidebar nav > div {
+  color: var(--ui-nav-muted);
+}
+html[data-theme='light'] .fw-product-portal-sidebar nav > div.active {
+  color: #ffffff;
+  background: var(--ui-nav-active);
+}
+html[data-theme='light'] .fw-product-portal-account {
+  border-top-color: var(--ui-nav-border);
+}
+
+@media (max-width: 820px) {
+  .fw-product-portal-sidebar {
+    display: none;
+  }
+  .fw-product-portal-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 520px) {
+  .fw-product-portal-main {
+    padding: 28px 18px;
+  }
+  .fw-product-portal-grid {
+    margin-top: 24px;
+  }
+  .fw-product-portal-grid article {
+    min-height: auto;
+  }
 }
 .fw-app h1,
 .fw-app h2,

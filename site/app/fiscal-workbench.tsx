@@ -35,6 +35,9 @@ import {
   FileSpreadsheet,
   Grid2X2,
   Presentation,
+  Database,
+  Gauge,
+  Route,
 } from 'lucide-react';
 import { useWorkspace } from './workspace-store';
 import { useAppearance } from './appearance';
@@ -82,6 +85,7 @@ type Page =
   | 'capabilities'
   | 'automations'
   | 'knowledge';
+type ProductId = 'superagent' | 'admin' | 'memory-system';
 type CapabilityTab = '智能体' | '技能' | '插件' | '连接器';
 type Ui = {
   workspaceOpen?: boolean;
@@ -101,6 +105,239 @@ const nav: {
   { id: 'automations', title: '自动化', icon: Workflow },
   { id: 'knowledge', title: '我的知识', icon: LibraryBig },
 ];
+
+const products: {
+  id: ProductId;
+  name: string;
+  description: string;
+  icon: ComponentType<{ size?: number }>;
+}[] = [
+  {
+    id: 'superagent',
+    name: '超级智能体',
+    description: '任务组织与受控执行',
+    icon: Bot,
+  },
+  {
+    id: 'admin',
+    name: '智能体管理后台',
+    description: '能力、策略与运行治理',
+    icon: ShieldCheck,
+  },
+  {
+    id: 'memory-system',
+    name: '记忆管理系统',
+    description: '记忆、证据与生命周期',
+    icon: BrainCircuit,
+  },
+];
+
+function ProductSwitcher({
+  active,
+  onChange,
+}: {
+  active: ProductId;
+  onChange: (product: ProductId) => void;
+}) {
+  const currentProduct = products.find((product) => product.id === active)!;
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        type="button"
+        className="fw-icon fw-product-switcher"
+        aria-label={`切换产品，当前为${currentProduct.name}`}
+        title="切换产品"
+      >
+        <Grid2X2 size={17} />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        sideOffset={8}
+        className="fw-product-menu"
+      >
+        <div className="fw-product-menu-heading">切换产品</div>
+        <DropdownMenuSeparator />
+        {products.map((product) => {
+          const ProductIcon = product.icon;
+          const selected = product.id === active;
+          return (
+            <DropdownMenuItem
+              key={product.id}
+              className="fw-product-menu-item"
+              aria-current={selected ? 'page' : undefined}
+              onClick={() => onChange(product.id)}
+            >
+              <span className="fw-product-menu-icon">
+                <ProductIcon size={17} />
+              </span>
+              <span className="fw-product-menu-copy">
+                <strong>{product.name}</strong>
+                <small>{product.description}</small>
+              </span>
+              {selected && (
+                <Check size={16} className="fw-product-menu-check" />
+              )}
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+const productPortals = {
+  admin: {
+    title: '智能体管理后台',
+    subtitle: '组织能力、策略、运行与安全治理',
+    icon: ShieldCheck,
+    navigation: [
+      '管理总览',
+      '能力与版本',
+      '策略与路由',
+      '运行治理',
+      '评测中心',
+      '安全与审计',
+    ],
+    sections: [
+      {
+        title: '能力与版本',
+        description: '统一管理智能体、技能、插件、连接器及其发布版本。',
+        icon: Bot,
+      },
+      {
+        title: '策略与运行',
+        description: '管理路由策略、运行任务、沙箱状态和资源使用。',
+        icon: Route,
+      },
+      {
+        title: '质量与安全',
+        description: '集中查看评测结果、风险告警、处置记录和审计事件。',
+        icon: Gauge,
+      },
+    ],
+  },
+  'memory-system': {
+    title: '记忆管理系统',
+    subtitle: '长期记忆、当前有效视图与证据生命周期',
+    icon: BrainCircuit,
+    navigation: [
+      '记忆总览',
+      '记忆对象',
+      '当前有效视图',
+      '证据与来源',
+      '纠错与版本',
+      '生命周期',
+    ],
+    sections: [
+      {
+        title: '记忆对象',
+        description: '管理个人与组织记忆的类型、范围、状态和有效版本。',
+        icon: BrainCircuit,
+      },
+      {
+        title: '证据与来源',
+        description: '维护来源引用、证据依赖、授权范围和新鲜度。',
+        icon: Database,
+      },
+      {
+        title: '纠错与生命周期',
+        description: '处理纠错、替代、停用、归档和保留期限。',
+        icon: Clock3,
+      },
+    ],
+  },
+} as const;
+
+function ProductPortal({
+  product,
+  onProductChange,
+}: {
+  product: Exclude<ProductId, 'superagent'>;
+  onProductChange: (product: ProductId) => void;
+}) {
+  const { value: appearance, update: updateAppearance } = useAppearance();
+  const portal = productPortals[product];
+  const PortalIcon = portal.icon;
+  return (
+    <div className="fw-app fw-product-portal">
+      <aside className="fw-product-portal-sidebar">
+        <div className="fw-product-portal-brand">
+          <span>
+            <PortalIcon size={20} />
+          </span>
+          <div>
+            <strong>{portal.title}</strong>
+            <small>深圳政务智能平台</small>
+          </div>
+        </div>
+        <nav aria-label={`${portal.title}功能入口`}>
+          {portal.navigation.map((item, index) => (
+            <div className={index === 0 ? 'active' : ''} key={item}>
+              <span>{item}</span>
+            </div>
+          ))}
+        </nav>
+        <div className="fw-product-portal-account">
+          <span className="fw-avatar">{currentUser.name.slice(0, 1)}</span>
+          <div>
+            <strong>{currentUser.name}</strong>
+            <small>{currentUser.organization}</small>
+          </div>
+        </div>
+      </aside>
+      <div className="fw-main">
+        <header className="fw-topbar">
+          <span className="fw-top-title">管理总览</span>
+          <ProductSwitcher active={product} onChange={onProductChange} />
+          <button
+            className="fw-icon fw-theme-toggle"
+            aria-label={
+              appearance.theme === 'light' ? '切换深色主题' : '切换浅色主题'
+            }
+            title={
+              appearance.theme === 'light' ? '切换深色主题' : '切换浅色主题'
+            }
+            onClick={() =>
+              updateAppearance({
+                theme: appearance.theme === 'light' ? 'dark' : 'light',
+              })
+            }
+          >
+            {appearance.theme === 'light' ? (
+              <MoonStar size={17} />
+            ) : (
+              <Sun size={17} />
+            )}
+          </button>
+        </header>
+        <main className="fw-product-portal-main">
+          <header>
+            <span className="fw-product-portal-kicker">管理总览</span>
+            <h1>{portal.title}</h1>
+            <p>{portal.subtitle}</p>
+          </header>
+          <section className="fw-product-portal-grid" aria-label="核心管理范围">
+            {portal.sections.map((section) => {
+              const SectionIcon = section.icon;
+              return (
+                <article key={section.title}>
+                  <span>
+                    <SectionIcon size={20} />
+                  </span>
+                  <div>
+                    <h2>{section.title}</h2>
+                    <p>{section.description}</p>
+                  </div>
+                </article>
+              );
+            })}
+          </section>
+        </main>
+      </div>
+    </div>
+  );
+}
+
 export function FiscalWorkbench() {
   const { state, dispatch } = useWorkspace();
   const { value: appearance, update: updateAppearance } = useAppearance();
@@ -109,6 +346,18 @@ export function FiscalWorkbench() {
   const projectSearchRef = useRef<HTMLInputElement | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [projectSearch, setProjectSearch] = useState('');
+  const [activeProduct, setActiveProduct] = useState<ProductId>('superagent');
+  useEffect(() => {
+    const readProduct = () => {
+      const value = new URLSearchParams(window.location.search).get('product');
+      setActiveProduct(
+        value === 'admin' || value === 'memory-system' ? value : 'superagent',
+      );
+    };
+    readProduct();
+    window.addEventListener('popstate', readProduct);
+    return () => window.removeEventListener('popstate', readProduct);
+  }, []);
   useEffect(() => {
     if (!settingsOpen) return;
     settingsReturnFocus.current = document.activeElement as HTMLElement;
@@ -504,6 +753,19 @@ export function FiscalWorkbench() {
         : nav.find((n) => n.id === page)?.title || '工作台';
 
   const notification = state.notice || state.memory.notice;
+  const switchProduct = (product: ProductId) => {
+    setSettingsOpen(false);
+    setMobileNav(false);
+    setActiveProduct(product);
+    const url = new URL(window.location.href);
+    if (product === 'superagent') url.searchParams.delete('product');
+    else url.searchParams.set('product', product);
+    window.history.pushState({}, '', url);
+  };
+  if (activeProduct !== 'superagent')
+    return (
+      <ProductPortal product={activeProduct} onProductChange={switchProduct} />
+    );
   return (
     <div
       className={`fw-app fw-page-${page} ${sidebar ? '' : 'sidebar-closed'} ${mobileNav ? 'mobile-nav-open' : ''}`}
@@ -727,6 +989,7 @@ export function FiscalWorkbench() {
                 <small className="fw-assistant-context">超级智能体</small>
               )}
             </span>
+            <ProductSwitcher active={activeProduct} onChange={switchProduct} />
             <button
               className="fw-icon fw-theme-toggle"
               aria-label={
