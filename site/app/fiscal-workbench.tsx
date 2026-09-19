@@ -26,6 +26,15 @@ import {
   X,
   Pause,
   Play,
+  ArrowRight,
+  BarChart3,
+  CalendarDays,
+  ClipboardCheck,
+  Clock3,
+  FileCheck2,
+  FileSpreadsheet,
+  Grid2X2,
+  Presentation,
 } from 'lucide-react';
 import { useWorkspace } from './workspace-store';
 import { useAppearance } from './appearance';
@@ -478,10 +487,14 @@ export function FiscalWorkbench() {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, []);
-  const filteredTasks = state.memory.tasks.filter(
-    (t) =>
-      !folder ||
-      (state.folderTasks[t.id] || state.flows[t.id]?.folder) === folder,
+  const homeResults = [
+    '运维服务费用估算明细',
+    '财政支付审查汇总',
+    '驳回意见',
+  ].flatMap((name) =>
+    Object.values(state.artifacts)
+      .filter((artifact) => artifact.name === name)
+      .slice(-1),
   );
   const title =
     page === 'task'
@@ -981,38 +994,133 @@ export function FiscalWorkbench() {
                   </DropdownMenu>
                 </div>
                 {composer(true)}
-                <section className="fw-recents">
-                  <div className="fw-recents-header">
-                    <h2>{folder ? '项目内的对话' : '最近对话'}</h2>
-                    <span className="fw-meta">{filteredTasks.length}项</span>
+                <nav className="fw-home-shortcuts" aria-label="常用工作入口">
+                  {[
+                    { label: '办文', icon: FileText, tone: 'blue' },
+                    { label: '办会', icon: CalendarDays, tone: 'green' },
+                    { label: '办事', icon: ClipboardCheck, tone: 'orange' },
+                    { label: '分析', icon: BarChart3, tone: 'purple' },
+                    { label: '更多', icon: Grid2X2, tone: 'neutral' },
+                  ].map((item) => (
+                    <button
+                      type="button"
+                      key={item.label}
+                      className="fw-home-shortcut"
+                      data-tone={item.tone}
+                    >
+                      <item.icon size={18} aria-hidden="true" />
+                      <span>{item.label}</span>
+                    </button>
+                  ))}
+                </nav>
+                <section className="fw-home-section fw-home-continuations">
+                  <div className="fw-home-section-header">
+                    <h2>继续上次工作</h2>
                   </div>
-                  <div className="fw-recents-list">
-                    {filteredTasks.map((t) => (
+                  <div className="fw-home-continuation-grid">
+                    {[
+                      {
+                        taskId: 'maintenance-history',
+                        title: '财政资金穿透式监管系统运维项目申报',
+                        summary: '已完成申报并开启审核反馈追踪',
+                        status: '等待平台反馈',
+                        source: '项管平台 · 运维申报',
+                        icon: Workflow,
+                        tone: 'blue',
+                      },
+                      {
+                        taskId: 'payment-history',
+                        title: '财政支付审查 · 2026-09-03',
+                        summary: '两笔审查意见已写入智慧财政草稿箱',
+                        status: '待手动提交',
+                        source: '智慧财政 · 自动化任务',
+                        icon: FileCheck2,
+                        tone: 'green',
+                      },
+                      {
+                        title: '党组会准备工作',
+                        summary: '议题材料已汇集，待核对上会顺序与汇报口径',
+                        status: '材料核对',
+                        source: 'OA · 会议筹备',
+                        icon: Presentation,
+                        tone: 'orange',
+                      },
+                    ].map((item) => (
                       <button
-                        className="fw-recent-task"
-                        key={t.id}
-                        onClick={() => openTask(t.id)}
+                        type="button"
+                        className="fw-home-continuation"
+                        data-tone={item.tone}
+                        key={item.title}
+                        onClick={
+                          item.taskId ? () => openTask(item.taskId) : undefined
+                        }
                       >
-                        <span className="fw-recent-icon" aria-hidden="true">
-                          {state.flows[t.id]?.kind === 'payment' ? (
-                            <Workflow size={16} />
-                          ) : (
-                            <FileText size={16} />
-                          )}
+                        <span className="fw-home-continuation-top">
+                          <span className="fw-home-continuation-icon">
+                            <item.icon size={18} aria-hidden="true" />
+                          </span>
+                          <span className="fw-home-status">{item.status}</span>
                         </span>
-                        <span className="fw-recent-copy">
-                          <strong>{t.title}</strong>
-                          <small>
-                            {state.flows[t.id]?.source || '本人工作记录'}
-                          </small>
+                        <strong>{item.title}</strong>
+                        <span className="fw-home-continuation-summary">
+                          {item.summary}
                         </span>
-                        <ChevronRight
-                          className="fw-recent-chevron"
-                          size={16}
-                          aria-hidden="true"
-                        />
+                        <span className="fw-home-continuation-footer">
+                          <span>{item.source}</span>
+                          <ArrowRight size={14} aria-hidden="true" />
+                        </span>
                       </button>
                     ))}
+                  </div>
+                </section>
+                <section className="fw-home-section fw-home-results">
+                  <div className="fw-home-section-header">
+                    <h2>最近成果</h2>
+                    <span className="fw-meta">
+                      已形成 {homeResults.length} 项
+                    </span>
+                  </div>
+                  <div className="fw-home-results-list">
+                    {homeResults.map((artifact, index) => {
+                      const ResultIcon =
+                        index === 0
+                          ? FileSpreadsheet
+                          : index === 1
+                            ? FileText
+                            : FileCheck2;
+                      return (
+                        <button
+                          type="button"
+                          className="fw-home-result"
+                          data-tone={['green', 'blue', 'orange'][index]}
+                          key={artifact.id}
+                          onClick={() =>
+                            openTarget(
+                              { kind: 'artifact', id: artifact.id },
+                              artifact.taskId,
+                            )
+                          }
+                        >
+                          <span className="fw-home-result-icon">
+                            <ResultIcon size={18} aria-hidden="true" />
+                          </span>
+                          <span className="fw-home-result-copy">
+                            <strong>{artifact.name}</strong>
+                            <small>
+                              v{artifact.version} · {artifact.source}
+                            </small>
+                          </span>
+                          <span className="fw-home-result-time">
+                            <Clock3 size={13} aria-hidden="true" />
+                            {new Intl.DateTimeFormat('zh-CN', {
+                              month: '2-digit',
+                              day: '2-digit',
+                            }).format(new Date(artifact.createdAt))}
+                          </span>
+                          <ChevronRight size={15} aria-hidden="true" />
+                        </button>
+                      );
+                    })}
                   </div>
                 </section>
               </div>
