@@ -911,6 +911,7 @@ html[data-theme] [data-slot='popover-content'] {
   align-items: center;
   min-width: 0;
   border-radius: 8px;
+  color: var(--ui-muted);
 }
 .fw-project-row.active {
   color: var(--ui-brand);
@@ -3115,6 +3116,10 @@ html[data-theme='light']
 
 html[data-theme='light'] .fw-app .fw-sidebar .fw-project-row.active {
   color: #ffffff;
+}
+
+html[data-theme='light'] .fw-app .fw-sidebar .fw-project-row:not(.active) {
+  color: var(--ui-nav-muted);
 }
 
 html[data-theme='light']
