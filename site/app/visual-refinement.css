@@ -2788,3 +2788,186 @@ html[data-theme='light'] .fw-home .task-composer:hover {
     transition: none;
   }
 }
+
+/* Light-theme chrome: selected deep government blue palette (concept A). */
+html[data-theme='light'] .fw-app .fw-sidebar {
+  --ui-canvas: var(--ui-nav-surface);
+  --ui-side: var(--ui-nav-surface);
+  --ui-surface: var(--ui-nav-raised);
+  --ui-raised: var(--ui-nav-raised);
+  --ui-hover: var(--ui-nav-hover);
+  --ui-text: var(--ui-nav-text);
+  --ui-muted: var(--ui-nav-muted);
+  --ui-border: var(--ui-nav-border);
+  --ui-border-strong: #466b90;
+  --ui-brand: var(--ui-nav-brand);
+  --ui-brand-hover: #91c9ff;
+  --ui-brand-soft: var(--ui-nav-active);
+  --ui-brand-border: #3d70a2;
+  --line: var(--ui-nav-border);
+  color: var(--ui-nav-text);
+  background: var(--ui-nav-surface);
+  border-right-color: var(--ui-nav-border);
+  box-shadow: 10px 0 28px rgba(10, 40, 78, 0.08);
+}
+
+html[data-theme='light'] .fw-app .fw-sidebar :is(.fw-brand strong, .fw-account-name strong) {
+  color: var(--ui-nav-text);
+}
+
+html[data-theme='light'] .fw-app .fw-sidebar :is(.fw-nav-search, .fw-account-button) {
+  color: var(--ui-nav-muted);
+  background: color-mix(in srgb, var(--ui-nav-raised) 84%, transparent);
+  border-color: var(--ui-nav-border);
+}
+
+html[data-theme='light'] .fw-app .fw-sidebar :is(.fw-nav-search, .fw-account-button):hover,
+html[data-theme='light'] .fw-app .fw-sidebar nav button:hover,
+html[data-theme='light'] .fw-app .fw-sidebar .fw-folder:hover,
+html[data-theme='light'] .fw-app .fw-sidebar .fw-task-list button:hover {
+  color: var(--ui-nav-text);
+  background: var(--ui-nav-hover);
+}
+
+html[data-theme='light'] .fw-app .fw-sidebar :is(
+  nav button.active,
+  .fw-folder.active,
+  .fw-task-list button.active,
+  .fw-project-row.active .fw-folder
+) {
+  color: #ffffff;
+  background: var(--ui-nav-active);
+}
+
+html[data-theme='light'] .fw-app .fw-sidebar .fw-project-row.active {
+  color: #ffffff;
+}
+
+html[data-theme='light'] .fw-app .fw-sidebar :is(
+  nav button.active svg,
+  .fw-task-list button.active svg,
+  .fw-project-row.active svg
+) {
+  color: var(--ui-nav-brand);
+}
+
+html[data-theme='light'] .fw-app .fw-sidebar .fw-task-dot {
+  background: #8bb7df;
+}
+
+html[data-theme='light'] .fw-app .fw-sidebar .fw-task-list button.active .fw-task-dot {
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(106, 181, 255, 0.18);
+}
+
+html[data-theme='light'] .fw-app .fw-sidebar .fw-avatar {
+  color: #ffffff;
+  background: #1d64a8;
+}
+
+html[data-theme='light'] .fw-app .fw-sidebar :is(.fw-nav-heading, .fw-history-heading) {
+  color: #9fb7d0;
+}
+
+html[data-theme='light'] .fw-app .tw-dock {
+  --ui-canvas: var(--ui-dock-surface);
+  --ui-side: var(--ui-dock-surface);
+  --ui-surface: var(--ui-dock-raised);
+  --ui-raised: var(--ui-dock-raised);
+  --ui-hover: var(--ui-dock-hover);
+  --ui-bubble: var(--ui-dock-hover);
+  --ui-text: var(--ui-dock-text);
+  --ui-muted: var(--ui-dock-muted);
+  --ui-border: var(--ui-dock-border);
+  --ui-border-strong: #4d7398;
+  --ui-brand: var(--ui-dock-brand);
+  --ui-brand-hover: #91c9ff;
+  --ui-brand-soft: var(--ui-dock-active);
+  --ui-brand-border: #4477a8;
+  color: var(--ui-dock-text);
+  background: var(--ui-dock-surface);
+  border-left-color: var(--ui-dock-border);
+  box-shadow: -10px 0 28px rgba(10, 40, 78, 0.07);
+}
+
+html[data-theme='light'] .fw-app .tw-dock :is(.tw-header, .tw-tabs, .tw-browser-tools, .fw-monitor) {
+  background: var(--ui-dock-surface);
+}
+
+html[data-theme='light'] .fw-app .tw-dock :is(.tw-header > strong, .fw-monitor > details > summary) {
+  color: var(--ui-dock-text);
+}
+
+html[data-theme='light'] .fw-app .tw-dock :is(
+  .tw-head-actions button,
+  .tw-tabs button,
+  .tw-browser-tools > button,
+  .tw-file-row > button,
+  .tw-terminal header button
+) {
+  color: var(--ui-dock-muted);
+}
+
+html[data-theme='light'] .fw-app .tw-dock :is(
+  .tw-head-actions button,
+  .tw-tabs button,
+  .tw-browser-tools button,
+  .tw-file-row button,
+  .tw-start > button
+):hover {
+  color: var(--ui-dock-text);
+  background: var(--ui-dock-hover);
+}
+
+html[data-theme='light'] .fw-app .tw-dock .tw-tabs .active {
+  background: var(--ui-dock-active);
+  border-bottom-color: var(--ui-dock-brand);
+}
+
+html[data-theme='light'] .fw-app .tw-dock .tw-tabs .active button {
+  color: #ffffff;
+}
+
+html[data-theme='light'] .fw-app .tw-dock :is(input, textarea) {
+  color: var(--ui-dock-text);
+  background: var(--ui-dock-raised);
+  border-color: var(--ui-dock-border);
+}
+
+html[data-theme='light'] .fw-app .tw-dock :is(input, textarea)::placeholder {
+  color: #9fb7d0;
+}
+
+html[data-theme='light'] .fw-app .tw-dock .fw-monitor .fw-file-icon {
+  color: var(--ui-dock-brand);
+  background: #1a4772;
+  border-color: var(--ui-dock-border);
+}
+
+html[data-theme='light'] .fw-app .tw-dock .fw-task-progress li[data-status='completed'] .fw-task-progress-icon {
+  color: #ffffff;
+  background: #0f9f6e;
+}
+
+html[data-theme='light'] .fw-app .tw-dock .tw-browser-content {
+  --ui-surface: var(--ui-workspace-center);
+  --ui-canvas: var(--ui-workspace-raised);
+  --ui-raised: var(--ui-workspace-raised);
+  --ui-hover: var(--ui-workspace-hover);
+  --ui-bubble: var(--ui-workspace-bubble);
+  --ui-text: var(--ui-workspace-text);
+  --ui-muted: var(--ui-workspace-muted);
+  --ui-border: var(--ui-workspace-border);
+  --ui-border-strong: var(--ui-workspace-border-strong);
+  --ui-brand: var(--ui-workspace-brand);
+  --ui-brand-hover: var(--ui-workspace-brand-hover);
+  --ui-brand-soft: var(--ui-workspace-brand-soft);
+  --ui-brand-border: var(--ui-workspace-brand-border);
+  color: var(--ui-workspace-text);
+  background: var(--ui-workspace-center);
+}
+
+html[data-theme='light'] .fw-app .tw-dock .tw-browser-content .tw-page-inner {
+  color: var(--ui-workspace-text);
+  background: var(--ui-workspace-center);
+}

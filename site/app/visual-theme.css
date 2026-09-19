@@ -40,6 +40,22 @@ html[data-theme='light'] {
   --ui-workspace-brand-hover: #064faa;
   --ui-workspace-brand-soft: #cfe0ff;
   --ui-workspace-brand-border: #9dbdf0;
+  --ui-nav-surface: #0b2d56;
+  --ui-nav-raised: #123a66;
+  --ui-nav-hover: #16446f;
+  --ui-nav-active: #174b82;
+  --ui-nav-text: #f7fbff;
+  --ui-nav-muted: #b8cbe0;
+  --ui-nav-border: #294d73;
+  --ui-nav-brand: #6ab5ff;
+  --ui-dock-surface: #123861;
+  --ui-dock-raised: #1a4772;
+  --ui-dock-hover: #1b4b79;
+  --ui-dock-active: #1e568b;
+  --ui-dock-text: #f7fbff;
+  --ui-dock-muted: #b9cce0;
+  --ui-dock-border: #2f567d;
+  --ui-dock-brand: #6ab5ff;
 }
 html[data-theme='dark'] {
   color-scheme: dark;
