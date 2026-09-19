@@ -526,7 +526,7 @@ export function FiscalWorkbench() {
               <span>搜索任务与资料</span>
               <kbd>⌘ K</kbd>
             </button>
-            <nav>
+            <nav aria-label="功能页入口">
               {nav.map((n) => (
                 <button
                   key={n.id}
@@ -552,7 +552,7 @@ export function FiscalWorkbench() {
                 </button>
               ))}
             </nav>
-            <div className="fw-nav-heading">
+            <div className="fw-nav-heading fw-history-heading">
               <button
                 className="fw-projects-heading"
                 aria-expanded={projectsOpen}

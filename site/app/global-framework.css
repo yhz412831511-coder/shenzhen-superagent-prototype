@@ -27,6 +27,10 @@
   font-weight: 650;
 }
 
+.fw-history-heading {
+  margin-top: 24px;
+}
+
 .fw-new-conversation-project {
   display: flex;
   align-items: center;
