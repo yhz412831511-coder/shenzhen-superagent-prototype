@@ -25,26 +25,87 @@
 .fw-new-conversation-project {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 20px 0 10px;
+  gap: 4px;
+  min-height: 30px;
+  margin: 8px 2px 8px;
 }
 
-.fw-new-conversation-project label {
-  flex: 0 0 auto;
-  color: var(--ui-muted);
-  font-size: 12px;
+.fw-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
-.fw-new-conversation-project select {
+.fw-project-picker {
+  position: relative;
+  display: flex;
   min-width: 0;
-  height: 36px;
-  flex: 1;
-  padding: 0 32px 0 10px;
-  border: 1px solid var(--ui-border);
+  align-items: center;
+  color: var(--ui-muted);
+}
+
+.fw-project-picker > svg:first-child {
+  position: absolute;
+  left: 8px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.fw-project-picker > svg:last-child {
+  position: absolute;
+  right: 7px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.fw-project-picker select {
+  min-width: 0;
+  width: 210px;
+  height: 30px;
+  appearance: none;
+  padding: 0 25px 0 27px;
+  border: 0;
   border-radius: 8px;
   color: var(--ui-text);
-  background: var(--ui-raised);
+  background: transparent;
   font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.fw-project-picker select:hover,
+.fw-project-picker select:focus-visible {
+  background: var(--ui-hover);
+}
+
+.fw-project-picker select:focus-visible,
+.fw-new-project-action:focus-visible {
+  outline: 2px solid var(--ui-brand);
+  outline-offset: 1px;
+}
+
+.fw-new-project-action {
+  display: inline-flex;
+  height: 30px;
+  align-items: center;
+  gap: 5px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--ui-muted);
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.fw-new-project-action:hover {
+  color: var(--ui-text);
+  background: var(--ui-hover);
 }
 
 .fw-capabilities {
@@ -154,16 +215,21 @@
 
 @media (max-width: 760px) {
   .fw-new-conversation-project {
-    align-items: stretch;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    margin-top: 6px;
+    margin-bottom: 6px;
   }
 
-  .fw-new-conversation-project label {
+  .fw-project-picker {
+    flex: 1;
+  }
+
+  .fw-project-picker select {
     width: 100%;
   }
 
-  .fw-new-conversation-project select {
-    min-width: 180px;
+  .fw-new-project-action {
+    flex: 0 0 auto;
   }
 
   .fw-capability-header {
@@ -196,6 +262,24 @@
   .fw-capabilities > .pi-page > .pi-header {
     min-height: 104px;
     padding: 12px 16px 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .fw-new-project-action {
+    width: 30px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .fw-new-project-action span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }
 

@@ -9,6 +9,7 @@ import {
   MoonStar,
   Bot,
   BrainCircuit,
+  ChevronDown,
   ChevronRight,
   Folder,
   FolderPlus,
@@ -879,23 +880,33 @@ export function FiscalWorkbench() {
                   <h1>今天有什么工作需要处理？</h1>
                 </header>
                 <div className="fw-new-conversation-project">
-                  <label htmlFor="conversation-project">所属项目</label>
-                  <select
-                    id="conversation-project"
-                    value={folder}
-                    onChange={(event) => setFolder(event.target.value)}
+                  <label htmlFor="conversation-project" className="fw-sr-only">
+                    所属项目
+                  </label>
+                  <div className="fw-project-picker">
+                    <Folder size={14} aria-hidden="true" />
+                    <select
+                      id="conversation-project"
+                      value={folder}
+                      onChange={(event) => setFolder(event.target.value)}
+                    >
+                      <option value="">独立对话（不属于项目）</option>
+                      {state.folders.map((name) => (
+                        <option key={name} value={name}>
+                          {name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown size={13} aria-hidden="true" />
+                  </div>
+                  <button
+                    type="button"
+                    className="fw-new-project-action"
+                    onClick={() => setFolderEditor(true)}
                   >
-                    <option value="">独立对话（不属于项目）</option>
-                    {state.folders.map((name) => (
-                      <option key={name} value={name}>
-                        {name}
-                      </option>
-                    ))}
-                  </select>
-                  <Btn onClick={() => setFolderEditor(true)}>
                     <FolderPlus size={15} />
-                    新建项目
-                  </Btn>
+                    <span>新建项目</span>
+                  </button>
                 </div>
                 {composer(true)}
                 <section className="fw-recents">
