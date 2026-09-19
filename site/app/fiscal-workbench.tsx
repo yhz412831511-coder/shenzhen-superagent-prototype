@@ -23,8 +23,6 @@ import {
   SquarePen,
   Workflow,
   X,
-  Zap,
-  PlugZap,
   Pause,
   Play,
 } from 'lucide-react';
@@ -59,15 +57,15 @@ import { conversationTurns } from './conversation-view';
 import { BrainstormHeaderStatus } from './brainstorm-components';
 import { ProfessionalIntelligencePage } from './professional-intelligence-page';
 import { organizationCarrierIds } from './professional-intelligence-domain';
+import './global-framework.css';
 type Page =
   | 'home'
   | 'task'
   | 'memory'
-  | 'agents'
-  | 'skills'
-  | 'extensions'
+  | 'capabilities'
   | 'automations'
-  | 'library';
+  | 'knowledge';
+type CapabilityTab = '智能体' | '技能' | '插件' | '连接器';
 type Ui = {
   workspaceOpen?: boolean;
   tabs: Target[];
@@ -81,13 +79,10 @@ const nav: {
   title: string;
   icon: ComponentType<{ size?: number }>;
 }[] = [
-  { id: 'home', title: '新任务', icon: SquarePen },
-  { id: 'library', title: '资料库', icon: LibraryBig },
-  { id: 'memory', title: 'AI 记忆', icon: BrainCircuit },
-  { id: 'agents', title: '专业智能', icon: Bot },
-  { id: 'skills', title: '工作技能', icon: Zap },
-  { id: 'extensions', title: '系统与工具', icon: PlugZap },
+  { id: 'home', title: '新对话', icon: SquarePen },
+  { id: 'capabilities', title: '能力扩展', icon: Bot },
   { id: 'automations', title: '自动化', icon: Workflow },
+  { id: 'knowledge', title: '我的知识', icon: LibraryBig },
 ];
 export function FiscalWorkbench() {
   const { state, dispatch } = useWorkspace();
@@ -123,6 +118,9 @@ export function FiscalWorkbench() {
     current: SavedContext;
     next: SavedContext;
   }>();
+  const [capabilityTab, setCapabilityTab] = useState<CapabilityTab>('智能体');
+  const [ownedOnly, setOwnedOnly] = useState(false);
+  const [projectsOpen, setProjectsOpen] = useState(true);
   const [expandedProjects, setExpandedProjects] = useState<string[]>(
     state.folders,
   );
@@ -132,7 +130,8 @@ export function FiscalWorkbench() {
   const [draft, setDraft] = useState(''),
     [contexts, setContexts] = useState<SavedContext[]>([]),
     [commandMode, setCommandMode] = useState<TaskCommandMode>('standard'),
-    [collaborationMode, setCollaborationMode] = useState<TaskCollaborationMode>('standard'),
+    [collaborationMode, setCollaborationMode] =
+      useState<TaskCollaborationMode>('standard'),
     [permissionMode, setPermissionMode] =
       useState<TaskPermissionMode>('standard');
   const [defaultModel, setDefaultModel] = useState<ModelMode>({
@@ -155,6 +154,7 @@ export function FiscalWorkbench() {
   const openTask = (id: string) => {
     setMonitor(taskUi[id]?.workspaceOpen || false);
     const project = projectFor(id);
+    if (project) setProjectsOpen(true);
     if (project)
       setExpandedProjects((old) =>
         old.includes(project) ? old : [...old, project],
@@ -206,8 +206,7 @@ export function FiscalWorkbench() {
                 (c) =>
                   c.id !== ctx.id &&
                   !(
-                    ctx.kind === '场景工作智能体' &&
-                    c.kind === '场景工作智能体'
+                    ctx.kind === '场景工作智能体' && c.kind === '场景工作智能体'
                   ),
               ),
               ctx,
@@ -220,10 +219,7 @@ export function FiscalWorkbench() {
         ...old.filter(
           (x) =>
             x.id !== ctx.id &&
-            !(
-              ctx.kind === '场景工作智能体' &&
-              x.kind === '场景工作智能体'
-            ),
+            !(ctx.kind === '场景工作智能体' && x.kind === '场景工作智能体'),
         ),
         ctx,
       ]);
@@ -253,6 +249,24 @@ export function FiscalWorkbench() {
             : (c.kind as SavedContext['kind']),
         label: c.name,
       });
+  };
+  const prepareCapability = (id: string, text = '') => {
+    const entry = state.catalog.find((item) => item.id === id);
+    if (!entry?.owned || !entry.enabled) return;
+    setFolder('');
+    setDraft(text);
+    setContexts([
+      {
+        id: entry.id,
+        label: entry.name,
+        kind: organizationCarrierIds.has(entry.id)
+          ? '组织智能载体'
+          : (entry.kind as SavedContext['kind']),
+      },
+    ]);
+    setActiveId('');
+    setCollaborationMode('standard');
+    setPage('home');
   };
   const consult = (id: string, text: string) => {
     const taskId = 'consult-' + (state.memory.counter + 1);
@@ -310,6 +324,7 @@ export function FiscalWorkbench() {
         commandMode,
         collaborationMode,
       });
+      if (folder) dispatch({ type: 'folder', name: folder, taskId: id });
       dispatch({
         type: 'memory',
         action: {
@@ -391,10 +406,23 @@ export function FiscalWorkbench() {
             })
           : setPermissionMode(mode)
       }
-      collaborationMode={page === 'task' ? task?.collaborationMode || 'standard' : collaborationMode}
-      onCollaborationModeChange={(mode) => page === 'task' && task
-        ? dispatch({ type: 'memory', action: { type: 'task-settings', taskId: task.id, settings: { collaborationMode: mode } } })
-        : setCollaborationMode(mode)}
+      collaborationMode={
+        page === 'task'
+          ? task?.collaborationMode || 'standard'
+          : collaborationMode
+      }
+      onCollaborationModeChange={(mode) =>
+        page === 'task' && task
+          ? dispatch({
+              type: 'memory',
+              action: {
+                type: 'task-settings',
+                taskId: task.id,
+                settings: { collaborationMode: mode },
+              },
+            })
+          : setCollaborationMode(mode)
+      }
       lockedCollaborationMode={page === 'task'}
       modelMode={page === 'task' ? ui.model : defaultModel}
       onModelModeChange={(mode) =>
@@ -408,10 +436,10 @@ export function FiscalWorkbench() {
         brainstormFlow
           ? '补充材料、口径或工作版本要求…'
           : flow?.stage === 'findings'
-          ? '告诉我支付用途应该怎样核对…'
-          : flow?.stage === 'manual'
-            ? '完成手动提交后，在这里告诉我…'
-            : '描述需要处理的工作，或补充材料与要求…'
+            ? '告诉我支付用途应该怎样核对…'
+            : flow?.stage === 'manual'
+              ? '完成手动提交后，在这里告诉我…'
+              : '描述需要处理的工作，或补充材料与要求…'
       }
       onBrowserCommand={() => {
         if (flow) {
@@ -449,7 +477,7 @@ export function FiscalWorkbench() {
     page === 'task'
       ? task?.title || '任务不可用'
       : page === 'home'
-        ? '工作台'
+        ? '新对话'
         : nav.find((n) => n.id === page)?.title || '工作台';
 
   const notification = state.notice || state.memory.notice;
@@ -498,7 +526,15 @@ export function FiscalWorkbench() {
                     setMobileNav(false);
                     setPage(n.id);
                     setFolder('');
-                    if (n.id === 'memory') setSelectedMemory(undefined);
+                    if (n.id === 'home') {
+                      setActiveId('');
+                      setDraft('');
+                      setContexts([]);
+                    }
+                    if (n.id === 'capabilities') {
+                      setCapabilityTab('智能体');
+                      setOwnedOnly(false);
+                    }
                   }}
                 >
                   <n.icon size={18} />
@@ -512,89 +548,94 @@ export function FiscalWorkbench() {
               ))}
             </nav>
             <div className="fw-nav-heading">
-              <span>项目</span>
               <button
-                aria-label="新建项目文件夹"
-                className="fw-icon"
-                onClick={() => setFolderEditor(true)}
+                className="fw-projects-heading"
+                aria-expanded={projectsOpen}
+                aria-controls="fw-project-list"
+                onClick={() => setProjectsOpen(!projectsOpen)}
               >
-                <FolderPlus size={15} />
+                <ChevronRight size={14} />
+                <span>项目</span>
               </button>
             </div>
-            {state.folders.map((name) => {
-              const children = state.memory.tasks.filter(
-                (t) => projectFor(t.id) === name,
-              );
-              const expanded = expandedProjects.includes(name);
-              const active =
-                folder === name ||
-                (page === 'task' && projectFor(activeId) === name);
-              return (
-                <div className="fw-project-group" key={name}>
-                  <div className={`fw-project-row ${active ? 'active' : ''}`}>
-                    <button
-                      className="fw-icon fw-project-toggle"
-                      aria-label={`${expanded ? '收起' : '展开'}项目${name}`}
-                      aria-expanded={expanded}
-                      onClick={() =>
-                        setExpandedProjects((old) =>
-                          expanded
-                            ? old.filter((x) => x !== name)
-                            : [...old, name],
-                        )
-                      }
-                    >
-                      <ChevronRight size={14} />
-                    </button>
-                    <button
-                      className="fw-folder"
-                      title={name}
-                      onClick={() => {
-                        setSettingsOpen(false);
-                        setMobileNav(false);
-                        setFolder(name);
-                        setPage('home');
-                      }}
-                    >
-                      <Folder size={15} />
-                      <span>{name}</span>
-                      <small>{children.length}</small>
-                    </button>
+            <div id="fw-project-list" hidden={!projectsOpen}>
+              {state.folders.map((name) => {
+                const children = state.memory.tasks.filter(
+                  (t) => projectFor(t.id) === name,
+                );
+                const expanded = expandedProjects.includes(name);
+                const active =
+                  folder === name ||
+                  (page === 'task' && projectFor(activeId) === name);
+                return (
+                  <div className="fw-project-group" key={name}>
+                    <div className={`fw-project-row ${active ? 'active' : ''}`}>
+                      <button
+                        className="fw-icon fw-project-toggle"
+                        aria-label={`${expanded ? '收起' : '展开'}项目${name}`}
+                        aria-expanded={expanded}
+                        onClick={() =>
+                          setExpandedProjects((old) =>
+                            expanded
+                              ? old.filter((x) => x !== name)
+                              : [...old, name],
+                          )
+                        }
+                      >
+                        <ChevronRight size={14} />
+                      </button>
+                      <button
+                        className="fw-folder"
+                        title={name}
+                        onClick={() => {
+                          setSettingsOpen(false);
+                          setMobileNav(false);
+                          setFolder(name);
+                          setPage('home');
+                        }}
+                      >
+                        <Folder size={15} />
+                        <span>{name}</span>
+                        <small>{children.length}</small>
+                      </button>
+                    </div>
+                    {expanded && children.length > 0 && (
+                      <section
+                        className="fw-task-list fw-project-tasks"
+                        aria-label={`${name}项目对话`}
+                      >
+                        {children.map((t) => (
+                          <button
+                            key={t.id}
+                            className={
+                              page === 'task' && t.id === activeId
+                                ? 'active'
+                                : ''
+                            }
+                            title={t.title}
+                            onClick={() => openTask(t.id)}
+                          >
+                            <span className="fw-task-dot" />
+                            <span>
+                              {state.flows[t.id]?.kind === 'payment'
+                                ? t.title.replace(/^财政支付审查 · /, '')
+                                : t.title}
+                            </span>
+                          </button>
+                        ))}
+                      </section>
+                    )}
                   </div>
-                  {expanded && children.length > 0 && (
-                    <section
-                      className="fw-task-list fw-project-tasks"
-                      aria-label={`${name}项目任务`}
-                    >
-                      {children.map((t) => (
-                        <button
-                          key={t.id}
-                          className={
-                            page === 'task' && t.id === activeId ? 'active' : ''
-                          }
-                          title={t.title}
-                          onClick={() => openTask(t.id)}
-                        >
-                          <span className="fw-task-dot" />
-                          <span>
-                            {state.flows[t.id]?.kind === 'payment'
-                              ? t.title.replace(/^财政支付审查 · /, '')
-                              : t.title}
-                          </span>
-                        </button>
-                      ))}
-                    </section>
-                  )}
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
             {ungroupedTasks.length > 0 && (
               <>
                 <div className="fw-nav-heading">
-                  <span>任务历史</span>
+                  <span>最近对话</span>
                   <span>{ungroupedTasks.length}</span>
                 </div>
-                <div className="fw-task-list" aria-label="未归入项目的任务">
+                <div className="fw-task-list" aria-label="最近对话">
                   {ungroupedTasks.map((t) => (
                     <button
                       key={t.id}
@@ -756,13 +797,27 @@ export function FiscalWorkbench() {
             {page === 'task' && brainstormFlow && (
               <>
                 <BrainstormHeaderStatus flow={brainstormFlow} />
-                {brainstormFlow.phaseStatus !== 'completed' ? <button
-                  className="fw-icon"
-                  aria-label={brainstormFlow.stopped ? '恢复任务' : '暂停任务'}
-                  onClick={() => dispatch({ type: 'stop', taskId: task!.id, stopped: !brainstormFlow.stopped })}
-                >
-                  {brainstormFlow.stopped ? <Play size={16} /> : <Pause size={16} />}
-                </button> : null}
+                {brainstormFlow.phaseStatus !== 'completed' ? (
+                  <button
+                    className="fw-icon"
+                    aria-label={
+                      brainstormFlow.stopped ? '恢复任务' : '暂停任务'
+                    }
+                    onClick={() =>
+                      dispatch({
+                        type: 'stop',
+                        taskId: task!.id,
+                        stopped: !brainstormFlow.stopped,
+                      })
+                    }
+                  >
+                    {brainstormFlow.stopped ? (
+                      <Play size={16} />
+                    ) : (
+                      <Pause size={16} />
+                    )}
+                  </button>
+                ) : null}
               </>
             )}
             {page === 'task' && (
@@ -821,12 +876,31 @@ export function FiscalWorkbench() {
               <div className="fw-home-inner">
                 <header className="fw-home-intro">
                   <p className="fw-home-kicker">你好，林思远</p>
-                  <h1>{folder || '今天有什么工作需要处理？'}</h1>
+                  <h1>今天有什么工作需要处理？</h1>
                 </header>
-                {!folder && composer(true)}
+                <div className="fw-new-conversation-project">
+                  <label htmlFor="conversation-project">所属项目</label>
+                  <select
+                    id="conversation-project"
+                    value={folder}
+                    onChange={(event) => setFolder(event.target.value)}
+                  >
+                    <option value="">独立对话（不属于项目）</option>
+                    {state.folders.map((name) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                  <Btn onClick={() => setFolderEditor(true)}>
+                    <FolderPlus size={15} />
+                    新建项目
+                  </Btn>
+                </div>
+                {composer(true)}
                 <section className="fw-recents">
                   <div className="fw-recents-header">
-                    <h2>{folder ? '项目内的工作' : '最近的工作'}</h2>
+                    <h2>{folder ? '项目内的对话' : '最近对话'}</h2>
                     <span className="fw-meta">{filteredTasks.length}项</span>
                   </div>
                   <div className="fw-recents-list">
@@ -873,25 +947,65 @@ export function FiscalWorkbench() {
               />
             </div>
           )}
-          {page === 'library' && (
+          {page === 'knowledge' && (
             <Library onOpenTask={openTask} onUse={addContext} />
           )}
-          {page === 'agents' && (
-            <ProfessionalIntelligencePage
-              onConsult={consult}
-              onUse={addCatalogToTask}
-            />
-          )}
-          {['skills', 'extensions'].includes(page) && (
-            <CatalogPage
-              key={page}
-              kind={
-                page === 'skills' ? 'Skill' : '插件'
-              }
-              onConsult={consult}
-              onMemory={openMemory}
-              onUse={addCatalogToTask}
-            />
+          {page === 'capabilities' && (
+            <section className="fw-capabilities" aria-label="能力扩展">
+              <header className="fw-capability-header">
+                <h1>能力扩展</h1>
+                <nav className="fw-framework-tabs" aria-label="能力类型">
+                  {(['智能体', '技能', '插件', '连接器'] as const).map(
+                    (tab) => (
+                      <button
+                        key={tab}
+                        aria-current={
+                          capabilityTab === tab ? 'page' : undefined
+                        }
+                        onClick={() => {
+                          setCapabilityTab(tab);
+                          setOwnedOnly(false);
+                        }}
+                      >
+                        {tab}
+                      </button>
+                    ),
+                  )}
+                </nav>
+                <fieldset className="fw-capability-scope">
+                  <legend className="fw-visually-hidden">能力获取范围</legend>
+                  <button
+                    aria-pressed={!ownedOnly}
+                    onClick={() => setOwnedOnly(false)}
+                  >
+                    全部
+                  </button>
+                  <button
+                    aria-pressed={ownedOnly}
+                    onClick={() => setOwnedOnly(true)}
+                  >
+                    已获取
+                  </button>
+                </fieldset>
+              </header>
+              {capabilityTab === '智能体' ? (
+                <ProfessionalIntelligencePage
+                  ownedOnly={ownedOnly}
+                  onConsult={prepareCapability}
+                  onUse={prepareCapability}
+                />
+              ) : (
+                <CatalogPage
+                  key={capabilityTab}
+                  kind={capabilityTab === '技能' ? 'Skill' : capabilityTab}
+                  ownedOnly={ownedOnly}
+                  standaloneKind
+                  onConsult={prepareCapability}
+                  onMemory={openMemory}
+                  onUse={prepareCapability}
+                />
+              )}
+            </section>
           )}
           {page === 'automations' && <Automations onTask={openTask} />}
         </div>
@@ -916,7 +1030,9 @@ export function FiscalWorkbench() {
               <SettingsPage
                 onOpenConnections={() => {
                   setSettingsOpen(false);
-                  setPage('extensions');
+                  setCapabilityTab('连接器');
+                  setOwnedOnly(false);
+                  setPage('capabilities');
                 }}
                 onResetDemo={() => window.location.reload()}
                 defaultModelMode={defaultModel}
@@ -952,11 +1068,11 @@ export function FiscalWorkbench() {
             open
             className="fw-modal"
             aria-modal="true"
-            aria-label="新建项目文件夹"
+            aria-label="新建项目"
           >
-            <h2>新建项目文件夹</h2>
+            <h2>新建项目</h2>
             <label>
-              文件夹名称
+              项目名称
               <input
                 value={folderName}
                 onChange={(e) => setFolderName(e.target.value)}
@@ -986,21 +1102,48 @@ export function FiscalWorkbench() {
       )}
       {sceneReplacement && (
         <div className="pi-dialog-backdrop">
-          <dialog open className="pi-dialog pi-replace-dialog" aria-labelledby="pi-replace-title">
+          <dialog
+            open
+            className="pi-dialog pi-replace-dialog"
+            aria-labelledby="pi-replace-title"
+          >
             <header>
               <div>
                 <span>更换主场景</span>
                 <h2 id="pi-replace-title">确认替换场景工作智能体</h2>
               </div>
-              <button type="button" aria-label="关闭替换确认" onClick={() => setSceneReplacement(undefined)}><X size={17} /></button>
+              <button
+                type="button"
+                aria-label="关闭替换确认"
+                onClick={() => setSceneReplacement(undefined)}
+              >
+                <X size={17} />
+              </button>
             </header>
             <div className="pi-replace-copy">
               <p>当前任务已选择“{sceneReplacement.current.label}”。</p>
-              <p>替换为“{sceneReplacement.next.label}”后，组织智能载体和其他任务上下文保持不变。</p>
+              <p>
+                替换为“{sceneReplacement.next.label}
+                ”后，组织智能载体和其他任务上下文保持不变。
+              </p>
             </div>
             <footer>
-              <button type="button" onClick={() => setSceneReplacement(undefined)}>取消</button>
-              <button className="pi-primary" type="button" onClick={() => { commitContext(sceneReplacement.next); setSceneReplacement(undefined); }}>确认替换</button>
+              <button
+                type="button"
+                onClick={() => setSceneReplacement(undefined)}
+              >
+                取消
+              </button>
+              <button
+                className="pi-primary"
+                type="button"
+                onClick={() => {
+                  commitContext(sceneReplacement.next);
+                  setSceneReplacement(undefined);
+                }}
+              >
+                确认替换
+              </button>
             </footer>
           </dialog>
         </div>

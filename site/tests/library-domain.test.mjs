@@ -9,18 +9,17 @@ import {
   knowledgeBaseProfiles,
   personalItemContext,
 } from '../app/library-domain.ts';
-import {
-  initialWorkspace,
-  workspaceReducer,
-} from '../app/fiscal-domain.ts';
+import { initialWorkspace, workspaceReducer } from '../app/fiscal-domain.ts';
 
 test('资料库默认包含三项本地资料和三项云资料', () => {
   assert.equal(
-    initialPersonalLibraryItems.filter((item) => item.storage === 'local').length,
+    initialPersonalLibraryItems.filter((item) => item.storage === 'local')
+      .length,
     3,
   );
   assert.equal(
-    initialPersonalLibraryItems.filter((item) => item.storage === 'cloud').length,
+    initialPersonalLibraryItems.filter((item) => item.storage === 'cloud')
+      .length,
     3,
   );
   for (const item of initialPersonalLibraryItems) {
@@ -134,9 +133,9 @@ test('资料库页只展示个人和知识库对象，不自动枚举任务成�
     source.indexOf('export function Library'),
     source.indexOf('export function Automations'),
   );
-  assert.match(librarySource, /个人/);
+  assert.match(librarySource, /我的知识/);
   assert.match(librarySource, /本地资料/);
-  assert.match(librarySource, /云资料/);
+  assert.match(librarySource, /云端/);
   assert.match(librarySource, /知识库/);
   assert.equal(librarySource.includes('state.artifacts'), false);
   assert.equal(librarySource.includes('工作材料与成果'), false);

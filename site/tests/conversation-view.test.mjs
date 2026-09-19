@@ -171,7 +171,10 @@ test('正文不会切断本轮正常执行记录，摘要统一放在本轮末�
 test('单个正常操作也使用本轮执行记录入口', () => {
   const candidate = operation({ cmd: 'read-payments', risk: '低' });
   const segments = conversationSegments([block(candidate, 0)]);
-  assert.deepEqual(segments.map((segment) => segment.kind), ['operation-group']);
+  assert.deepEqual(
+    segments.map((segment) => segment.kind),
+    ['operation-group'],
+  );
   assert.deepEqual(segments[0].group.operations, [candidate]);
 });
 test('完整过程模式逐项显示正常操作并保持正文时间顺序', () => {
@@ -402,7 +405,7 @@ test('内容级双栏只在行级反馈悬停和选中状态', () => {
   assert.match(baseline, /禁止把“左侧出现的区域”一律染成/);
 });
 
-test('AI 记忆从一级导航进入时不预选记录', () => {
+test('AI 记忆仅保留为任务内下钻入口且进入时定位指定记录', () => {
   const workbench = fs.readFileSync(
     new URL('../app/fiscal-workbench.tsx', import.meta.url),
     'utf8',
@@ -415,10 +418,7 @@ test('AI 记忆从一级导航进入时不预选记录', () => {
     new URL('../WORKSPACE_UI_CONSISTENCY.md', import.meta.url),
     'utf8',
   );
-  assert.match(
-    workbench,
-    /if \(n\.id === 'memory'\) setSelectedMemory\(undefined\)/,
-  );
+  assert.doesNotMatch(workbench, /\{ id: 'memory', title: 'AI 记忆'/);
   assert.match(
     workbench,
     /const openMemory = \(id: string\) => \{\s*setSelectedMemory\(id\);\s*setPage\('memory'\);\s*\};/s,

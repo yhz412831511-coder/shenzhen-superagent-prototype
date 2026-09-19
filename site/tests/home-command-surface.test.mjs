@@ -19,25 +19,27 @@ test('首页保持原任务数据与打开行为', () => {
 
   assert.match(component, /\{filteredTasks\.map\(\(t\) => \(/);
   assert.match(component, /onClick=\{\(\) => openTask\(t\.id\)\}/);
-  assert.match(component, /folder \? '项目内的工作' : '最近的工作'/);
-  assert.match(component, /\{!folder && composer\(true\)\}/);
+  assert.match(component, /folder \? '项目内的对话' : '最近对话'/);
+  assert.match(component, /\{composer\(true\)\}/);
 });
 
-test('一级能力目录保持确认名称并为专业智能使用独立页面', () => {
+test('一级导航收敛为F1批准的四个入口', () => {
   const component = read('../app/fiscal-workbench.tsx');
 
-  assert.match(component, /\{ id: 'agents', title: '专业智能', icon: Bot \}/);
-  assert.match(component, /\{ id: 'skills', title: '工作技能', icon: Zap \}/);
+  assert.match(component, /\{ id: 'home', title: '新对话', icon: SquarePen \}/);
   assert.match(
     component,
-    /\{ id: 'extensions', title: '系统与工具', icon: PlugZap \}/,
+    /\{ id: 'capabilities', title: '能力扩展', icon: Bot \}/,
   );
   assert.match(
     component,
-    /page === 'agents'[\s\S]*?<ProfessionalIntelligencePage/,
+    /\{ id: 'automations', title: '自动化', icon: Workflow \}/,
   );
-  assert.match(component, /\['skills', 'extensions'\]\.includes\(page\)/);
-  assert.match(component, /page === 'skills' \? 'Skill' : '插件'/);
+  assert.match(
+    component,
+    /\{ id: 'knowledge', title: '我的知识', icon: LibraryBig \}/,
+  );
+  assert.doesNotMatch(component, /id: '(agents|skills|extensions|library)'/);
 });
 
 test('首页采用任务指挥界面的尺寸与连续清单', () => {

@@ -15,7 +15,6 @@ import { useWorkspace } from './workspace-store';
 import { agentDetailProfiles } from './fiscal-catalog';
 import {
   carriersForUnit,
-  organizationCarriers,
   organizationRegistryMeta,
   organizationUnits,
   preferredCarrierForUnit,
@@ -33,10 +32,12 @@ export function ProfessionalIntelligencePage({
   onUse,
   initialView = 'organization',
   initialId = '',
+  ownedOnly = false,
 }: {
   onConsult: (id: string, text: string) => void;
   onUse: (id: string) => void;
   initialView?: View;
+  ownedOnly?: boolean;
   initialId?: string;
 }) {
   const { state, dispatch } = useWorkspace();
@@ -64,16 +65,26 @@ export function ProfessionalIntelligencePage({
   }, [pendingSceneId]);
 
   const visibleUnitIds = useMemo(() => searchOrganization(query), [query]);
-  const units = organizationUnits.filter((unit) =>
-    visibleUnitIds.includes(unit.id),
+  const units = organizationUnits.filter(
+    (unit) =>
+      visibleUnitIds.includes(unit.id) &&
+      (!ownedOnly ||
+        carriersForUnit(unit.id).some((carrier) =>
+          state.catalog.some((entry) => entry.id === carrier.id && entry.owned),
+        )),
   );
-  const unit = organizationUnits.find((item) => item.id === unitId);
-  const carriers = carriersForUnit(unitId);
-  const carrier = organizationCarriers.find((item) => item.id === carrierId);
-  const scenes = sceneAgents(state.catalog);
-  const scene = scenes.find((item) => item.id === sceneId) || scenes[0];
-  const sceneProfile = agentDetailProfiles.profiles.find(
-    (item) => item.id === scene?.id,
+  const unit = units.find((item) => item.id === unitId) || units[0];
+  const carriers = carriersForUnit(unit?.id || '').filter(
+    (item) =>
+      !ownedOnly ||
+      state.catalog.some((entry) => entry.id === item.id && entry.owned),
+  );
+  const carrier =
+    carriers.find((item) => item.id === carrierId) ||
+    (ownedOnly ? carriers[0] : undefined);
+  const carrierEntry = state.catalog.find((item) => item.id === carrier?.id);
+  const scenes = sceneAgents(state.catalog).filter(
+    (item) => !ownedOnly || item.owned,
   );
   const sceneCategories = [...new Set(scenes.map((item) => item.category))];
   const [sceneCategory, setSceneCategory] = useState(
@@ -81,8 +92,18 @@ export function ProfessionalIntelligencePage({
       ? initialScene.category
       : sceneCategories[0] || '',
   );
+  const activeCategory = sceneCategories.includes(sceneCategory)
+    ? sceneCategory
+    : sceneCategories[0] || '';
+  const scene =
+    scenes.find(
+      (item) => item.id === sceneId && item.category === activeCategory,
+    ) || scenes.find((item) => item.category === activeCategory);
+  const sceneProfile = agentDetailProfiles.profiles.find(
+    (item) => item.id === scene?.id,
+  );
   const visibleScenes = scenes.filter(
-    (item) => !sceneCategory || item.category === sceneCategory,
+    (item) => !activeCategory || item.category === activeCategory,
   );
 
   const updateSearch = (value: string) => {
@@ -92,9 +113,7 @@ export function ProfessionalIntelligencePage({
     const nextUnitId = matchedUnitIds[0];
     const nextCarrier = preferredCarrierForUnit(nextUnitId, value);
     setUnitId(nextUnitId);
-    setCarrierId(
-      nextCarrier?.buildStatus === 'built' ? nextCarrier.id : '',
-    );
+    setCarrierId(nextCarrier?.buildStatus === 'built' ? nextCarrier.id : '');
   };
 
   const chooseUnit = (id: string) => {
@@ -123,7 +142,7 @@ export function ProfessionalIntelligencePage({
     <section className="pi-page" aria-label="专业智能">
       <header className="pi-header">
         <div>
-          <h1>专业智能</h1>
+          <h1>智能体</h1>
           <nav className="pi-tabs" aria-label="专业智能类别">
             <button
               type="button"
@@ -175,8 +194,8 @@ export function ProfessionalIntelligencePage({
                   <li key={item.id}>
                     <button
                       type="button"
-                      className={item.id === unitId ? 'is-active' : ''}
-                      aria-current={item.id === unitId ? 'true' : undefined}
+                      className={item.id === unit?.id ? 'is-active' : ''}
+                      aria-current={item.id === unit?.id ? 'true' : undefined}
                       onClick={() => chooseUnit(item.id)}
                     >
                       <span>{item.displayName}</span>
@@ -198,7 +217,8 @@ export function ProfessionalIntelligencePage({
           <section className="pi-pane pi-carrier-pane" aria-label="单位载体">
             <div className="pi-mobile-back">
               <button type="button" onClick={() => setMobileStep('index')}>
-                <ArrowLeft size={15} />返回单位
+                <ArrowLeft size={15} />
+                返回单位
               </button>
             </div>
             <div className="pi-pane-heading">
@@ -218,7 +238,9 @@ export function ProfessionalIntelligencePage({
                       <ChevronRight size={15} aria-hidden="true" />
                     </button>
                   ) : (
-                    <span className="pi-static-carrier">{item.displayName}</span>
+                    <span className="pi-static-carrier">
+                      {item.displayName}
+                    </span>
                   )}
                 </li>
               ))}
@@ -228,7 +250,8 @@ export function ProfessionalIntelligencePage({
           <article className="pi-pane pi-detail-pane" aria-live="polite">
             <div className="pi-mobile-back">
               <button type="button" onClick={() => setMobileStep('list')}>
-                <ArrowLeft size={15} />返回载体
+                <ArrowLeft size={15} />
+                返回载体
               </button>
             </div>
             {carrier?.buildStatus === 'built' ? (
@@ -259,7 +282,8 @@ export function ProfessionalIntelligencePage({
                   <ul>
                     {carrier.services?.map((service) => (
                       <li key={service}>
-                        <Check size={14} aria-hidden="true" />{service}
+                        <Check size={14} aria-hidden="true" />
+                        {service}
                       </li>
                     ))}
                   </ul>
@@ -272,7 +296,8 @@ export function ProfessionalIntelligencePage({
                         ? carrier.relatedSceneAgentIds
                             .map(
                               (id) =>
-                                state.catalog.find((item) => item.id === id)?.name,
+                                state.catalog.find((item) => item.id === id)
+                                  ?.name,
                             )
                             .filter(Boolean)
                             .join('、')
@@ -281,7 +306,9 @@ export function ProfessionalIntelligencePage({
                   </div>
                   <div>
                     <h3>知识与经验</h3>
-                    <p>按当前任务授权范围使用资料；新增经验经本人确认后沉淀。</p>
+                    <p>
+                      按当前任务授权范围使用资料；新增经验经本人确认后沉淀。
+                    </p>
                   </div>
                 </section>
                 <section className="pi-source">
@@ -292,26 +319,66 @@ export function ProfessionalIntelligencePage({
                       ? ` · 发布于${carrier.publishedAt}`
                       : ` · 页面未标注发布日期 · 核验于${organizationRegistryMeta.verifiedAt}`}
                   </span>
-                  <a href={carrier.officialUrl} target="_blank" rel="noreferrer">
+                  <a
+                    href={carrier.officialUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     查看来源
                   </a>
                 </section>
                 <footer className="pi-actions">
-                  <button
-                    className="pi-primary"
-                    type="button"
-                    onClick={() =>
-                      onConsult(
-                        carrier.id,
-                        `请介绍${carrier.displayName}可以如何协助本次工作`,
-                      )
-                    }
-                  >
-                    发起咨询
-                  </button>
-                  <button type="button" onClick={() => onUse(carrier.id)}>
-                    用于任务
-                  </button>
+                  {carrierEntry?.owned ? (
+                    <>
+                      <button
+                        className="pi-primary"
+                        type="button"
+                        disabled={!carrierEntry.enabled}
+                        onClick={() =>
+                          onConsult(
+                            carrier.id,
+                            `请介绍${carrier.displayName}可以如何协助本次工作`,
+                          )
+                        }
+                      >
+                        发起咨询
+                      </button>
+                      <button
+                        type="button"
+                        disabled={!carrierEntry.enabled}
+                        onClick={() => onUse(carrier.id)}
+                      >
+                        用于对话
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          dispatch({
+                            type: 'catalog',
+                            id: carrier.id,
+                            enabled: !carrierEntry.enabled,
+                          })
+                        }
+                      >
+                        {carrierEntry.enabled ? '停用' : '启用'}
+                      </button>
+                    </>
+                  ) : carrierEntry ? (
+                    <button
+                      className="pi-primary"
+                      type="button"
+                      onClick={() =>
+                        dispatch({
+                          type: 'catalog',
+                          id: carrier.id,
+                          owned: true,
+                          enabled: true,
+                        })
+                      }
+                    >
+                      获取并启用
+                    </button>
+                  ) : null}
                 </footer>
               </>
             ) : (
@@ -324,44 +391,62 @@ export function ProfessionalIntelligencePage({
           </article>
         </div>
       ) : (
-        <div className="pi-workspace pi-scene-workspace" data-mobile-step={mobileStep}>
+        <div
+          className="pi-workspace pi-scene-workspace"
+          data-mobile-step={mobileStep}
+        >
           <aside className="pi-pane pi-unit-pane" aria-label="工作类型">
-            <div className="pi-pane-heading"><span>工作类型</span></div>
+            <div className="pi-pane-heading">
+              <span>工作类型</span>
+            </div>
             <ul className="pi-unit-list">
               {sceneCategories.map((category) => (
                 <li key={category}>
                   <button
                     type="button"
-                    className={category === sceneCategory ? 'is-active' : ''}
+                    className={category === activeCategory ? 'is-active' : ''}
                     onClick={() => {
                       setSceneCategory(category);
-                      const first = scenes.find((item) => item.category === category);
+                      const first = scenes.find(
+                        (item) => item.category === category,
+                      );
                       if (first) setSceneId(first.id);
                       setMobileStep('list');
                     }}
                   >
-                    <span>{category}</span><ChevronRight size={15} />
+                    <span>{category}</span>
+                    <ChevronRight size={15} />
                   </button>
                 </li>
               ))}
             </ul>
           </aside>
-          <section className="pi-pane pi-carrier-pane" aria-label="场景工作智能体">
+          <section
+            className="pi-pane pi-carrier-pane"
+            aria-label="场景工作智能体"
+          >
             <div className="pi-mobile-back">
               <button type="button" onClick={() => setMobileStep('index')}>
-                <ArrowLeft size={15} />返回工作类型
+                <ArrowLeft size={15} />
+                返回工作类型
               </button>
             </div>
-            <div className="pi-pane-heading"><span>{sceneCategory}</span></div>
+            <div className="pi-pane-heading">
+              <span>{activeCategory}</span>
+            </div>
             <ul className="pi-carrier-list">
               {visibleScenes.map((item) => (
                 <li key={item.id}>
                   <button
                     type="button"
                     className={item.id === scene?.id ? 'is-active' : ''}
-                    onClick={() => { setSceneId(item.id); setMobileStep('detail'); }}
+                    onClick={() => {
+                      setSceneId(item.id);
+                      setMobileStep('detail');
+                    }}
                   >
-                    <span>{item.name}</span><ChevronRight size={15} />
+                    <span>{item.name}</span>
+                    <ChevronRight size={15} />
                   </button>
                 </li>
               ))}
@@ -370,36 +455,91 @@ export function ProfessionalIntelligencePage({
           <article className="pi-pane pi-detail-pane">
             <div className="pi-mobile-back">
               <button type="button" onClick={() => setMobileStep('list')}>
-                <ArrowLeft size={15} />返回场景
+                <ArrowLeft size={15} />
+                返回场景
               </button>
             </div>
             {scene ? (
               <>
                 <header className="pi-detail-header">
-                  <span className="pi-object-icon" aria-hidden="true"><Bot size={20} /></span>
-                  <div><h2>{scene.name}</h2><p>{scene.publisher} · {scene.category}</p></div>
+                  <span className="pi-object-icon" aria-hidden="true">
+                    <Bot size={20} />
+                  </span>
+                  <div>
+                    <h2>{scene.name}</h2>
+                    <p>
+                      {scene.publisher} · {scene.category}
+                    </p>
+                  </div>
                 </header>
                 <section className="pi-detail-section">
-                  <h3>适用工作</h3><p>{scene.summary}</p>
+                  <h3>适用工作</h3>
+                  <p>{scene.summary}</p>
                 </section>
                 <section className="pi-detail-section">
                   <h3>处理能力</h3>
-                  <ul>{scene.details.map((detail) => <li key={detail}><Check size={14} />{detail}</li>)}</ul>
+                  <ul>
+                    {scene.details.map((detail) => (
+                      <li key={detail}>
+                        <Check size={14} />
+                        {detail}
+                      </li>
+                    ))}
+                  </ul>
                 </section>
                 {sceneProfile ? (
                   <section className="pi-detail-section pi-detail-grid">
-                    <div><h3>需要准备</h3><p>{sceneProfile.requiredContext.slice(0, 3).join('、')}</p></div>
-                    <div><h3>人工决定</h3><p>{sceneProfile.serviceBoundaries[0]}</p></div>
+                    <div>
+                      <h3>需要准备</h3>
+                      <p>
+                        {sceneProfile.requiredContext.slice(0, 3).join('、')}
+                      </p>
+                    </div>
+                    <div>
+                      <h3>人工决定</h3>
+                      <p>{sceneProfile.serviceBoundaries[0]}</p>
+                    </div>
                   </section>
                 ) : null}
                 <footer className="pi-actions">
                   {scene.owned ? (
                     <>
-                      <button className="pi-primary" type="button" disabled={!scene.enabled} onClick={startScene}>开始工作</button>
-                      <button type="button" onClick={() => dispatch({ type: 'catalog', id: scene.id, enabled: !scene.enabled })}>{scene.enabled ? '停用' : '启用'}</button>
+                      <button
+                        className="pi-primary"
+                        type="button"
+                        disabled={!scene.enabled}
+                        onClick={startScene}
+                      >
+                        开始工作
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          dispatch({
+                            type: 'catalog',
+                            id: scene.id,
+                            enabled: !scene.enabled,
+                          })
+                        }
+                      >
+                        {scene.enabled ? '停用' : '启用'}
+                      </button>
                     </>
                   ) : (
-                    <button className="pi-primary" type="button" onClick={() => dispatch({ type: 'catalog', id: scene.id, owned: true, enabled: true })}>获取并启用</button>
+                    <button
+                      className="pi-primary"
+                      type="button"
+                      onClick={() =>
+                        dispatch({
+                          type: 'catalog',
+                          id: scene.id,
+                          owned: true,
+                          enabled: true,
+                        })
+                      }
+                    >
+                      获取并启用
+                    </button>
                   )}
                 </footer>
               </>
@@ -410,15 +550,75 @@ export function ProfessionalIntelligencePage({
 
       {pendingSceneId && scene ? (
         <div className="pi-dialog-backdrop">
-          <dialog open className="pi-dialog" aria-labelledby="pi-check-title" onKeyDown={(event) => { if (event.key === 'Escape') setPendingSceneId(''); }}>
-            <header><div><span>启动检查</span><h2 id="pi-check-title">{scene.name}</h2></div><button ref={dialogClose} type="button" aria-label="关闭启动检查" onClick={() => setPendingSceneId('')}><X size={17} /></button></header>
+          <dialog
+            open
+            className="pi-dialog"
+            aria-labelledby="pi-check-title"
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') setPendingSceneId('');
+            }}
+          >
+            <header>
+              <div>
+                <span>启动检查</span>
+                <h2 id="pi-check-title">{scene.name}</h2>
+              </div>
+              <button
+                ref={dialogClose}
+                type="button"
+                aria-label="关闭启动检查"
+                onClick={() => setPendingSceneId('')}
+              >
+                <X size={17} />
+              </button>
+            </header>
             <ul>
-              <li><Check size={15} /><span><strong>材料范围</strong>确认本次任务可使用的材料和版本</span></li>
-              <li><Check size={15} /><span><strong>系统权限</strong>只在当前身份与组织策略范围内工作</span></li>
-              <li><Check size={15} /><span><strong>参与载体</strong>可在任务中继续添加一个或多个岗位支持</span></li>
-              <li><Check size={15} /><span><strong>人工决定</strong>关键判断、正式操作和成果提交由本人确认</span></li>
+              <li>
+                <Check size={15} />
+                <span>
+                  <strong>材料范围</strong>确认本次任务可使用的材料和版本
+                </span>
+              </li>
+              <li>
+                <Check size={15} />
+                <span>
+                  <strong>系统权限</strong>只在当前身份与组织策略范围内工作
+                </span>
+              </li>
+              <li>
+                <Check size={15} />
+                <span>
+                  <strong>参与载体</strong>可在任务中继续添加一个或多个岗位支持
+                </span>
+              </li>
+              <li>
+                <Check size={15} />
+                <span>
+                  <strong>人工决定</strong>
+                  关键判断、正式操作和成果提交由本人确认
+                </span>
+              </li>
             </ul>
-            <footer><button type="button" onClick={() => setPendingSceneId('')}>取消</button><button className="pi-primary" type="button" onClick={() => { const id = pendingSceneId; setPendingSceneId(''); onConsult(id, sceneProfile?.sampleQuestions[0] || `请开始处理${scene.name}对应的工作`); }}>确认并开始</button></footer>
+            <footer>
+              <button type="button" onClick={() => setPendingSceneId('')}>
+                取消
+              </button>
+              <button
+                className="pi-primary"
+                type="button"
+                onClick={() => {
+                  const id = pendingSceneId;
+                  setPendingSceneId('');
+                  onConsult(
+                    id,
+                    sceneProfile?.sampleQuestions[0] ||
+                      `请开始处理${scene.name}对应的工作`,
+                  );
+                }}
+              >
+                确认并开始
+              </button>
+            </footer>
           </dialog>
         </div>
       ) : null}
