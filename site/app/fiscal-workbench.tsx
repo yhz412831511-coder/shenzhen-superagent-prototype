@@ -9,7 +9,7 @@ import {
   MoonStar,
   Bot,
   BrainCircuit,
-  ChevronDown,
+  Check,
   ChevronRight,
   Folder,
   FolderPlus,
@@ -58,6 +58,13 @@ import { conversationTurns } from './conversation-view';
 import { BrainstormHeaderStatus } from './brainstorm-components';
 import { ProfessionalIntelligencePage } from './professional-intelligence-page';
 import { organizationCarrierIds } from './professional-intelligence-domain';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import './global-framework.css';
 type Page =
   | 'home'
@@ -90,7 +97,9 @@ export function FiscalWorkbench() {
   const { value: appearance, update: updateAppearance } = useAppearance();
   const settingsReturnFocus = useRef<HTMLElement | null>(null);
   const settingsClose = useRef<HTMLButtonElement | null>(null);
+  const projectSearchRef = useRef<HTMLInputElement | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [projectSearch, setProjectSearch] = useState('');
   useEffect(() => {
     if (!settingsOpen) return;
     settingsReturnFocus.current = document.activeElement as HTMLElement;
@@ -880,33 +889,103 @@ export function FiscalWorkbench() {
                   <h1>今天有什么工作需要处理？</h1>
                 </header>
                 <div className="fw-new-conversation-project">
-                  <label htmlFor="conversation-project" className="fw-sr-only">
-                    所属项目
-                  </label>
-                  <div className="fw-project-picker">
-                    <Folder size={14} aria-hidden="true" />
-                    <select
-                      id="conversation-project"
-                      value={folder}
-                      onChange={(event) => setFolder(event.target.value)}
-                    >
-                      <option value="">独立对话（不属于项目）</option>
-                      {state.folders.map((name) => (
-                        <option key={name} value={name}>
-                          {name}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown size={13} aria-hidden="true" />
-                  </div>
-                  <button
-                    type="button"
-                    className="fw-new-project-action"
-                    onClick={() => setFolderEditor(true)}
+                  <DropdownMenu
+                    onOpenChange={(open) => {
+                      if (open) {
+                        window.requestAnimationFrame(() =>
+                          projectSearchRef.current?.focus(),
+                        );
+                      } else {
+                        setProjectSearch('');
+                      }
+                    }}
                   >
-                    <FolderPlus size={15} />
-                    <span>新建项目</span>
-                  </button>
+                    <DropdownMenuTrigger
+                      render={
+                        <button
+                          type="button"
+                          className="fw-project-context-trigger"
+                          aria-label={`选择所属项目，当前${folder || '不在项目中工作'}`}
+                        />
+                      }
+                    >
+                      <Folder size={15} aria-hidden="true" />
+                      <span>{folder || '不在项目中工作'}</span>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="start"
+                      side="top"
+                      sideOffset={8}
+                      className="fw-project-menu"
+                    >
+                      <search className="fw-project-search">
+                        <Search size={15} aria-hidden="true" />
+                        <input
+                          ref={projectSearchRef}
+                          value={projectSearch}
+                          onChange={(event) =>
+                            setProjectSearch(event.target.value)
+                          }
+                          onKeyDown={(event) => {
+                            if (event.key !== 'Escape') event.stopPropagation();
+                          }}
+                          placeholder="搜索项目"
+                          aria-label="搜索项目"
+                        />
+                      </search>
+                      <DropdownMenuSeparator />
+                      <div className="fw-project-menu-list">
+                        {state.folders
+                          .filter((name) =>
+                            name
+                              .toLowerCase()
+                              .includes(projectSearch.trim().toLowerCase()),
+                          )
+                          .map((name) => (
+                            <DropdownMenuItem
+                              key={name}
+                              onClick={() => setFolder(name)}
+                              className="fw-project-menu-item"
+                            >
+                              <Folder size={16} />
+                              <span>{name}</span>
+                              {folder === name ? (
+                                <Check
+                                  className="fw-project-menu-check"
+                                  size={16}
+                                />
+                              ) : null}
+                            </DropdownMenuItem>
+                          ))}
+                        {state.folders.every(
+                          (name) =>
+                            !name
+                              .toLowerCase()
+                              .includes(projectSearch.trim().toLowerCase()),
+                        ) ? (
+                          <p className="fw-project-menu-empty">没有匹配项目</p>
+                        ) : null}
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => setFolderEditor(true)}
+                        className="fw-project-menu-item"
+                      >
+                        <FolderPlus size={16} />
+                        <span>新建项目</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setFolder('')}
+                        className="fw-project-menu-item"
+                      >
+                        <X size={16} />
+                        <span>不在项目中工作</span>
+                        {!folder ? (
+                          <Check className="fw-project-menu-check" size={16} />
+                        ) : null}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
                 {composer(true)}
                 <section className="fw-recents">

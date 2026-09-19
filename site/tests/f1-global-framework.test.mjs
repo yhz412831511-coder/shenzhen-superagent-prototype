@@ -7,7 +7,8 @@ const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 test('新对话支持选择项目或保持独立，并在创建时记录项目归属', () => {
   const source = read('../app/fiscal-workbench.tsx');
 
-  assert.match(source, /<option value="">独立对话（不属于项目）<\/option>/);
+  assert.match(source, /不在项目中工作/);
+  assert.match(source, /placeholder="搜索项目"/);
   assert.match(source, /state\.folders\.map\(\(name\) =>/);
   assert.ok(source.includes("type: 'folder'"));
   assert.ok(source.includes('taskId: id'));
