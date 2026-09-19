@@ -1797,6 +1797,15 @@ html[data-reduced-motion='true'] .fw-task-progress li[data-status='in_progress']
 .fw-home .task-composer {
   max-width: none;
 }
+html[data-theme='light'] .fw-home .task-composer {
+  border-color: var(--ui-brand);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ui-brand) 12%, transparent),
+    0 10px 28px color-mix(in srgb, var(--ui-brand) 10%, transparent);
+}
+html[data-theme='light'] .fw-home .task-composer:hover {
+  border-color: var(--ui-brand-hover);
+}
 .task-composer__context-row {
   display: flex;
   flex-wrap: wrap;
