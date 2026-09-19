@@ -34,24 +34,30 @@
 .fw-new-conversation-project {
   display: flex;
   align-items: center;
-  min-height: 34px;
-  margin: 8px 0 8px;
+  min-height: 24px;
+  margin: 4px 0 6px;
 }
 
 .fw-project-context-trigger {
   display: inline-flex;
   max-width: min(100%, 320px);
-  height: 34px;
+  height: 24px;
+  min-height: 24px;
   align-items: center;
-  gap: 8px;
-  padding: 0 12px;
+  gap: 5px;
+  padding: 0 8px;
   border: 0;
   border-radius: 999px;
   color: var(--ui-text);
   background: color-mix(in srgb, var(--ui-hover) 72%, transparent);
   font: inherit;
-  font-size: 13px;
+  font-size: 11px;
   cursor: pointer;
+}
+
+.fw-project-context-trigger svg {
+  width: 12px;
+  height: 12px;
 }
 
 .fw-project-context-trigger span {
