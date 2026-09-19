@@ -618,7 +618,7 @@ function addMemory(
   const m: Memory = {
     id,
     scope: 'personal',
-    owner: '林思远',
+    owner: '杨XX',
     current: id + '-v1',
     subscribed: false,
     revisions: [

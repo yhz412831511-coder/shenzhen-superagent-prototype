@@ -8,7 +8,10 @@ test('首页使用左对齐任务入口并移除装饰机器人图标', () => {
   const component = read('../app/fiscal-workbench.tsx');
 
   assert.match(component, /<header className="fw-home-intro">/);
-  assert.match(component, /className="fw-home-kicker">你好，林思远/);
+  assert.match(
+    component,
+    /className="fw-home-kicker">你好，\{currentUser\.name\}/,
+  );
   assert.match(component, /className="fw-recents-list"/);
   assert.match(component, /className="fw-recent-task"/);
   assert.doesNotMatch(component, /className="fw-home-icon"/);

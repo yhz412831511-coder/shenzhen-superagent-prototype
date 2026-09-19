@@ -191,6 +191,17 @@ test('历史由相同业务动作生成：两条完成，运维已追踪但没�
   assert.deepEqual(s.folders, ['财政支付审查']);
   assert.equal(s.automations.find((a) => a.id === f.tracking).runs.length, 0);
   assert.equal(s.feedbackIds.length, 0);
+  assert.equal(s.automations[0].enabled, false);
+  assert.deepEqual(s.automations[0].runs, ['payment-history']);
+  const afterFutureTick = reduce(s, {
+    type: 'tick',
+    now: Date.parse('2026-09-17T09:00:00+08:00'),
+  });
+  assert.deepEqual(afterFutureTick.automations[0].runs, ['payment-history']);
+  assert.equal(
+    afterFutureTick.memory.tasks.some((task) => task.title.includes('2026-09-17')),
+    false,
+  );
   assert.equal(
     f.operations.some((o) => o.cmd === 'submit-project'),
     false,
@@ -588,6 +599,10 @@ test('反馈产生普通任务、解析清单，不修改材料；重复反馈�
 });
 test('定时触发按周期去重、停用不运行', () => {
   let s = initial();
+  s = reduce(s, {
+    type: 'automation',
+    item: { ...s.automations[0], enabled: true },
+  });
   s = reduce(s, { type: 'tick', now: Date.parse('2026-09-10T09:00:00+08:00') });
   const c = s.automations[0],
     count = c.runs.length;

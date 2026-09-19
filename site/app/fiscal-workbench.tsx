@@ -673,7 +673,7 @@ export function FiscalWorkbench() {
                 setSettingsOpen(true);
               }}
             >
-              <span className="fw-avatar">林</span>
+              <span className="fw-avatar">{currentUser.name.slice(0, 1)}</span>
               <span className="fw-account-info">
                 <span className="fw-account-name">
                   <strong>{currentUser.name}</strong>
@@ -681,9 +681,9 @@ export function FiscalWorkbench() {
                 </span>
                 <small
                   className="fw-account-role"
-                  title={currentUser.organization}
+                  title={`${currentUser.organization} · ${currentUser.department}`}
                 >
-                  {currentUser.organization}
+                  {currentUser.organization} · {currentUser.department}
                 </small>
               </span>
               <Settings size={16} />
@@ -885,7 +885,7 @@ export function FiscalWorkbench() {
             <div className="fw-home">
               <div className="fw-home-inner">
                 <header className="fw-home-intro">
-                  <p className="fw-home-kicker">你好，林思远</p>
+                  <p className="fw-home-kicker">你好，{currentUser.name}</p>
                   <h1>今天有什么工作需要处理？</h1>
                 </header>
                 <div className="fw-new-conversation-project">

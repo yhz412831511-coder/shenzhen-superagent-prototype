@@ -1,8 +1,9 @@
-/** 场景用户；所属机构名称依据深圳市财政局公开信息。 */
+/** 原型中的脱敏占位身份，不对应真实人员或机构。 */
 export const currentUser = {
-  name: '林思远',
-  organization: '深圳市财政发展综合保障中心',
+  name: '杨XX',
+  organization: '深圳市XX局',
+  department: 'XX处',
   role: '科员',
-  organizationType: '深圳市财政局直属公益一类事业单位',
-  source: 'https://szfb.sz.gov.cn/szsczjwzgkml/szsczjwzgkml/jgzn/zsjg/content/post_9396622.html',
+  organizationType: '市级政务部门（脱敏占位）',
+  source: '用户指定的脱敏占位信息',
 } as const;

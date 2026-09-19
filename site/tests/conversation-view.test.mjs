@@ -473,7 +473,10 @@ test('账户入口融入侧栏并保留完整单位信息', () => {
     refinement,
     /\.fw-account-role\s*\{[^}]*text-overflow:\s*ellipsis/s,
   );
-  assert.match(workbench, /title=\{currentUser\.organization\}/);
+  assert.match(
+    workbench,
+    /title=\{`\$\{currentUser\.organization\} · \$\{currentUser\.department\}`\}/,
+  );
 });
 
 test('历史确认请求关联后续执行，显示已确认但保留原始鉴权记录', () => {

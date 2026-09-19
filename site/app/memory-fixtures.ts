@@ -30,7 +30,7 @@ export function initialMemoryState(now: number): MemoryState {
     scope,
     owner:
       owner ||
-      (scope === 'personal' ? '林思远' : '市财政局 · 组织经验'),
+      (scope === 'personal' ? '杨XX' : '市财政局 · 组织经验'),
     current: id + '-v1',
     subscribed: scope !== 'personal',
     revisions: [

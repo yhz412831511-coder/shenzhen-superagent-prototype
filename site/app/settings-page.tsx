@@ -212,12 +212,12 @@ function AccountSection() {
       />
       <div className="flex items-center gap-4 rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-brand-soft)] p-5">
         <span className="grid size-12 place-items-center rounded-full bg-[var(--ui-brand)] text-[length:var(--ui-font-body)] font-semibold text-[color:var(--ui-on-brand)] shadow-[var(--ui-shadow)]">
-          林
+          {currentUser.name.slice(0, 1)}
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <p className="text-[length:var(--ui-font-control)] font-semibold text-[color:var(--ui-text)]">
-              林思远
+              {currentUser.name}
             </p>
             <span className="flex items-center gap-1 rounded-full border border-[var(--ui-border)] bg-[var(--ui-canvas)] px-2 py-0.5 text-[length:var(--ui-font-meta)] text-[color:var(--ui-success)]">
               <Check className="size-2.5" />
@@ -225,7 +225,8 @@ function AccountSection() {
             </span>
           </div>
           <p className="mt-1 text-[length:var(--ui-font-meta)] text-[color:var(--ui-muted)]">
-            {currentUser.organization} · {currentUser.role}
+            {currentUser.organization} · {currentUser.department} ·{' '}
+            {currentUser.role}
           </p>
           <p className="mt-2 flex items-center gap-1.5 text-[length:var(--ui-font-meta)] text-[color:var(--ui-muted)]">
             <ShieldCheck className="size-3" />

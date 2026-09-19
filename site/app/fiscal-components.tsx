@@ -1410,7 +1410,8 @@ export function SystemPage({
         </span>
         <strong>{systems[system].name}</strong>
         <span>
-          {currentUser.name} · {currentUser.organization}
+          {currentUser.name} · {currentUser.organization} ·{' '}
+          {currentUser.department}
         </span>
       </header>
       <div className="fw-system-path">
@@ -1508,7 +1509,8 @@ export function SystemPage({
               <dd>财政局领导</dd>
               <dt>承办人员</dt>
               <dd>
-                {currentUser.name} · {currentUser.organization}
+                {currentUser.name} · {currentUser.organization} ·{' '}
+                {currentUser.department}
               </dd>
               <dt>工作要求</dt>
               <dd>
@@ -2180,7 +2182,7 @@ export function CatalogPage({
             <h2>当前身份与授权</h2>
             <p>
               {currentUser.name} · {currentUser.organization} ·{' '}
-              {currentUser.role}
+              {currentUser.department} · {currentUser.role}
             </p>
             <p>{entry.summary}</p>
             <Tag

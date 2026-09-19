@@ -260,7 +260,7 @@ const projectDefaults: Project = {
   unit: '深圳市财政局',
   constructionUnit: '深圳市财政局',
   budgetUnit: '深圳市财政局',
-  contact: '林思远',
+  contact: '杨XX',
   phone: '0755-00000000',
   year: '2027',
   months: '12',
@@ -322,7 +322,7 @@ function workPoint(
     m = {
       id: mid,
       scope: 'personal',
-      owner: '林思远',
+      owner: '杨XX',
       current: rid,
       subscribed: false,
       revisions: [
@@ -1533,7 +1533,7 @@ function base(now: number): WorkspaceState {
       {
         id: 'fiscal-weekly',
         name: '财政支付审查',
-        enabled: true,
+        enabled: false,
         kind: 'payment',
         cadence: 'weekly',
         weekday: 4,
