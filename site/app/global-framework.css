@@ -22,6 +22,11 @@
   transform: rotate(90deg);
 }
 
+.fw-project-row .fw-folder {
+  font-size: var(--ui-font-meta);
+  font-weight: 650;
+}
+
 .fw-new-conversation-project {
   display: flex;
   align-items: center;

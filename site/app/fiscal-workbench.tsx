@@ -549,11 +549,6 @@ export function FiscalWorkbench() {
                 >
                   <n.icon size={18} />
                   <span>{n.title}</span>
-                  {n.id === 'automations' && (
-                    <small>
-                      {state.automations.length + state.memory.schedules.length}
-                    </small>
-                  )}
                 </button>
               ))}
             </nav>
@@ -606,7 +601,6 @@ export function FiscalWorkbench() {
                       >
                         <Folder size={15} />
                         <span>{name}</span>
-                        <small>{children.length}</small>
                       </button>
                     </div>
                     {expanded && children.length > 0 && (
@@ -643,7 +637,6 @@ export function FiscalWorkbench() {
               <>
                 <div className="fw-nav-heading">
                   <span>最近对话</span>
-                  <span>{ungroupedTasks.length}</span>
                 </div>
                 <div className="fw-task-list" aria-label="最近对话">
                   {ungroupedTasks.map((t) => (
