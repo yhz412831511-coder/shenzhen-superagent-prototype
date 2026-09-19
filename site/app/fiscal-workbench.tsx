@@ -582,9 +582,7 @@ export function FiscalWorkbench() {
                   (t) => projectFor(t.id) === name,
                 );
                 const expanded = expandedProjects.includes(name);
-                const active =
-                  folder === name ||
-                  (page === 'task' && projectFor(activeId) === name);
+                const active = page === 'home' && folder === name;
                 return (
                   <div className="fw-project-group" key={name}>
                     <div className={`fw-project-row ${active ? 'active' : ''}`}>
