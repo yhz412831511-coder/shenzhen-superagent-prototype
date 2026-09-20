@@ -14,6 +14,8 @@ import {
   meetingSamples,
 } from '../app/products/admin/governance.ts';
 import { createSafetyState } from '../app/products/admin/admin/safety.ts';
+import { readFileSync } from 'node:fs';
+const readSource = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 const next = (s, type, extra = {}) =>
   reduce(s, {
     type: 'party',
@@ -39,6 +41,15 @@ function sent() {
 }
 const notes =
   '会后记录：会议决定请基础设施处核对验收材料，9月25日16:00前补充手续清单；统计完成率仍待核。';
+test('党组会第13、14次任务概览展示系统调用并支持下钻', () => {
+  const monitor = readSource('../app/fiscal-components.tsx');
+  const workspace = readSource('../app/task-workspace.tsx');
+  assert.match(monitor, /partySystemTargetId/);
+  assert.match(monitor, /PARTY_HISTORY_SYSTEMS/);
+  assert.match(monitor, /系统调用/);
+  assert.match(workspace, /PartySystemPage/);
+  assert.match(workspace, /partySystemFromTargetId/);
+});
 test('M14 minutes are versioned; submission is not approval; stale double click cannot resubmit', () => {
   let s = sent();
   const original = structuredClone(s.artifacts);

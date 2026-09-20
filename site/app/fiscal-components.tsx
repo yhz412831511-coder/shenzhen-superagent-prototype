@@ -87,6 +87,13 @@ import {
   BrainstormAttachment,
   BrainstormMonitorSections,
 } from './brainstorm-components';
+import {
+  PARTY_HISTORY_SYSTEMS,
+  PARTY_SYSTEMS,
+  partySystemFromTargetId,
+  partySystemResult,
+  partySystemTargetId,
+} from './party-domain';
 export type Target = WorkspaceTarget;
 
 type AgentCapabilityDetail = {
@@ -1175,7 +1182,8 @@ export function Monitor({
 }) {
   const { state } = useWorkspace(),
     f = state.flows[task.id],
-    brainstorm = state.brainstorm.flows[task.id];
+    brainstorm = state.brainstorm.flows[task.id],
+    party = state.party[task.id];
   const memories = state.memory.memories.filter(
     (m) =>
       current(m).source.taskId === task.id ||
@@ -1192,9 +1200,13 @@ export function Monitor({
     return c ? [c] : [];
   });
   const usedSystems = [
-    ...new Set(
-      f?.operations.flatMap((o) => (o.system ? [o.system] : [])) || [],
-    ),
+    ...new Set([
+      ...(f?.operations.flatMap((o) => (o.system ? [o.system] : [])) || []),
+      ...(party?.selected.map(partySystemTargetId) ||
+        (task.id === 'party-history'
+          ? PARTY_HISTORY_SYSTEMS.map(partySystemTargetId)
+          : [])),
+    ]),
   ];
   const artifactIds = f?.artifactIds || brainstorm?.artifactIds || [];
   const recentArtifacts = artifactIds.slice(-3).reverse();
@@ -1251,7 +1263,18 @@ export function Monitor({
             onClick={() => onOpen({ kind: 'system', id })}
           >
             <Globe2 size={14} />
-            <span>{systems[id].name}</span>
+            <span>
+              {partySystemFromTargetId(id)
+                ? PARTY_SYSTEMS.find(
+                    (system) => system.id === partySystemFromTargetId(id),
+                  )?.name
+                : systems[id as SystemId]?.name}
+              <small>
+                {partySystemFromTargetId(id)
+                  ? `${task.id === 'party-history' ? '第13次' : '第14次'}党组会 · ${partySystemResult(partySystemFromTargetId(id)!, task.id === 'party-history').status}`
+                  : '本次任务调用'}
+              </small>
+            </span>
             <ArrowUpRight size={13} />
           </button>
         ))}
@@ -1391,6 +1414,68 @@ export type SystemViewState = {
   edits?: Partial<Project>;
   selection?: string[];
 };
+
+export function PartySystemPage({
+  system,
+  historical = false,
+}: {
+  system: (typeof PARTY_SYSTEMS)[number]['id'];
+  historical?: boolean;
+}) {
+  const entry = PARTY_SYSTEMS.find((item) => item.id === system)!;
+  const result = partySystemResult(system, historical);
+  const meeting = historical ? '第13次党组会' : '第14次党组会';
+  return (
+    <div className="fw-system">
+      <header>
+        <span className="fw-system-logo">
+          <Globe2 size={23} />
+        </span>
+        <strong>{entry.name}</strong>
+        <span>
+          {currentUser.name} · {currentUser.organization} ·{' '}
+          {currentUser.department}
+        </span>
+      </header>
+      <div className="fw-system-path">
+        党组会 / {meeting} / 授权调用记录 <Tag>合成案例 · 只读</Tag>
+      </div>
+      <div className="fw-system-body">
+        <h2>{meeting}系统调用</h2>
+        <p>
+          这里展示本次会议工作中实际纳入计划的系统来源、调用目的和返回结果；不代表真实政务系统已被连接或已经完成正式提交。
+        </p>
+        <div className="fw-table-wrap">
+          <table className="fw-analysis-source-table">
+            <tbody>
+              <tr>
+                <th>调用目的</th>
+                <td>{result.purpose}</td>
+              </tr>
+              <tr>
+                <th>授权范围</th>
+                <td>{entry.scope}</td>
+              </tr>
+              <tr>
+                <th>本次返回</th>
+                <td>{result.result}</td>
+              </tr>
+              <tr>
+                <th>调用状态</th>
+                <td>{result.status}</td>
+              </tr>
+              <tr>
+                <th>来源说明</th>
+                <td>会务合成记录；正式状态以外部系统回执为准。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const analysisSourceViews: Partial<
   Record<
     SystemId,

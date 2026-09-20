@@ -52,6 +52,39 @@ export const PARTY_SYSTEMS = [
   },
 ] as const;
 export type PartySystem = (typeof PARTY_SYSTEMS)[number]['id'];
+export const PARTY_HISTORY_SYSTEMS: PartySystem[] = ['oa', 'topics', 'tracking'];
+export const partySystemTargetId = (id: PartySystem) => `party-${id}`;
+export const partySystemFromTargetId = (id: string) =>
+  id.startsWith('party-') &&
+  PARTY_SYSTEMS.some((system) => system.id === id.slice(6))
+    ? (id.slice(6) as PartySystem)
+    : undefined;
+export function partySystemResult(
+  id: PartySystem,
+  historical = false,
+): { purpose: string; result: string; status: string } {
+  const results: Record<PartySystem, string> = {
+    oa: historical
+      ? '已读取第13次会议纪要v2及通知回执；本次只读历史，未重复发送。'
+      : '已读取第13次纪要v2、9月21日更正及本次通知范围；发送动作另行确认。',
+    topics: historical
+      ? '已收集会议议题和报送材料；基础设施处附件缺口单列跟踪。'
+      : '已收到5个处室报送，基础设施处附件尚未齐套；未推定材料已收全。',
+    tracking: historical
+      ? '已核对上次决定和督办记录；技术验收与手续材料分别保留。'
+      : '已核对12项督办记录；摘要85%与台账72%分母不同，完成率保持待核。',
+    resources: historical
+      ? '已读取会务资料包引用的信息系统记录，未读取其他项目数据。'
+      : '已读取会务资料包内的信息系统支撑材料，作为相关议题依据。',
+    inspection: '当前身份无会务读取权限，未执行调用。',
+  };
+  const entry = PARTY_SYSTEMS.find((system) => system.id === id)!;
+  return {
+    purpose: entry.purpose,
+    result: results[id],
+    status: id === 'inspection' ? '未调用 · 无权限' : '已调用 · 只读',
+  };
+}
 export type PartyStage =
   | 'systems'
   | 'plan'

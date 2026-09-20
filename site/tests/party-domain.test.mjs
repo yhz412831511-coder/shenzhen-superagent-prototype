@@ -4,6 +4,10 @@ import {
   createPartyFlow,
   partyTransition,
   PARTY_PROMPT,
+  PARTY_HISTORY_SYSTEMS,
+  PARTY_SYSTEMS,
+  partySystemResult,
+  partySystemTargetId,
 } from '../app/party-domain.ts';
 import {
   initialWorkspace,
@@ -12,6 +16,20 @@ import {
 } from '../app/fiscal-domain.ts';
 
 const id = 'party-test';
+
+test('第13、14次党组会保留系统调用清单和可下钻结果', () => {
+  assert.deepEqual(PARTY_HISTORY_SYSTEMS, ['oa', 'topics', 'tracking']);
+  const current = createPartyFlow('party-systems').flow;
+  assert.deepEqual(current.selected, ['oa', 'topics', 'tracking']);
+  assert.deepEqual(
+    current.selected.map(partySystemTargetId),
+    ['party-oa', 'party-topics', 'party-tracking'],
+  );
+  assert.match(partySystemResult('tracking', true).result, /技术验收/);
+  assert.match(partySystemResult('tracking').result, /85%.*72%/);
+  assert.equal(PARTY_SYSTEMS.length, 5);
+});
+
 function setup() {
   let flow = createPartyFlow(id).flow;
   let effects = [];

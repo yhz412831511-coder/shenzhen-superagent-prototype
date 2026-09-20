@@ -3,7 +3,8 @@ import { useEffect, useRef, useState, useCallback, type CSSProperties, type Reac
 import { Plus, X, ArrowLeft, ArrowRight, RotateCw, Maximize2, Minimize2, FolderOpen, Globe2, Terminal, MousePointer2, FileText, Download, Upload, Send, Trash2 } from 'lucide-react';
 import { useWorkspace } from './workspace-store';
 import { systems, type SystemId } from './fiscal-catalog';
-import { ArtifactPreview, Btn, CatalogPage, Monitor, OperationGroupDetail, SafetyDetail, SystemPage, type Target, type SystemViewState } from './fiscal-components';
+import { ArtifactPreview, Btn, CatalogPage, Monitor, OperationGroupDetail, PartySystemPage, SafetyDetail, SystemPage, type Target, type SystemViewState } from './fiscal-components';
+import { PARTY_SYSTEMS, partySystemFromTargetId } from './party-domain';
 import { conversationTurns } from './conversation-view';
 import { annotationsText, navigateTab, openBrowserTarget, safeFilename, targetKey, type Annotation, type BrowserTab, type WorkspaceTarget, type SandboxFile } from './task-workspace-model';
 import { updateSession, runSandbox, sessionFor, subscribeSandbox } from './sandbox-client';
@@ -110,7 +111,7 @@ export function TaskWorkspace({taskId,request,visible,onClose,onMemory,onConsult
     const key=target?targetKey(target):'blank';
     if(content.current) content.current.scrollTop=dock.positions?.[key]||0;
   },[target, dock.positions]);
-  const title=(t:WorkspaceTarget)=>t.kind==='brainstorm'?({role:'职责岗位',topic:'跨处室主题',conflict:'分歧与决定',fact:'事实证据',round:'岗位论证',evolution:'版本变化',review:'三栏审阅'} as const)[t.entity]:t.kind==='system'?systems[t.id as SystemId]?.name||'系统':t.kind==='artifact'?state.artifacts[t.id]?.name||'成果':t.kind==='file'?t.id.split('/').pop()||'文件':t.kind==='capability'?state.catalog.find(c=>c.id===t.id)?.name||'能力':t.kind==='operation-group'?'执行记录':'安全与授权';
+  const title=(t:WorkspaceTarget)=>t.kind==='brainstorm'?({role:'职责岗位',topic:'跨处室主题',conflict:'分歧与决定',fact:'事实证据',round:'岗位论证',evolution:'版本变化',review:'三栏审阅'} as const)[t.entity]:t.kind==='system'?(PARTY_SYSTEMS.find(s=>s.id===partySystemFromTargetId(t.id))?.name||systems[t.id as SystemId]?.name||'系统'):t.kind==='artifact'?state.artifacts[t.id]?.name||'成果':t.kind==='file'?t.id.split('/').pop()||'文件':t.kind==='capability'?state.catalog.find(c=>c.id===t.id)?.name||'能力':t.kind==='operation-group'?'执行记录':'安全与授权';
   const version=(t:WorkspaceTarget)=>t.kind==='artifact'?'v'+state.artifacts[t.id]?.version:t.kind==='system'?'v'+(flow?.version||1)+' · '+(flow?.submission||'draft'):t.kind==='brainstorm'?'协作记录 · v'+(state.brainstorm.flows[taskId]?.version||1):'当前会话';
   const addFile=(file:SandboxFile)=>{
     if(session.running){setNotice('请等待终端执行结束后添加文件。');return;}
@@ -137,7 +138,12 @@ export function TaskWorkspace({taskId,request,visible,onClose,onMemory,onConsult
     if(t.kind==='brainstorm')return <BrainstormObjectView taskId={taskId} target={t} onOpen={navigate}/>;
     if(t.kind==='artifact')return <ArtifactPreview artifact={state.artifacts[t.id]?.taskId===taskId?state.artifacts[t.id]:undefined} onBack={onClose}/>;
     if(t.kind==='file')return <FilePreview file={session.files.find(f=>f.path===t.id)}/>;
-    if(t.kind==='system')return flow?<SystemPage system={t.id as SystemId} flow={flow} onOpen={open} view={dock.systemViews[t.id]} onViewChange={patch=>update({systemViews:{...dock.systemViews,[t.id]:{...dock.systemViews[t.id],...patch}}})}/>:<p>此任务尚无关联系统数据。</p>;
+    if(t.kind==='system'){
+      const partySystem = partySystemFromTargetId(t.id);
+      if (partySystem && (state.party[taskId] || taskId === 'party-history'))
+        return <PartySystemPage system={partySystem} historical={taskId === 'party-history'} />;
+      return flow?<SystemPage system={t.id as SystemId} flow={flow} onOpen={open} view={dock.systemViews[t.id]} onViewChange={patch=>update({systemViews:{...dock.systemViews,[t.id]:{...dock.systemViews[t.id],...patch}}})}/>:<p>此任务尚无关联系统数据。</p>;
+    }
     if(t.kind==='operation-group'){const group=operationGroups.find(candidate=>candidate.id===t.id);return <div className="tw-detail">{group?<OperationGroupDetail group={group} onOpen={navigate}/>:<p>执行记录不存在。</p>}</div>;}
     if(t.kind==='operation'){const op=flow?.operations.find(o=>o.id===t.id);return <div className="tw-detail">{op?<SafetyDetail op={op}/>:<p>操作记录不存在。</p>}</div>;}
     const catalogKind = state.catalog.find(c=>c.id===t.id)?.kind;
