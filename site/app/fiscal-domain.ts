@@ -1,3 +1,20 @@
+import {
+  seedStoryHistory,
+  removeDuplicateHistory,
+  continueStory,
+  decideStory,
+  type StoryRound,
+} from './story-history.ts';
+import {
+  createPartyFlow,
+  isPartyRequest,
+  partyTransition,
+  PARTY_SOURCE,
+  PARTY_PROJECT,
+  type PartyFlow,
+  type PartyAction,
+  type PartyEffect,
+} from './party-domain.ts';
 import type { Annotation } from './task-workspace-model.ts';
 import {
   current,
@@ -34,8 +51,16 @@ import {
   type LibraryState,
   type PersonalLibraryItem,
 } from './library-domain.ts';
-import { brainstormReducer, createBrainstormFlow, initialBrainstormState } from './brainstorm-domain.ts';
-import type { BrainstormAction, BrainstormEffect, BrainstormState } from './brainstorm-types.ts';
+import {
+  brainstormReducer,
+  createBrainstormFlow,
+  initialBrainstormState,
+} from './brainstorm-domain.ts';
+import type {
+  BrainstormAction,
+  BrainstormEffect,
+  BrainstormState,
+} from './brainstorm-types.ts';
 
 export type Risk = '无' | '低' | '中' | '高';
 export type Command =
@@ -130,7 +155,7 @@ export type Project = {
 };
 export type Flow = {
   id: string;
-  kind: 'payment' | 'maintenance' | 'feedback' | 'consultation';
+  kind: 'payment' | 'maintenance' | 'feedback' | 'consultation' | 'analysis';
   stage: string;
   status: string;
   source: string;
@@ -191,10 +216,16 @@ export type Auth = {
   identity: boolean;
 };
 export type WorkspaceState = {
-  workspaceFeedback?: { taskId: string; messageId: string; annotations: Annotation[] }[];
+  workspaceFeedback?: {
+    taskId: string;
+    messageId: string;
+    annotations: Annotation[];
+  }[];
+  storyRounds: Record<string, StoryRound>;
   memory: MemoryState;
   flows: Record<string, Flow>;
   brainstorm: BrainstormState;
+  party: Record<string, PartyFlow>;
   artifacts: Record<string, Artifact>;
   catalog: CatalogEntry[];
   library: LibraryState;
@@ -211,13 +242,26 @@ export type WorkspaceAction =
   | CommandAction
   | { type: 'memory'; action: MemoryAction }
   | { type: 'brainstorm'; action: BrainstormAction }
+  | { type: 'party'; action: PartyAction }
+  | { type: 'remove-duplicate-history' }
+  | {
+      type: 'story-choice';
+      taskId: string;
+      version: number;
+      choice: 'prepare' | 'submit' | 'cancel' | 'keep';
+    }
   | {
       type: 'start';
       kind: 'payment' | 'maintenance';
       id: string;
       periodEnd?: number;
     }
-  | { type: 'workspace-feedback'; taskId: string; text: string; annotations?: Annotation[] }
+  | {
+      type: 'workspace-feedback';
+      taskId: string;
+      text: string;
+      annotations?: Annotation[];
+    }
   | { type: 'say'; taskId: string; text: string }
   | { type: 'replay'; kind: 'payment' | 'maintenance' }
   | { type: 'return-history' }
@@ -227,7 +271,14 @@ export type WorkspaceAction =
   | { type: 'outcome'; value: WorkspaceState['nextOutcome'] }
   | { type: 'stop'; taskId: string; stopped: boolean }
   | { type: 'cancel-pending'; taskId: string }
-  | { type: 'create-skill'; name: string; category: string; summary: string; instructions: string; publisher: string }
+  | {
+      type: 'create-skill';
+      name: string;
+      category: string;
+      summary: string;
+      instructions: string;
+      publisher: string;
+    }
   | { type: 'library-add-local'; item: PersonalLibraryItem }
   | {
       type: 'library-request-cloud';
@@ -285,7 +336,75 @@ function say(
   taskFor(s, id).messages.push(m);
   return m.id;
 }
-function applyBrainstormEffects(s: WorkspaceState, taskId: string, effects: BrainstormEffect[]) {
+function applyPartyEffects(
+  s: WorkspaceState,
+  taskId: string,
+  effects: PartyEffect[],
+) {
+  const flow = s.party[taskId];
+  const task = taskFor(s, taskId);
+  const at = iso(
+    Math.max(
+      Date.parse(flow.at),
+      flow.minutesVersion
+        ? Date.parse(flow.meetingAt + '+08:00') + 3 * 3600000
+        : 0,
+    ) +
+      flow.revision * 60000,
+  );
+  for (const effect of effects) {
+    if (effect.type === 'message') {
+      const id = nextId(s, 'event');
+      task.messages.push({ id, role: effect.role, text: effect.text, at });
+      if (effect.anchor) flow.anchor = id;
+    } else if (effect.type === 'artifact') {
+      const id = nextId(s, 'artifact');
+      s.artifacts[id] = {
+        id,
+        taskId,
+        name: effect.name,
+        body: effect.body,
+        source: PARTY_SOURCE,
+        version: effect.version ?? flow.planVersion,
+        createdAt: at,
+        annotations: [],
+        originMessageId: flow.anchor,
+      };
+      flow.artifacts.push(id);
+      if (effect.notice) flow.noticeArtifact = id;
+      if (effect.minutes) flow.minutesArtifact = id;
+    } else {
+      workPoint(s, taskId, effect.text);
+      const memory = s.memory.memories.find(
+        (item) => item.id === 'working-' + taskId,
+      );
+      if (memory) {
+        const revision = current(memory);
+        revision.source = {
+          taskId,
+          eventId: task.messages.at(-1)!.id,
+          label: task.title,
+          quote: effect.text,
+          nature: 'event',
+          accessible: true,
+        };
+        revision.recordedAt = at;
+      }
+    }
+  }
+}
+function applyPartyAction(s: WorkspaceState, action: PartyAction) {
+  const previous = s.party[action.taskId];
+  if (!previous) return;
+  const transition = partyTransition(previous, action);
+  s.party[action.taskId] = transition.flow;
+  applyPartyEffects(s, action.taskId, transition.effects);
+}
+function applyBrainstormEffects(
+  s: WorkspaceState,
+  taskId: string,
+  effects: BrainstormEffect[],
+) {
   const flow = s.brainstorm.flows[taskId];
   for (const effect of effects) {
     if (effect.type === 'message') {
@@ -295,14 +414,23 @@ function applyBrainstormEffects(s: WorkspaceState, taskId: string, effects: Brai
     }
     const id = nextId(s, 'artifact');
     s.artifacts[id] = {
-      id, taskId, name: effect.name, body: effect.body, source: effect.source,
-      version: flow.version, createdAt: iso(s.memory.now), annotations: [],
+      id,
+      taskId,
+      name: effect.name,
+      body: effect.body,
+      source: effect.source,
+      version: flow.version,
+      createdAt: iso(s.memory.now),
+      annotations: [],
       originMessageId: taskFor(s, taskId).messages.at(-1)?.id,
     };
     flow.artifactIds.push(id);
     flow.artifactMeta.push({
-      artifactId: id, evidenceIds: effect.evidenceIds, nature: 'synthetic_working_version',
-      asOf: flow.factCutoff, verificationStatus: 'pending_review',
+      artifactId: id,
+      evidenceIds: effect.evidenceIds,
+      nature: 'synthetic_working_version',
+      asOf: flow.factCutoff,
+      verificationStatus: 'pending_review',
     });
   }
 }
@@ -345,9 +473,9 @@ function workPoint(
             nature: 'event',
             accessible: true,
           },
-          validFrom: iso(s.memory.now),
+          validFrom: event.at,
           validTo: '',
-          recordedAt: iso(s.memory.now),
+          recordedAt: event.at,
           status: 'active',
           reason: '工作中产生的关键记录',
           confirmedBy: '本人工作记录',
@@ -367,14 +495,14 @@ function workPoint(
       id: `${mid}-v${n}`,
       number: n,
       payload: { ...p, keyPoints: [...p.keyPoints, key] },
-      recordedAt: iso(s.memory.now),
+      recordedAt: event.at,
     };
     m.revisions.push(v);
     m.current = v.id;
   }
   const p = current(m).payload,
     flow = s.flows[id];
-  if (p.kind === 'working' && flow.memoryId) {
+  if (p.kind === 'working' && flow?.memoryId) {
     const mm = s.memory.memories.find((x) => x.id === flow.memoryId);
     if (mm && !p.memories.some((x) => x.memoryId === mm.id))
       p.memories.push(refFor(mm));
@@ -494,7 +622,12 @@ const opSpecs: Partial<
     scope: '本次确认的两笔申请，核对信息完整性及关联一致性',
   },
   report: { risk: '无', scope: '生成本任务审查汇总与疑点清单' },
-  'check-payment-submission': { system: 'payment', risk: '高', scope: '检查是否获准正式提交草稿箱内的审查结果', write: true },
+  'check-payment-submission': {
+    system: 'payment',
+    risk: '高',
+    scope: '检查是否获准正式提交草稿箱内的审查结果',
+    write: true,
+  },
   writeback: {
     system: 'payment',
     risk: '中',
@@ -506,11 +639,30 @@ const opSpecs: Partial<
     risk: '低',
     scope: '查询本次回写的幂等回执',
   },
-  'read-oa': { system: 'oa', risk: '低', scope: `用户指定的交办单 ${oaAssignment.id}，且承办人为本人` },
-  'read-project-requirements': { system: 'pm', risk: '低', scope: '通过项管平台连接器读取运维申报入口、必填字段与材料要求' },
-  'read-resource-assets': { system: 'resources', risk: '低', scope: '通过一体化数字资源管理系统连接器查询本单位关联历史项目的资产' },
-  'read-knowledge-plans': { risk: '低', scope: '检索本单位知识库中的系统方案、历史运维资料与保障说明', capability: 'finance-knowledge' },
-  'discover-capability': { risk: '无', scope: '查询当前用户已获取的技能与专业智能体，匹配运维申报咨询能力' },
+  'read-oa': {
+    system: 'oa',
+    risk: '低',
+    scope: `用户指定的交办单 ${oaAssignment.id}，且承办人为本人`,
+  },
+  'read-project-requirements': {
+    system: 'pm',
+    risk: '低',
+    scope: '通过项管平台连接器读取运维申报入口、必填字段与材料要求',
+  },
+  'read-resource-assets': {
+    system: 'resources',
+    risk: '低',
+    scope: '通过一体化数字资源管理系统连接器查询本单位关联历史项目的资产',
+  },
+  'read-knowledge-plans': {
+    risk: '低',
+    scope: '检索本单位知识库中的系统方案、历史运维资料与保障说明',
+    capability: 'finance-knowledge',
+  },
+  'discover-capability': {
+    risk: '无',
+    scope: '查询当前用户已获取的技能与专业智能体，匹配运维申报咨询能力',
+  },
   guide: {
     risk: '低',
     scope: '调用项目统筹处对外提供的办理指引',
@@ -562,7 +714,11 @@ const opSpecs: Partial<
     scope: '正式提交本单位项目申报，发起主管单位内审',
     write: true,
   },
-  'read-feedback': { system: 'pm', risk: '低', scope: '读取已订阅项目的审核反馈' },
+  'read-feedback': {
+    system: 'pm',
+    risk: '低',
+    scope: '读取已订阅项目的审核反馈',
+  },
   track: { risk: '无', scope: '本人反馈通知与修改建议，不自动修改或重提' },
   consultation: { risk: '低', scope: '调用已获取专业智能体的咨询能力' },
 };
@@ -687,9 +843,16 @@ function gate(s: WorkspaceState, f: Flow, a: CommandAction) {
         !!s.catalog.find((c) => c.system === 'pm')?.enabled,
     });
   }
-  if (a.cmd === 'check-payment-submission') checks.push({ label: '用户已明确指令正式提交（回写指令不包含提交）', passed: false });
+  if (a.cmd === 'check-payment-submission')
+    checks.push({
+      label: '用户已明确指令正式提交（回写指令不包含提交）',
+      passed: false,
+    });
   const needs =
-    spec.risk === '高' || a.cmd === 'writeback' || a.cmd === 'upload-materials' || taskFor(s, f.id).permissionMode === 'confirm';
+    spec.risk === '高' ||
+    a.cmd === 'writeback' ||
+    a.cmd === 'upload-materials' ||
+    taskFor(s, f.id).permissionMode === 'confirm';
   const blocked = checks.some((c) => !c.passed),
     pending = !blocked && needs && !a.confirmed;
   if (needs)
@@ -877,7 +1040,11 @@ function applyCommand(s: WorkspaceState, a: CommandAction) {
     if (task.messages.at(-1)?.role !== 'user') {
       say(s, f.id, 'user', '按刚才的指引，开始帮我办理这个运维项目申报。');
     }
-    f.decisions.push({ at: iso(s.memory.now), text: task.messages.at(-1)!.text, version: f.version });
+    f.decisions.push({
+      at: iso(s.memory.now),
+      text: task.messages.at(-1)!.text,
+      version: f.version,
+    });
   }
   const preparation = {
     'create-project': 'read-project-requirements',
@@ -887,15 +1054,18 @@ function applyCommand(s: WorkspaceState, a: CommandAction) {
   const prerequisite = preparation[a.cmd];
   if (prerequisite) {
     if (!gate(s, f, { ...a, cmd: prerequisite })) return;
-    lastOp(f).detail = prerequisite === 'read-project-requirements'
-      ? '项管平台连接器返回：选择运维类项目；基础信息包括申报单位、预算单位、联系人、年度、服务周期与历史建设项目。后续须同步运维资产、上传方案材料，再获取平台费用估算。'
-      : prerequisite === 'read-resource-assets'
-        ? `一体化数字资源管理系统（原 CDOS）连接器返回 ${assets.length} 项可关联资产，包含资产标识、所属历史项目及运维信息；下一步选择并同步至项管平台。`
-        : '已从本单位知识库提取系统方案、历史运维资料与保障说明，作为申报材料编制依据；将与已同步资产和本次服务周期核对后整理上传。';
+    lastOp(f).detail =
+      prerequisite === 'read-project-requirements'
+        ? '项管平台连接器返回：选择运维类项目；基础信息包括申报单位、预算单位、联系人、年度、服务周期与历史建设项目。后续须同步运维资产、上传方案材料，再获取平台费用估算。'
+        : prerequisite === 'read-resource-assets'
+          ? `一体化数字资源管理系统（原 CDOS）连接器返回 ${assets.length} 项可关联资产，包含资产标识、所属历史项目及运维信息；下一步选择并同步至项管平台。`
+          : '已从本单位知识库提取系统方案、历史运维资料与保障说明，作为申报材料编制依据；将与已同步资产和本次服务周期核对后整理上传。';
   }
   if (a.cmd === 'guide') {
     if (!gate(s, f, { ...a, cmd: 'discover-capability' })) return;
-    const agent = s.catalog.find((entry) => entry.id === projectAgent && entry.owned);
+    const agent = s.catalog.find(
+      (entry) => entry.id === projectAgent && entry.owned,
+    );
     lastOp(f).detail = agent
       ? `匹配结果：${agent.name} · ${agent.publisher}。适用于运维项目申报路径、材料要求及费用估算入口咨询；已获取，${agent.enabled ? '已启用，可调用' : '尚未启用，暂不可调用'}。`
       : '查询完成：当前已获取的能力中未找到适用的项目统筹处数字人。';
@@ -1015,20 +1185,30 @@ function applyCommand(s: WorkspaceState, a: CommandAction) {
       lastOp(f).receipt = 'CZ-CHK-' + id;
       break;
     case 'report': {
-      const policy = '政策依据：《支持地方高校改革发展资金管理办法》（财教〔2021〕315号）第十二条（节选）：支持地方高校改革发展资金不得用于基本建设、对外投资、偿还债务、支付利息、支付罚款、捐赠赞助等支出，不得用于在全校范围内普遍提高人员薪酬待遇。\n适用前提：先核实资金来源属于支持地方高校改革发展资金；资金来源未明确时不得直接套用该专项资金规则。';
+      const policy =
+        '政策依据：《支持地方高校改革发展资金管理办法》（财教〔2021〕315号）第十二条（节选）：支持地方高校改革发展资金不得用于基本建设、对外投资、偿还债务、支付利息、支付罚款、捐赠赞助等支出，不得用于在全校范围内普遍提高人员薪酬待遇。\n适用前提：先核实资金来源属于支持地方高校改革发展资金；资金来源未明确时不得直接套用该专项资金规则。';
       const warning = `预警规则：院校支付申请用途描述包含${paymentWarningTerms.join('、')}等字样时提示人工二次确认。关键词命中仅为预警，不等于认定违规。`;
       const method = f.memoryId
         ? `程序记忆：用户提供核对要求与政策依据后已保存，记忆标识 ${f.memoryId}；组织共享及采纳状态以对应记录为准。`
         : '程序记忆：本轮尚未保存新的程序记忆。';
-      const checks = f.operations.findLast((o) => o.cmd === 'check-rules' && o.status === '成功');
-      const rows = originalRemarks.map((r, i) => `申请 ${i + 1}（PAY-${i + 1} / v1，院校支付申请）\n原始用途描述：${r}\n命中预警词：${paymentWarningTerms.filter((term) => r.includes(term)).join('、')}\n人工二次确认：${f.findings[i]}`);
+      const checks = f.operations.findLast(
+        (o) => o.cmd === 'check-rules' && o.status === '成功',
+      );
+      const rows = originalRemarks.map(
+        (r, i) =>
+          `申请 ${i + 1}（PAY-${i + 1} / v1，院校支付申请）\n原始用途描述：${r}\n命中预警词：${paymentWarningTerms.filter((term) => r.includes(term)).join('、')}\n人工二次确认：${f.findings[i]}`,
+      );
       artifact(
-        s, f, '财政支付审查汇总',
+        s,
+        f,
+        '财政支付审查汇总',
         `财政支付审查汇总\n周期：${formatTime(f.period!.start)}（含）至 ${formatTime(f.period!.end)}（不含）\n\n一、读取与审查过程\n通过智慧财政支付系统连接器读取本周期2条院校申请，按申请编号及版本去重；调用支付备注隐晦表达审查 Skill，两条均触发预警，再由人工二次确认。\n${warning}\n\n二、政策与核对要求\n${policy}\n核对实际事项、支付对象、合同标的和支付依据；不通过替换词语掩盖用途。\n${method}\n\n三、逐笔结果\n${rows.join('\n\n')}\n\n四、其他必要检查\n${f.rulePassed ? '财政穿透式监管系统返回申请标识、支付对象字段及关联事项一致性检查通过' : '未完成必要检查'}；回执：${checks?.receipt || '尚未取得'}。该检查不消除两笔待补充说明的事项，也不替代支付审批。\n\n五、结果使用\n本文件生成时等待用户最终确认回写或仅保留草稿。回写范围仅包括审查意见、疑点标记与汇总附件，不执行支付审批或资金拨付。`,
         '智慧财政连接器、支付表达审查 Skill、人工确认及穿透监管回执',
       );
       artifact(
-        s, f, '驳回意见',
+        s,
+        f,
+        '驳回意见',
         paymentReturnOpinions.join('\n\n'),
         '两笔申请 · 待回写智慧财政',
       );
@@ -1070,7 +1250,9 @@ function applyCommand(s: WorkspaceState, a: CommandAction) {
         const remaining = ids.filter((x) => !f.written[x]);
         remaining.forEach((key, i) => {
           if (outcome !== 'partial' || i === 0)
-            f.written[key] = /补充说明/.test(f.findings[ids.indexOf(key)]) ? paymentReturnOpinions[ids.indexOf(key)] : f.findings[ids.indexOf(key)];
+            f.written[key] = /补充说明/.test(f.findings[ids.indexOf(key)])
+              ? paymentReturnOpinions[ids.indexOf(key)]
+              : f.findings[ids.indexOf(key)];
         });
         op.items = ids.map((x) => ({
           id: x,
@@ -1087,8 +1269,13 @@ function applyCommand(s: WorkspaceState, a: CommandAction) {
       }
       if (f.stage === 'complete') {
         workPoint(s, id, op.detail);
-        gate(s, f, { type: 'command', taskId: id, cmd: 'check-payment-submission' });
-        lastOp(f).detail = '未获得明确的正式提交指令，高风险检查未通过，未发起提交；两笔意见保留在智慧财政草稿箱。';
+        gate(s, f, {
+          type: 'command',
+          taskId: id,
+          cmd: 'check-payment-submission',
+        });
+        lastOp(f).detail =
+          '未获得明确的正式提交指令，高风险检查未通过，未发起提交；两笔意见保留在智慧财政草稿箱。';
         f.status = '已存草稿，未提交';
         s.notice = '';
       }
@@ -1101,13 +1288,26 @@ function applyCommand(s: WorkspaceState, a: CommandAction) {
       );
       if (prior) {
         prior.status = '成功';
-        prior.detail = '查询回执确认两笔意见已保存至智慧财政草稿箱，未正式提交。';
+        prior.detail =
+          '查询回执确认两笔意见已保存至智慧财政草稿箱，未正式提交。';
         prior.receipt = 'CZ-RECEIPT-' + id;
-        f.written = Object.fromEntries(['PAY-1:v1', 'PAY-2:v1'].map((key, i) => [key, /补充说明/.test(f.findings[i]) ? paymentReturnOpinions[i] : f.findings[i]]));
+        f.written = Object.fromEntries(
+          ['PAY-1:v1', 'PAY-2:v1'].map((key, i) => [
+            key,
+            /补充说明/.test(f.findings[i])
+              ? paymentReturnOpinions[i]
+              : f.findings[i],
+          ]),
+        );
         lastOp(f).receipt = prior.receipt;
         finish(s, f, prior.detail);
-        gate(s, f, { type: 'command', taskId: id, cmd: 'check-payment-submission' });
-        lastOp(f).detail = '未获得明确的正式提交指令，高风险检查未通过，未发起提交；两笔意见保留在智慧财政草稿箱。';
+        gate(s, f, {
+          type: 'command',
+          taskId: id,
+          cmd: 'check-payment-submission',
+        });
+        lastOp(f).detail =
+          '未获得明确的正式提交指令，高风险检查未通过，未发起提交；两笔意见保留在智慧财政草稿箱。';
         f.status = '已存草稿，未提交';
         s.notice = '';
       } else
@@ -1130,7 +1330,8 @@ function applyCommand(s: WorkspaceState, a: CommandAction) {
       );
       break;
     case 'guide':
-      lastOp(f).detail = '已调用用户已获取且启用的项目统筹处数字人；咨询内容为运维项目申报步骤、材料要求及费用估算入口。已返回办理指引。';
+      lastOp(f).detail =
+        '已调用用户已获取且启用的项目统筹处数字人；咨询内容为运维项目申报步骤、材料要求及费用估算入口。已返回办理指引。';
       f.stage = 'create';
       f.status = '等待用户启动办理';
       say(
@@ -1253,15 +1454,27 @@ function applyCommand(s: WorkspaceState, a: CommandAction) {
         `项目：${p.name}\n\n数据范围：系统内财政支付关联信息和监管处理记录。\n访问管理：运维人员使用受控身份，按工单和最小必要范围临时授权；敏感数据不得复制到个人设备。\n运维留痕：访问、配置修改与异常处理保留记录，重要操作经业务负责人确认。\n备份恢复：定期核对备份结果，恢复演练记录纳入运维验收。\n外部报送：仅上传申报所需系统说明和资产摘要，原始支付记录不作为申报附件。`,
         '财政局本处室系统与运维资料',
       );
-      artifact(s, f, `${p.name}—预算表`,
+      artifact(
+        s,
+        f,
+        `${p.name}—预算表`,
         `项目：${p.name}\n预算年度：${p.year}\n预算单位：${p.budgetUnit}\n服务周期：${p.months}个月；${p.service}\n\n预算服务项目\n${selected.map((x) => `${x.name} | ${x.quantity}套 | 服务${p.months}个月 | 金额待项管平台核算`).join('\n')}\n\n服务内容：${p.content}\n核算状态：本表提供申报范围和核算输入；上传材料后，由项管平台计算费用，结果另见费用估算明细。当前不填入未取得的平台金额。`,
-        '本单位运维资料 / 已同步资产 / 项管平台申报信息');
-      artifact(s, f, `${p.name}—立项方案（网络安全设计分册）`,
+        '本单位运维资料 / 已同步资产 / 项管平台申报信息',
+      );
+      artifact(
+        s,
+        f,
+        `${p.name}—立项方案（网络安全设计分册）`,
         `项目：${p.name}\n服务周期：${p.months}个月\n\n一、保护范围\n覆盖本次${selected.length}项运维资产及财政支付关联、规则核查接口。\n二、访问控制\n运维账号按工单授权，遵循最小权限，重要配置变更经确认并保留日志。\n三、安全运维\n定期检查漏洞、异常访问和接口运行状态；修复前备份并明确回退步骤。\n四、数据保护\n不将原始支付数据作为申报附件，不向个人设备复制敏感数据。\n五、应急与验收\n记录异常发现、处置与恢复过程；巡检、权限复核及备份恢复记录纳入服务验收。`,
-        '本单位系统及运维资料 / 安全保障要求');
-      artifact(s, f, `${p.name}—立项方案（信创分册）`,
+        '本单位系统及运维资料 / 安全保障要求',
+      );
+      artifact(
+        s,
+        f,
+        `${p.name}—立项方案（信创分册）`,
         `项目：${p.name}\n服务周期：${p.months}个月\n\n一、适用范围\n本次为现有系统运维，不新增未经确认的软件替换或迁移采购。\n二、环境核对\n依据资产台账逐项核对操作系统、数据库、中间件和应用依赖版本；未提供的品牌与适配认证信息列为待核实。\n三、兼容性保障\n补丁或版本升级前验证应用、接口及数据库兼容性，形成测试和回退记录。\n四、服务交付\n交付环境清单、适配问题记录和升级验证报告；发现需新增改造事项时另行确认范围与费用。`,
-        '本单位系统及运维资料 / 信创保障要求');
+        '本单位系统及运维资料 / 信创保障要求',
+      );
       f.materialsVersion = f.version;
       f.stage = 'upload';
       f.status = '等待材料上传确认';
@@ -1514,6 +1727,8 @@ function base(now: number): WorkspaceState {
     memory: initialMemoryState(now),
     flows: {},
     brainstorm: initialBrainstormState(),
+    party: {},
+    storyRounds: {},
     artifacts: {},
     catalog: initialCatalog(),
     library: initialLibraryState(),
@@ -1545,8 +1760,8 @@ function base(now: number): WorkspaceState {
           '读取当前周期支付申请，审查备注，疑点与最终回写分别交本人确认。',
       },
     ],
-    folders: ['财政支付审查'],
-    folderTasks: {},
+    folders: ['财政支付审查', PARTY_PROJECT],
+    folderTasks: { 'party-history': PARTY_PROJECT },
     nextOutcome: 'success',
     notice: '',
     feedbackIds: [],
@@ -1617,9 +1832,251 @@ export function initialWorkspace(
   });
   exec('maintenance-history', 'track');
   Object.values(s.flows).forEach((f) => (f.historical = true));
+  seedStoryHistory(s);
+  seedDataHistoryFlow(s);
   s.memory.now = now;
   s.notice = '';
   return s;
+}
+
+function seedDataHistoryFlow(s: WorkspaceState) {
+  const task = taskFor(s, 'data-history');
+  const [request, stopped, instruction, revised, confirmation, receipt] =
+    task.messages;
+  const operations: Operation[] = [];
+  const operationEvent = (
+    at: string,
+    operation: Omit<Operation, 'id' | 'messageId' | 'at' | 'actor' | 'version'>,
+  ) => {
+    const messageId = nextId(s, 'history-operation');
+    const message = {
+      id: messageId,
+      role: 'assistant' as const,
+      text: `${operation.risk}风险 · ${operation.scope}`,
+      at,
+    };
+    operations.push({
+      id: nextId(s, 'op'),
+      messageId,
+      at,
+      actor: '超级智能体 · 当前经办身份',
+      version: 2,
+      ...operation,
+    });
+    return message;
+  };
+  const firstRound = [
+    operationEvent('2026-09-18T09:01:00+08:00', {
+      cmd: 'read-resource-catalog',
+      system: 'resources',
+      risk: '低',
+      scope: '读取数据资源目录、共享服务清单与接口可用状态',
+      checks: [
+        { label: '当前经办身份有效', passed: true },
+        { label: '读取范围限定为本次来文涉及的资源与服务', passed: true },
+        { label: '本次仅执行只读访问', passed: true },
+      ],
+      status: '成功',
+      detail:
+        '返回数据资源目录、共享服务清单和接口可用状态，形成资源供给与服务覆盖底表；未读取个人明细，未写回源系统。',
+    }),
+    operationEvent('2026-09-18T09:01:20+08:00', {
+      cmd: 'read-population-summary',
+      system: 'population',
+      risk: '低',
+      scope: '读取年龄区间与街道归属授权字段',
+      checks: [
+        { label: '当前经办身份有效', passed: true },
+        { label: '不读取姓名、证件号码等直接身份标识', passed: true },
+        { label: '字段仅用于本次服务覆盖分析', passed: true },
+      ],
+      status: '成功',
+      detail:
+        '返回年龄区间和街道归属授权字段，用于分析不同区域与年龄区间的服务覆盖；原始个人标识未进入任务工作区。',
+    }),
+    operationEvent('2026-09-18T09:01:40+08:00', {
+      cmd: 'read-civil-affairs-summary',
+      system: 'civilAffairs',
+      risk: '低',
+      scope: '读取独居服务标记与民政服务覆盖授权字段',
+      checks: [
+        { label: '当前经办身份有效', passed: true },
+        { label: '读取字段符合本次分析最小必要范围', passed: true },
+        { label: '本次仅执行只读访问', passed: true },
+      ],
+      status: '成功',
+      detail:
+        '返回独居服务标记和民政服务覆盖字段，用于识别服务覆盖缺口；源系统个人明细未展示、未写回。',
+    }),
+    operationEvent('2026-09-18T09:02:00+08:00', {
+      cmd: 'read-service-cases',
+      system: 'governmentServices',
+      risk: '低',
+      scope: '读取办件数量、事项类型与办理时长统计',
+      checks: [
+        { label: '当前经办身份有效', passed: true },
+        { label: '读取范围限定为来文相关服务事项', passed: true },
+        { label: '本次仅执行只读访问', passed: true },
+      ],
+      status: '成功',
+      detail:
+        '返回来文相关事项的办件数量、事项类型和办理时长，用于与资源供给、服务覆盖进行对照分析。',
+    }),
+    operationEvent('2026-09-18T09:03:00+08:00', {
+      cmd: 'harmonize-data',
+      risk: '无',
+      scope: '统一字段口径和统计时点',
+      checks: [
+        { label: '字段只用于当前任务工作区', passed: true },
+        { label: '缺失口径保持待核', passed: true },
+      ],
+      status: '成功',
+      detail:
+        '将四个来源的资源目录、人口区间、民政服务标记和办件统计映射到统一口径，并对齐固定阶段快照时点；未形成新的正式业务主数据。',
+    }),
+    operationEvent('2026-09-18T09:04:00+08:00', {
+      cmd: 'analyse-service-gaps',
+      risk: '无',
+      scope: '分析数据资源与服务短板',
+      checks: [
+        { label: '分析目的与来文要求一致', passed: true },
+        { label: '推理过程保留来源引用', passed: true },
+      ],
+      status: '成功',
+      detail:
+        '对四个来源的汇聚结果进行关联推理，形成总体情况、服务短板、原因分析和改进建议的初步结构，并保留来源字段映射。',
+    }),
+    operationEvent('2026-09-18T09:05:00+08:00', {
+      cmd: 'check-derived-privacy',
+      risk: '高',
+      scope: '检查拟外发分析结果中的个人隐私风险',
+      checks: [
+        { label: '接收方与用途已明确', passed: true },
+        { label: '结果不包含直接身份标识', passed: false },
+        { label: '交叉分析不能识别个人或小群体', passed: false },
+      ],
+      status: '已阻止',
+      detail:
+        '年龄、街道、独居情况与办件记录交叉后可能识别特定个人或小群体。已主动停止报告生成与外发，未提交、未形成可外发的原始版本。',
+    }),
+  ];
+  const secondRound = [
+    operationEvent('2026-09-18T09:08:00+08:00', {
+      cmd: 'deidentify-results',
+      risk: '无',
+      scope: '脱敏直接身份标识',
+      checks: [{ label: '姓名、证件号码等直接标识已移除', passed: true }],
+      status: '成功',
+      detail: '按本人指令对拟用于报告的分析结果执行脱敏。',
+    }),
+    operationEvent('2026-09-18T09:09:00+08:00', {
+      cmd: 'remove-sensitive-inference',
+      risk: '无',
+      scope: '删除可回推个人的交叉分析',
+      checks: [
+        { label: '已删除独居情况与办件明细交叉分析', passed: true },
+        { label: '年龄已改为区间', passed: true },
+        { label: '街道数据已降为全区汇总', passed: true },
+      ],
+      status: '成功',
+      detail: '删除可识别个人或小群体的分组，保留完成来文所需的聚合结论。',
+    }),
+    operationEvent('2026-09-18T09:10:00+08:00', {
+      cmd: 'regenerate-aggregate-report',
+      risk: '无',
+      scope: '重新生成聚合报告v2',
+      checks: [
+        { label: '只引用脱敏、删减后的分析结果', passed: true },
+        { label: '无来源数字继续标记待核', passed: true },
+      ],
+      status: '成功',
+      detail: '重新生成总体情况、服务短板、原因分析和改进建议。',
+    }),
+    operationEvent('2026-09-18T09:11:00+08:00', {
+      cmd: 'recheck-derived-privacy',
+      risk: '中',
+      scope: '复核报告结果粒度、用途和接收方',
+      checks: [
+        { label: '未发现可回推个人或小群体的结果', passed: true },
+        { label: '用途仍为来文〔2026〕87号办理', passed: true },
+        { label: '接收方仍为市政府办公厅', passed: true },
+      ],
+      status: '成功',
+      detail: '聚合报告v2通过拟外发结果复核，进入本人审阅环节。',
+    }),
+  ];
+  const finalRound = operationEvent('2026-09-18T09:14:00+08:00', {
+    cmd: 'submit-sanitized-report',
+    risk: '高',
+    scope: '向市政府办公厅提交聚合报告v2',
+    checks: [
+      { label: '本人已确认报告版本、接收方和办理用途', passed: true },
+      { label: '提交内容为脱敏、删减后的聚合报告v2', passed: true },
+      { label: '原始敏感分析仍保持阻断', passed: true },
+    ],
+    status: '成功',
+    detail: '已提交脱敏、删减后的聚合报告v2，并保留隐私风险处置记录。',
+    receipt: 'LOCAL-DATA-v2',
+  });
+  task.messages = [
+    request,
+    ...firstRound,
+    { ...stopped, at: '2026-09-18T09:06:00+08:00' },
+    { ...instruction, at: '2026-09-18T09:07:00+08:00' },
+    ...secondRound,
+    { ...revised, at: '2026-09-18T09:12:00+08:00' },
+    { ...confirmation, at: '2026-09-18T09:13:00+08:00' },
+    finalRound,
+    { ...receipt, at: '2026-09-18T09:15:00+08:00' },
+  ];
+  s.flows['data-history'] = {
+    id: 'data-history',
+    kind: 'analysis',
+    stage: 'complete',
+    status: '已完成',
+    source: '办公室来文〔2026〕87号 · 已发生工作',
+    historical: true,
+    stopped: false,
+    version: 2,
+    operations,
+    artifactIds: Object.values(s.artifacts)
+      .filter((artifact) => artifact.taskId === 'data-history')
+      .map((artifact) => artifact.id),
+    decisions: [
+      {
+        at: '2026-09-18T09:07:00+08:00',
+        text: '本人要求对直接标识脱敏，删除敏感交叉分析并降低结果粒度。',
+        version: 2,
+      },
+      {
+        at: '2026-09-18T09:13:00+08:00',
+        text: '本人确认聚合报告v2的版本、接收方和办理用途。',
+        version: 2,
+      },
+    ],
+    findings: ['拟外发结果存在个人隐私风险', '原始敏感分析保持阻断'],
+    rulePassed: true,
+    written: {},
+    project: {
+      name: '数据资源与服务短板报告',
+      unit: '深圳市XX局',
+      constructionUnit: '',
+      budgetUnit: '',
+      contact: '杨XX',
+      phone: '',
+      year: '2026',
+      months: '',
+      service: '',
+      history: '',
+      content: '来文〔2026〕87号数据汇聚分析与报告办理',
+    },
+    assetIds: [],
+    syncedIds: [],
+    materialsVersion: 2,
+    uploadedVersion: 2,
+    submission: 'system-confirmed',
+    folder: '',
+  };
 }
 export function workspaceReducer(
   previous: WorkspaceState,
@@ -1645,6 +2102,12 @@ export function workspaceReducer(
   const s = structuredClone(previous);
   s.notice = '';
   switch (a.type) {
+    case 'remove-duplicate-history':
+      removeDuplicateHistory(s);
+      break;
+    case 'party':
+      applyPartyAction(s, a.action);
+      break;
     case 'command':
       applyCommand(s, a);
       break;
@@ -1655,7 +2118,11 @@ export function workspaceReducer(
       s.memory = memoryReducer(s.memory, a.action);
       break;
     case 'brainstorm': {
-      const transition = brainstormReducer(s.brainstorm, a.action, iso(s.memory.now));
+      const transition = brainstormReducer(
+        s.brainstorm,
+        a.action,
+        iso(s.memory.now),
+      );
       s.brainstorm = transition.state;
       if (transition.notice) s.notice = transition.notice;
       applyBrainstormEffects(s, a.action.taskId, transition.effects);
@@ -1665,13 +2132,19 @@ export function workspaceReducer(
           const item = s.artifacts[artifactId];
           if (!item) continue;
           item.version = flow.version;
-          if (item.name === '年度工作报告事实底稿') item.body += a.action.resolution === 'keep_limited'
-            ? '\n\n处理决定：保留合成、待核及缺口状态标识，进入工作版本审阅。'
-            : '\n\n处理决定：未核定数值不进入主稿，事实底稿继续保留缺口位置。';
-          if (a.action.resolution === 'remove_from_draft' && item.name === '2026年度工作报告主稿') item.body = item.body.replace(
-            /合成示例显示，全程网办率为96\.4%，高频事项办理时限压缩32%。两项数据统计截止2026年11月30日，均待年终核定。/,
-            '相关年度服务成效待正式统计口径和年终数据核定后补入，当前工作版本不写入未核定数值。',
-          );
+          if (item.name === '年度工作报告事实底稿')
+            item.body +=
+              a.action.resolution === 'keep_limited'
+                ? '\n\n处理决定：保留合成、待核及缺口状态标识，进入工作版本审阅。'
+                : '\n\n处理决定：未核定数值不进入主稿，事实底稿继续保留缺口位置。';
+          if (
+            a.action.resolution === 'remove_from_draft' &&
+            item.name === '2026年度工作报告主稿'
+          )
+            item.body = item.body.replace(
+              /合成示例显示，全程网办率为96\.4%，高频事项办理时限压缩32%。两项数据统计截止2026年11月30日，均待年终核定。/,
+              '相关年度服务成效待正式统计口径和年终数据核定后补入，当前工作版本不写入未核定数值。',
+            );
         }
       }
       break;
@@ -1679,12 +2152,42 @@ export function workspaceReducer(
     case 'workspace-feedback': {
       if (taskFor(s, a.taskId) && a.text.trim()) {
         const messageId = say(s, a.taskId, 'user', a.text.trim());
-        (s.workspaceFeedback ||= []).push({taskId:a.taskId,messageId,annotations:a.annotations || []});
-        say(s, a.taskId, 'assistant', '已收到这些标注意见，来源和定位已保留在本次对话中。');
+        (s.workspaceFeedback ||= []).push({
+          taskId: a.taskId,
+          messageId,
+          annotations: a.annotations || [],
+        });
+        say(
+          s,
+          a.taskId,
+          'assistant',
+          '已收到这些标注意见，来源和定位已保留在本次对话中。',
+        );
       }
       break;
     }
+    case 'story-choice': {
+      decideStory(s, a.taskId, a.version, a.choice);
+      break;
+    }
     case 'say': {
+      if (s.party[a.taskId]) {
+        const party = s.party[a.taskId];
+        applyPartyAction(s, {
+          type: 'say',
+          taskId: a.taskId,
+          revision: party.revision,
+          text: a.text,
+        });
+        if (!party.stopped) taskFor(s, a.taskId).draftText = '';
+        break;
+      }
+      if (
+        (s.flows[a.taskId]?.historical ||
+          ['party-history', 'data-history'].includes(a.taskId)) &&
+        continueStory(s, a.taskId, a.text)
+      )
+        break;
       const f = s.flows[a.taskId];
       const brainstorm = s.brainstorm.flows[a.taskId];
       if (brainstorm) {
@@ -1694,9 +2197,14 @@ export function workspaceReducer(
         }
         say(s, a.taskId, 'user', a.text);
         taskFor(s, a.taskId).draftText = '';
-        say(s, a.taskId, 'assistant', brainstorm.phaseStatus === 'completed'
-          ? '已记录补充意见。当前四项成果仍保留为工作版本；如需变更，请发起新一轮审阅。'
-          : '已记录补充要求。请在当前步骤卡片中完成确认，系统会把变更继续带入后续综合。');
+        say(
+          s,
+          a.taskId,
+          'assistant',
+          brainstorm.phaseStatus === 'completed'
+            ? '已记录补充意见。当前四项成果仍保留为工作版本；如需变更，请发起新一轮审阅。'
+            : '已记录补充要求。请在当前步骤卡片中完成确认，系统会把变更继续带入后续综合。',
+        );
         break;
       }
       if (!f) {
@@ -1774,11 +2282,16 @@ export function workspaceReducer(
       )
         applyCommand(s, { type: 'command', taskId: f.id, cmd: 'guide' });
       else if (
-        f.kind === 'maintenance' && f.stage === 'create' &&
+        f.kind === 'maintenance' &&
+        f.stage === 'create' &&
         /开始|启动|按.*指引.*办理/.test(a.text) &&
         !/不|别|暂缓|等等|稍后|先问/.test(a.text)
       )
-        applyCommand(s, { type: 'command', taskId: f.id, cmd: 'create-project' });
+        applyCommand(s, {
+          type: 'command',
+          taskId: f.id,
+          cmd: 'create-project',
+        });
       else if (f.kind === 'consultation')
         consult(s, f.id, f.agentId || fiscalAgent, a.text);
       else
@@ -1818,6 +2331,15 @@ export function workspaceReducer(
       s.nextOutcome = a.value;
       break;
     case 'stop': {
+      if (s.party[a.taskId]) {
+        applyPartyAction(s, {
+          type: 'pause',
+          taskId: a.taskId,
+          revision: s.party[a.taskId].revision,
+          stopped: a.stopped,
+        });
+        break;
+      }
       const f = s.flows[a.taskId];
       if (f) {
         f.stopped = a.stopped;
@@ -1832,7 +2354,11 @@ export function workspaceReducer(
       }
       const brainstorm = s.brainstorm.flows[a.taskId];
       if (brainstorm) {
-        const transition = brainstormReducer(s.brainstorm, { type: a.stopped ? 'pause' : 'resume', taskId: a.taskId }, iso(s.memory.now));
+        const transition = brainstormReducer(
+          s.brainstorm,
+          { type: a.stopped ? 'pause' : 'resume', taskId: a.taskId },
+          iso(s.memory.now),
+        );
         s.brainstorm = transition.state;
         if (transition.notice) s.notice = transition.notice;
         applyBrainstormEffects(s, a.taskId, transition.effects);
@@ -1840,10 +2366,27 @@ export function workspaceReducer(
       break;
     }
     case 'create-skill': {
-      const fields = [a.name, a.category, a.summary, a.instructions, a.publisher].map(value => value.trim());
-      if (fields.some(value => !value)) break;
+      const fields = [
+        a.name,
+        a.category,
+        a.summary,
+        a.instructions,
+        a.publisher,
+      ].map((value) => value.trim());
+      if (fields.some((value) => !value)) break;
       const [name, category, summary, instructions, publisher] = fields;
-      s.catalog.push({ id: nextId(s, 'custom-skill'), kind: 'Skill', name, category, summary, publisher, version: '1.0', owned: true, enabled: true, details: [instructions] });
+      s.catalog.push({
+        id: nextId(s, 'custom-skill'),
+        kind: 'Skill',
+        name,
+        category,
+        summary,
+        publisher,
+        version: '1.0',
+        owned: true,
+        enabled: true,
+        details: [instructions],
+      });
       break;
     }
     case 'library-add-local': {
@@ -1882,8 +2425,7 @@ export function workspaceReducer(
           '授权完成前不展示目录内容，也不能加入任务。',
         ],
       });
-      s.notice =
-        '已记录个人云空间连接申请，完成授权后才可使用。';
+      s.notice = '已记录个人云空间连接申请，完成授权后才可使用。';
       break;
     }
     case 'catalog': {
@@ -1969,6 +2511,20 @@ export function workspaceReducer(
           collaborationMode: a.collaborationMode,
         },
       });
+      if (isPartyRequest(a.text)) {
+        const t = taskFor(s, a.id);
+        const created = createPartyFlow(a.id);
+        t.title = '第14次党组会筹备';
+        if (!s.folders.includes(PARTY_PROJECT)) s.folders.push(PARTY_PROJECT);
+        s.folderTasks[a.id] = PARTY_PROJECT;
+        t.messages = t.messages
+          .filter((message) => message.role === 'user')
+          .map((message) => ({ ...message, at: created.flow.at }));
+        t.pending = [];
+        s.party[a.id] = created.flow;
+        applyPartyEffects(s, a.id, created.effects);
+        break;
+      }
       if (a.collaborationMode === 'brainstorm') {
         const t = taskFor(s, a.id);
         t.title = '2026年度工作报告';
@@ -2076,7 +2632,14 @@ export function workspaceReducer(
         decisions: [],
         pending: undefined,
       };
-      if (!gate(s, s.flows[id], { type: 'command', taskId: id, cmd: 'read-feedback' })) break;
+      if (
+        !gate(s, s.flows[id], {
+          type: 'command',
+          taskId: id,
+          cmd: 'read-feedback',
+        })
+      )
+        break;
       say(
         s,
         id,

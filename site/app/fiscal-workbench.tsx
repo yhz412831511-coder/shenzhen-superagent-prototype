@@ -1,4 +1,12 @@
 'use client';
+import AdminProduct from './products/admin/app';
+import MemoryProduct from './products/memory-system/app';
+import {
+  PARTY_PROMPT,
+  PARTY_PROJECT,
+  isPartyRequest,
+  partyStageLabel,
+} from './party-domain';
 import { TaskWorkspace } from './task-workspace';
 import { currentUser } from './current-user';
 import { useState, useEffect, useRef, type ComponentType } from 'react';
@@ -35,9 +43,6 @@ import {
   FileSpreadsheet,
   Grid2X2,
   Presentation,
-  Database,
-  Gauge,
-  Route,
 } from 'lucide-react';
 import { useWorkspace } from './workspace-store';
 import { useAppearance } from './appearance';
@@ -141,7 +146,7 @@ function ProductSwitcher({
 }) {
   const currentProduct = products.find((product) => product.id === active)!;
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger
         type="button"
         className="fw-icon fw-product-switcher"
@@ -182,159 +187,6 @@ function ProductSwitcher({
         })}
       </DropdownMenuContent>
     </DropdownMenu>
-  );
-}
-
-const productPortals = {
-  admin: {
-    title: '智能体管理后台',
-    subtitle: '组织能力、策略、运行与安全治理',
-    icon: ShieldCheck,
-    navigation: [
-      '管理总览',
-      '能力与版本',
-      '策略与路由',
-      '运行治理',
-      '评测中心',
-      '安全与审计',
-    ],
-    sections: [
-      {
-        title: '能力与版本',
-        description: '统一管理智能体、技能、插件、连接器及其发布版本。',
-        icon: Bot,
-      },
-      {
-        title: '策略与运行',
-        description: '管理路由策略、运行任务、沙箱状态和资源使用。',
-        icon: Route,
-      },
-      {
-        title: '质量与安全',
-        description: '集中查看评测结果、风险告警、处置记录和审计事件。',
-        icon: Gauge,
-      },
-    ],
-  },
-  'memory-system': {
-    title: '记忆管理系统',
-    subtitle: '长期记忆、当前有效视图与证据生命周期',
-    icon: BrainCircuit,
-    navigation: [
-      '记忆总览',
-      '记忆对象',
-      '当前有效视图',
-      '证据与来源',
-      '纠错与版本',
-      '生命周期',
-    ],
-    sections: [
-      {
-        title: '记忆对象',
-        description: '管理个人与组织记忆的类型、范围、状态和有效版本。',
-        icon: BrainCircuit,
-      },
-      {
-        title: '证据与来源',
-        description: '维护来源引用、证据依赖、授权范围和新鲜度。',
-        icon: Database,
-      },
-      {
-        title: '纠错与生命周期',
-        description: '处理纠错、替代、停用、归档和保留期限。',
-        icon: Clock3,
-      },
-    ],
-  },
-} as const;
-
-function ProductPortal({
-  product,
-  onProductChange,
-}: {
-  product: Exclude<ProductId, 'superagent'>;
-  onProductChange: (product: ProductId) => void;
-}) {
-  const { value: appearance, update: updateAppearance } = useAppearance();
-  const portal = productPortals[product];
-  const PortalIcon = portal.icon;
-  return (
-    <div className="fw-app fw-product-portal">
-      <aside className="fw-product-portal-sidebar">
-        <div className="fw-product-portal-brand">
-          <span>
-            <PortalIcon size={20} />
-          </span>
-          <div>
-            <strong>{portal.title}</strong>
-            <small>深圳政务智能平台</small>
-          </div>
-        </div>
-        <nav aria-label={`${portal.title}功能入口`}>
-          {portal.navigation.map((item, index) => (
-            <div className={index === 0 ? 'active' : ''} key={item}>
-              <span>{item}</span>
-            </div>
-          ))}
-        </nav>
-        <div className="fw-product-portal-account">
-          <span className="fw-avatar">{currentUser.name.slice(0, 1)}</span>
-          <div>
-            <strong>{currentUser.name}</strong>
-            <small>{currentUser.organization}</small>
-          </div>
-        </div>
-      </aside>
-      <div className="fw-main">
-        <header className="fw-topbar">
-          <span className="fw-top-title">管理总览</span>
-          <ProductSwitcher active={product} onChange={onProductChange} />
-          <button
-            className="fw-icon fw-theme-toggle"
-            aria-label={
-              appearance.theme === 'light' ? '切换深色主题' : '切换浅色主题'
-            }
-            title={
-              appearance.theme === 'light' ? '切换深色主题' : '切换浅色主题'
-            }
-            onClick={() =>
-              updateAppearance({
-                theme: appearance.theme === 'light' ? 'dark' : 'light',
-              })
-            }
-          >
-            {appearance.theme === 'light' ? (
-              <MoonStar size={17} />
-            ) : (
-              <Sun size={17} />
-            )}
-          </button>
-        </header>
-        <main className="fw-product-portal-main">
-          <header>
-            <span className="fw-product-portal-kicker">管理总览</span>
-            <h1>{portal.title}</h1>
-            <p>{portal.subtitle}</p>
-          </header>
-          <section className="fw-product-portal-grid" aria-label="核心管理范围">
-            {portal.sections.map((section) => {
-              const SectionIcon = section.icon;
-              return (
-                <article key={section.title}>
-                  <span>
-                    <SectionIcon size={20} />
-                  </span>
-                  <div>
-                    <h2>{section.title}</h2>
-                    <p>{section.description}</p>
-                  </div>
-                </article>
-              );
-            })}
-          </section>
-        </main>
-      </div>
-    </div>
   );
 }
 
@@ -412,6 +264,7 @@ export function FiscalWorkbench() {
   const task = state.memory.tasks.find((t) => t.id === activeId),
     flow = state.flows[activeId],
     brainstormFlow = state.brainstorm.flows[activeId],
+    partyFlow = state.party[activeId],
     ui = taskUi[activeId] || {
       tabs: [],
       model: defaultModel,
@@ -555,7 +408,8 @@ export function FiscalWorkbench() {
     if (!value.trim()) return;
     if (page === 'task' && task) {
       dispatch({ type: 'say', taskId: task.id, text: value });
-      if (state.flows[task.id]?.stopped) return;
+      if (state.flows[task.id]?.stopped || state.party[task.id]?.stopped)
+        return;
       dispatch({
         type: 'memory',
         action: {
@@ -592,7 +446,9 @@ export function FiscalWorkbench() {
         commandMode,
         collaborationMode,
       });
-      if (folder) dispatch({ type: 'folder', name: folder, taskId: id });
+      const targetFolder = isPartyRequest(value) ? PARTY_PROJECT : folder;
+      if (targetFolder)
+        dispatch({ type: 'folder', name: targetFolder, taskId: id });
       dispatch({
         type: 'memory',
         action: {
@@ -610,6 +466,27 @@ export function FiscalWorkbench() {
       setCollaborationMode('standard');
       openTask(id);
     }
+  };
+  const openPartyMeeting = () => {
+    setProjectsOpen(true);
+    setExpandedProjects((old) =>
+      old.includes(PARTY_PROJECT) ? old : [...old, PARTY_PROJECT],
+    );
+    const existing = Object.keys(state.party)[0];
+    const id = existing || 'party-meeting-14';
+    if (!existing) {
+      dispatch({
+        type: 'new-task',
+        id,
+        text: PARTY_PROMPT,
+        collaborationMode: 'standard',
+      });
+      setTaskUi((old) => ({
+        ...old,
+        [id]: { tabs: [], model: defaultModel, routing: defaultRouting },
+      }));
+    }
+    openTask(id);
   };
   const composer = (large = false) => (
     <TaskComposer
@@ -711,7 +588,12 @@ export function FiscalWorkbench() {
       }
       onBrowserCommand={() => {
         if (flow) {
-          const system = flow.kind === 'payment' ? 'payment' : 'pm';
+          const system =
+            flow.kind === 'payment'
+              ? 'payment'
+              : flow.kind === 'analysis'
+                ? 'resources'
+                : 'pm';
           openTarget({ kind: 'system', id: system });
         } else
           dispatch({
@@ -754,6 +636,7 @@ export function FiscalWorkbench() {
 
   const notification = state.notice || state.memory.notice;
   const switchProduct = (product: ProductId) => {
+    if (product === activeProduct) return;
     setSettingsOpen(false);
     setMobileNav(false);
     setActiveProduct(product);
@@ -762,9 +645,25 @@ export function FiscalWorkbench() {
     else url.searchParams.set('product', product);
     window.history.pushState({}, '', url);
   };
-  if (activeProduct !== 'superagent')
+  if (activeProduct === 'admin')
     return (
-      <ProductPortal product={activeProduct} onProductChange={switchProduct} />
+      <AdminProduct
+        switcher={
+          <ProductSwitcher active={activeProduct} onChange={switchProduct} />
+        }
+      />
+    );
+  if (activeProduct === 'memory-system')
+    return (
+      <MemoryProduct
+        switcher={
+          <ProductSwitcher active={activeProduct} onChange={switchProduct} />
+        }
+        onConversation={(id) => {
+          switchProduct('superagent');
+          openTask(id);
+        }}
+      />
     );
   return (
     <div
@@ -1071,6 +970,34 @@ export function FiscalWorkbench() {
                 )}
               </>
             )}
+            {page === 'task' && partyFlow && (
+              <>
+                <span className="party-header-status">
+                  {partyStageLabel(partyFlow)}
+                </span>
+                {!['sent', 'internal', 'sending', 'unknown'].includes(
+                  partyFlow.stage,
+                ) && (
+                  <button
+                    className="fw-icon"
+                    aria-label={partyFlow.stopped ? '恢复任务' : '暂停任务'}
+                    onClick={() =>
+                      dispatch({
+                        type: 'stop',
+                        taskId: partyFlow.id,
+                        stopped: !partyFlow.stopped,
+                      })
+                    }
+                  >
+                    {partyFlow.stopped ? (
+                      <Play size={16} />
+                    ) : (
+                      <Pause size={16} />
+                    )}
+                  </button>
+                )}
+              </>
+            )}
             {page === 'task' && brainstormFlow && (
               <>
                 <BrainstormHeaderStatus flow={brainstormFlow} />
@@ -1268,6 +1195,21 @@ export function FiscalWorkbench() {
                       key={item.label}
                       className="fw-home-shortcut"
                       data-tone={item.tone}
+                      onClick={() => {
+                        if (item.label === '办会') {
+                          setDraft(PARTY_PROMPT);
+                          setCollaborationMode('standard');
+                        } else if (item.label === '办文') {
+                          setDraft(
+                            '请围绕2026年度工作报告开展多岗位脑暴，形成报告结构、主要观点及待核事实清单。',
+                          );
+                          setCollaborationMode('brainstorm');
+                        } else if (item.label === '办事')
+                          openTask('maintenance-history');
+                        else if (item.label === '分析')
+                          openTask('data-history');
+                        else setSearch(true);
+                      }}
                     >
                       <item.icon size={18} aria-hidden="true" />
                       <span>{item.label}</span>
@@ -1283,9 +1225,9 @@ export function FiscalWorkbench() {
                       {
                         taskId: 'maintenance-history',
                         title: '财政资金穿透式监管系统运维项目申报',
-                        summary: '已完成申报并开启审核反馈追踪',
+                        summary: '本人已报告提交，继续跟踪审核反馈',
                         status: '等待平台反馈',
-                        source: '项管平台 · 运维申报',
+                        source: '本人报告提交 · 待核源系统',
                         icon: Workflow,
                         tone: 'blue',
                       },
@@ -1300,8 +1242,10 @@ export function FiscalWorkbench() {
                       },
                       {
                         title: '党组会准备工作',
-                        summary: '议题材料已汇集，待核对上会顺序与汇报口径',
-                        status: '材料核对',
+                        summary: '接续第13次会议，核对落实情况与本次议题',
+                        status: Object.values(state.party)[0]
+                          ? partyStageLabel(Object.values(state.party)[0])
+                          : '开始准备',
                         source: 'OA · 会议筹备',
                         icon: Presentation,
                         tone: 'orange',
@@ -1313,7 +1257,9 @@ export function FiscalWorkbench() {
                         data-tone={item.tone}
                         key={item.title}
                         onClick={
-                          item.taskId ? () => openTask(item.taskId) : undefined
+                          item.taskId
+                            ? () => openTask(item.taskId)
+                            : openPartyMeeting
                         }
                       >
                         <span className="fw-home-continuation-top">

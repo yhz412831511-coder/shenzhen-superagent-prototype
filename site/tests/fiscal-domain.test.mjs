@@ -115,7 +115,10 @@ test('岗位数字人详情按基础能力、输入输出、职责依据、边�
     '后续增加的组织经验',
   ].map((text) => source.indexOf(text));
   assert.ok(sections.every((index) => index >= 0));
-  assert.deepEqual([...sections].sort((a, b) => a - b), sections);
+  assert.deepEqual(
+    [...sections].sort((a, b) => a - b),
+    sections,
+  );
   assert.match(source, /初始基础能力始终可用/);
 });
 
@@ -123,7 +126,9 @@ test('场景工作智能体具备完整详情，组织载体具备受控内容',
   const sceneAgents = initial().catalog.filter(
     (entry) => entry.kind === '场景工作智能体',
   );
-  const detailedIds = new Set(agentDetailProfiles.profiles.map((profile) => profile.id));
+  const detailedIds = new Set(
+    agentDetailProfiles.profiles.map((profile) => profile.id),
+  );
   assert.equal(sceneAgents.length, 10);
   assert.equal(detailedIds.size, sceneAgents.length);
   assert.equal(builtOrganizationCarriers.length, 14);
@@ -188,7 +193,7 @@ test('历史由相同业务动作生成：两条完成，运维已追踪但没�
   assert.equal(f.submission, 'user-reported');
   assert.ok(s.automations.some((a) => a.id === f.tracking));
   assert.equal(f.folder, '');
-  assert.deepEqual(s.folders, ['财政支付审查']);
+  assert.deepEqual(s.folders, ['财政支付审查', '党组会']);
   assert.equal(s.automations.find((a) => a.id === f.tracking).runs.length, 0);
   assert.equal(s.feedbackIds.length, 0);
   assert.equal(s.automations[0].enabled, false);
@@ -199,7 +204,9 @@ test('历史由相同业务动作生成：两条完成，运维已追踪但没�
   });
   assert.deepEqual(afterFutureTick.automations[0].runs, ['payment-history']);
   assert.equal(
-    afterFutureTick.memory.tasks.some((task) => task.title.includes('2026-09-17')),
+    afterFutureTick.memory.tasks.some((task) =>
+      task.title.includes('2026-09-17'),
+    ),
     false,
   );
   assert.equal(
@@ -366,7 +373,9 @@ test('高风险未确认不执行；确认后检查并留回执', () => {
   assert.equal(f.operations.at(-1).status, '待确认');
   s = reduce(s, { ...f.pending, confirmed: true });
   assert.equal(Object.keys(s.flows[f.id].written).length, 2);
-  assert.ok(s.flows[f.id].operations.findLast((o) => o.cmd === 'writeback').receipt);
+  assert.ok(
+    s.flows[f.id].operations.findLast((o) => o.cmd === 'writeback').receipt,
+  );
 });
 test('取消待确认操作不会写入，原办理步骤保留', () => {
   let s = cmd(readyPay(), 'writeback');
@@ -679,7 +688,11 @@ test('历史对话可持续发送：保留原记录、不复制任务、不重�
     );
     assert.deepEqual(s.flows, flows);
     assert.deepEqual(s.auth, before.auth);
-    assert.deepEqual(s.artifacts, before.artifacts);
+    for (const [key, artifact] of Object.entries(before.artifacts))
+      assert.deepEqual(s.artifacts[key], artifact);
+    assert.ok(
+      Object.keys(s.artifacts).length > Object.keys(before.artifacts).length,
+    );
     assert.deepEqual(s.automations, before.automations);
     assert.equal(s.memory.tasks.length, before.memory.tasks.length);
   }
@@ -713,8 +726,13 @@ test('运维申报由用户提供交办单号发起，随后通过 OA 读取该�
   const messages = taskFor(s, 'maintenance-history').messages;
   assert.equal(messages[0].role, 'user');
   assert.match(messages[0].text, /CZ-OA-20260907-018/);
-  assert.equal(messages.some((m) => m.role === 'system' && /收到财政局 OA/.test(m.text)), false);
-  const operation = s.flows['maintenance-history'].operations.find((o) => o.cmd === 'read-oa');
+  assert.equal(
+    messages.some((m) => m.role === 'system' && /收到财政局 OA/.test(m.text)),
+    false,
+  );
+  const operation = s.flows['maintenance-history'].operations.find(
+    (o) => o.cmd === 'read-oa',
+  );
   assert.match(operation.scope, /CZ-OA-20260907-018/);
   assert.match(s.flows['maintenance-history'].source, /用户发起/);
   assert.equal(s.flows['maintenance-history'].folder, '');
@@ -725,32 +743,53 @@ test('办理咨询先规划并发现已获取数字人，再调用返回路径�
   const id = 'replay-maintenance';
   s = cmd(s, 'guide');
   const messages = taskFor(s, id).messages;
-  const discovery = s.flows[id].operations.find((o) => o.cmd === 'discover-capability');
+  const discovery = s.flows[id].operations.find(
+    (o) => o.cmd === 'discover-capability',
+  );
   const found = messages.findIndex((m) => m.id === discovery.messageId);
   assert.match(discovery.detail, /项目统筹处.*已获取/);
-  assert.equal(messages.some((m) => m.text.includes('我会先确认运维项目')), false);
-  const result = messages.findIndex((m) => m.text.includes('数字人已返回办理指引'));
+  assert.equal(
+    messages.some((m) => m.text.includes('我会先确认运维项目')),
+    false,
+  );
+  const result = messages.findIndex((m) =>
+    m.text.includes('数字人已返回办理指引'),
+  );
   const op = s.flows[id].operations.find((o) => o.cmd === 'guide');
   const invocation = messages.findIndex((m) => m.id === op.messageId);
   assert.ok(found >= 0 && found < invocation && invocation < result);
   let blocked = cmd(replay('maintenance'), 'read-oa');
-  blocked = reduce(blocked, {type: 'catalog', id: 'project-coordination-digital-person', enabled: false});
+  blocked = reduce(blocked, {
+    type: 'catalog',
+    id: 'project-coordination-digital-person',
+    enabled: false,
+  });
   blocked = cmd(blocked, 'guide');
   assert.equal(blocked.flows[id].operations.at(-1).status, '已阻止');
-  assert.equal(taskFor(blocked, id).messages.some((m) => m.text.includes('数字人已返回办理指引')), false);
+  assert.equal(
+    taskFor(blocked, id).messages.some((m) =>
+      m.text.includes('数字人已返回办理指引'),
+    ),
+    false,
+  );
 });
 
 test('指引返回后等待用户启动，启动请求在创建草稿前且只记录一次', () => {
   let s = cmd(cmd(replay('maintenance'), 'read-oa'), 'guide');
   const id = 'replay-maintenance';
-  assert.equal(s.flows[id].operations.some((o) => o.cmd === 'create-project'), false);
-  s = reduce(s, {type:'say', taskId:id, text:'先不要开始，我再看一下。'});
+  assert.equal(
+    s.flows[id].operations.some((o) => o.cmd === 'create-project'),
+    false,
+  );
+  s = reduce(s, { type: 'say', taskId: id, text: '先不要开始，我再看一下。' });
   assert.equal(s.flows[id].stage, 'create');
   const text = '按刚才的指引，开始帮我办理这个运维项目申报。';
-  s = reduce(s, {type:'say', taskId:id, text});
+  s = reduce(s, { type: 'say', taskId: id, text });
   assert.equal(s.flows[id].stage, 'fill');
-  const messages = taskFor(s,id).messages;
-  const request = messages.findIndex((m) => m.role === 'user' && m.text === text);
+  const messages = taskFor(s, id).messages;
+  const request = messages.findIndex(
+    (m) => m.role === 'user' && m.text === text,
+  );
   const op = s.flows[id].operations.find((o) => o.cmd === 'create-project');
   assert.ok(request < messages.findIndex((m) => m.id === op.messageId));
   assert.equal(messages.filter((m) => m.text === text).length, 1);
@@ -759,17 +798,39 @@ test('指引返回后等待用户启动，启动请求在创建草稿前且只�
 test('先读取系统要求再建草稿，先查询资产和知识资料再整理，连接失败时不创建', () => {
   const s = estimated();
   const commands = s.flows['replay-maintenance'].operations.map((o) => o.cmd);
-  const sequence = ['read-project-requirements','create-project','save-project','read-resource-assets','select-assets','sync-assets','read-knowledge-plans','prepare-materials','upload-materials','estimate'];
+  const sequence = [
+    'read-project-requirements',
+    'create-project',
+    'save-project',
+    'read-resource-assets',
+    'select-assets',
+    'sync-assets',
+    'read-knowledge-plans',
+    'prepare-materials',
+    'upload-materials',
+    'estimate',
+  ];
   sequence.forEach((command, i) => {
     assert.ok(commands.includes(command));
-    if(i) assert.ok(commands.indexOf(sequence[i-1]) < commands.indexOf(command));
+    if (i)
+      assert.ok(commands.indexOf(sequence[i - 1]) < commands.indexOf(command));
   });
   let blocked = cmd(cmd(replay('maintenance'), 'read-oa'), 'guide');
-  blocked = reduce(blocked, {type:'auth', system:'pm', patch:{enabled:false}});
+  blocked = reduce(blocked, {
+    type: 'auth',
+    system: 'pm',
+    patch: { enabled: false },
+  });
   blocked = cmd(blocked, 'create-project');
   assert.equal(blocked.flows['replay-maintenance'].stage, 'create');
-  assert.equal(blocked.flows['replay-maintenance'].operations.at(-1).cmd, 'read-project-requirements');
-  assert.equal(blocked.flows['replay-maintenance'].operations.at(-1).status, '已阻止');
+  assert.equal(
+    blocked.flows['replay-maintenance'].operations.at(-1).cmd,
+    'read-project-requirements',
+  );
+  assert.equal(
+    blocked.flows['replay-maintenance'].operations.at(-1).status,
+    '已阻止',
+  );
 });
 
 test('运维申报提供七份带项目名的独立材料预览，平台估算另行生成', () => {
@@ -782,14 +843,22 @@ test('运维申报提供七份带项目名的独立材料预览，平台估算�
     assert.ok(file.name.startsWith(f.project.name));
     assert.ok(file.body.includes(f.project.name));
   }
-  for (const suffix of ['预算表','立项申请表','运维项目方案','数据资源分册','网络安全设计分册','信创分册','基础设施']) {
+  for (const suffix of [
+    '预算表',
+    '立项申请表',
+    '运维项目方案',
+    '数据资源分册',
+    '网络安全设计分册',
+    '信创分册',
+    '基础设施',
+  ]) {
     assert.ok(files.some((a) => a.name.includes(suffix)));
   }
   assert.equal(f.estimate, undefined);
 });
 
 test('回写仅保存中风险草稿，缺少明确提交指令时高风险提交检查阻断', () => {
-  const s = cmd(readyPay(), 'writeback', {confirmed:true});
+  const s = cmd(readyPay(), 'writeback', { confirmed: true });
   const f = s.flows['replay-payment'];
   const write = f.operations.findLast((o) => o.cmd === 'writeback');
   const submit = f.operations.at(-1);
@@ -807,18 +876,47 @@ test('回写仅保存中风险草稿，缺少明确提交指令时高风险提�
 test('两条故事按读、本地处理、草稿写入和正式提交统一分级', () => {
   const s = initial();
   const expected = {
-    'read-payments':'低', review:'无', 'save-method':'无', 'share-method':'高',
-    'check-rules':'低', report:'无', writeback:'中', 'check-payment-submission':'高',
-    'read-oa':'低', 'discover-capability':'无', guide:'低',
-    'read-project-requirements':'低', 'create-project':'中', 'save-project':'中',
-    'read-resource-assets':'低', 'select-assets':'中', 'sync-assets':'中',
-    'read-knowledge-plans':'低', 'prepare-materials':'无', 'upload-materials':'中',
-    estimate:'低', track:'无', 'organization-adoption':'高',
+    'read-payments': '低',
+    review: '无',
+    'save-method': '无',
+    'share-method': '高',
+    'check-rules': '低',
+    report: '无',
+    writeback: '中',
+    'check-payment-submission': '高',
+    'read-oa': '低',
+    'discover-capability': '无',
+    guide: '低',
+    'read-project-requirements': '低',
+    'create-project': '中',
+    'save-project': '中',
+    'read-resource-assets': '低',
+    'select-assets': '中',
+    'sync-assets': '中',
+    'read-knowledge-plans': '低',
+    'prepare-materials': '无',
+    'upload-materials': '中',
+    estimate: '低',
+    track: '无',
+    'organization-adoption': '高',
+    'read-resource-catalog': '低',
+    'read-population-summary': '低',
+    'read-civil-affairs-summary': '低',
+    'read-service-cases': '低',
+    'harmonize-data': '无',
+    'analyse-service-gaps': '无',
+    'check-derived-privacy': '高',
+    'deidentify-results': '无',
+    'remove-sensitive-inference': '无',
+    'regenerate-aggregate-report': '无',
+    'recheck-derived-privacy': '中',
+    'submit-sanitized-report': '高',
   };
-  for(const flow of Object.values(s.flows)) for(const op of flow.operations) {
-    assert.equal(op.risk, expected[op.cmd], op.cmd);
-    if(op.risk !== '无') assert.ok(op.checks.length, op.cmd);
-  }
+  for (const flow of Object.values(s.flows))
+    for (const op of flow.operations) {
+      assert.equal(op.risk, expected[op.cmd], op.cmd);
+      if (op.risk !== '无') assert.ok(op.checks.length, op.cmd);
+    }
   assert.equal(s.flows['maintenance-history'].submission, 'user-reported');
   assert.equal(s.flows['payment-history'].status, '已存草稿，未提交');
 });

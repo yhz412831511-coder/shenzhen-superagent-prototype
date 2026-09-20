@@ -1,0 +1,559 @@
+/** Shared immutable case snapshots. Product-owned runtime objects never live here. */
+export const CASE_SOURCE = '合成案例 · 固定阶段快照';
+export const CASE_AS_OF = '2026-09-25 17:30';
+export const MEETING_13 = {
+  id: 'party-history',
+  title: '第13次党组会 · 会议与落实跟踪',
+  at: '2026-09-16T09:00:00+08:00',
+  source: 'M13-MINUTES-v2',
+  correction: 'COR-13-01',
+  policy: 'meeting-policy-1.0',
+  completed: [
+    '形成议程与会前材料',
+    '经本人确认发送会议通知',
+    '会议结果形成纪要并经审核后提交',
+  ],
+  open: '基础设施处补齐验收支撑材料，原约定2026-09-23 16:00前报送。',
+  correctionText:
+    '9月21日责任处室更正：原“验收完成”只指技术验收，手续材料仍未齐套。旧来源v1停止作为整体办结依据，当前采用v2。',
+  method:
+    '检查完成状态时同时核对支撑材料、统计时点与责任处室意见。该个人做法来自上次核查，不自行成为组织制度。',
+};
+export const MEMORY_KINDS = [
+  {
+    id: 'M1',
+    name: '工作记忆',
+    definition: '保留当前目标、步骤、材料、阻塞和结果，支持工作恢复。',
+    distinction: '记录正在办理的工作状态，不替代正式业务台账。',
+  },
+  {
+    id: 'M2',
+    name: '语义记忆',
+    definition: '关于事实、术语、规则解释与对象关系的有来源知识。',
+    distinction: '适用语境必须保留，单笔解释不能泛化成普遍规则。',
+  },
+  {
+    id: 'M3',
+    name: '程序记忆',
+    definition: '经工作验证的方法、流程和检查清单。',
+    distinction: '个人方法与组织批准版本是不同所有者的对象。',
+  },
+  {
+    id: 'M4',
+    name: '情景／上下文记忆',
+    definition: '发生过的经历、时间、参与者以及当时采用的依据。',
+    distinction: '当时如何判断与今天是否仍有效需分别说明。',
+  },
+  {
+    id: 'M5',
+    name: '前瞻／承诺记忆',
+    definition: '已有依据的责任、约定、期限与跟踪条件。',
+    distinction: '只记录已确认约定，不能替任何人新作承诺。',
+  },
+  {
+    id: 'M6',
+    name: '组织记忆',
+    definition: '本人获准使用的组织经验、规则与共识。',
+    distinction: '由组织流程确认和发布，不由个人记忆自动升级。',
+  },
+] as const;
+export type MemoryKind = (typeof MEMORY_KINDS)[number]['id'];
+export type MemoryCase = {
+  id: string;
+  kind: MemoryKind;
+  title: string;
+  content: string;
+  owner: string;
+  scope: string;
+  state: '有效' | '待核' | '已替代';
+  tier: '热' | '温' | '冷';
+  version: string;
+  taskId: string;
+  source: string;
+  evidence: string;
+  date: string;
+  lastUsed: string;
+  related: string[];
+  history: { version: string; date: string; reason: string; content: string }[];
+};
+export const memoryCases: MemoryCase[] = [
+  {
+    id: 'm13-working',
+    kind: 'M1',
+    title: '第13次会议：仍待补齐的验收材料',
+    content: MEETING_13.open,
+    owner: '杨XX',
+    scope: '本人会务授权范围',
+    state: '有效',
+    tier: '热',
+    version: '2',
+    taskId: 'party-history',
+    source: MEETING_13.source,
+    evidence: '纪要v2引用处室更正记录COR-13-01。技术验收与材料齐套分别跟踪。',
+    date: '2026-09-21',
+    lastUsed: '2026-09-22',
+    related: ['m13-correction', 'm13-commitment'],
+    history: [
+      {
+        version: '1',
+        date: '2026-09-16',
+        reason: '首次核对',
+        content: '原记录将技术验收描述为整体完成。',
+      },
+      {
+        version: '2',
+        date: '2026-09-21',
+        reason: '源记录更正传播',
+        content: '整体办结依据不足，支撑材料待补。',
+      },
+    ],
+  },
+  {
+    id: 'm13-correction',
+    kind: 'M2',
+    title: '技术验收不等于手续材料齐套',
+    content:
+      '本次会议语境下，“技术验收完成”只说明技术环节，不能推导整体办结或正式归档。',
+    owner: '杨XX',
+    scope: '第13—14次会务',
+    state: '有效',
+    tier: '热',
+    version: '2',
+    taskId: 'party-history',
+    source: 'COR-13-01',
+    evidence: MEETING_13.correctionText,
+    date: '2026-09-21',
+    lastUsed: '2026-09-22',
+    related: ['m13-working', 'm13-method', 'm13-old'],
+    history: [
+      {
+        version: '1',
+        date: '2026-09-16',
+        reason: '原来源',
+        content: '完成状态依据不完整。',
+      },
+      {
+        version: '2',
+        date: '2026-09-21',
+        reason: '责任处室更正',
+        content: '区分技术验收、材料齐套与正式办结。',
+      },
+    ],
+  },
+  {
+    id: 'm13-method',
+    kind: 'M3',
+    title: '会议落实情况的证据核对方法',
+    content: MEETING_13.method,
+    owner: '杨XX',
+    scope: '本人会务核查',
+    state: '有效',
+    tier: '温',
+    version: '1',
+    taskId: 'party-history',
+    source: 'M13-REVIEW-03',
+    evidence: '第13次审阅纠错产生的方法；第14次计划主动加入证据检查。',
+    date: '2026-09-16',
+    lastUsed: '2026-09-22',
+    related: ['m13-correction', 'm13-episode'],
+    history: [
+      {
+        version: '1',
+        date: '2026-09-16',
+        reason: '从已确认工作处理形成个人方法',
+        content: '核对状态时同时检查证据、口径和时间。',
+      },
+    ],
+  },
+  {
+    id: 'm13-episode',
+    kind: 'M4',
+    title: '第13次会议材料审阅经过',
+    content:
+      '会前审阅发现“状态完成”与附件不齐并存，承办人要求单列缺件，会议决定继续跟踪，不以系统标签代替证据。',
+    owner: '杨XX',
+    scope: '本人参与的会议',
+    state: '有效',
+    tier: '温',
+    version: '1',
+    taskId: 'party-history',
+    source: 'M13-REVIEW-03 / M13-MINUTES-v2',
+    evidence: '保留当时选择与会后决定；个人经历不自动扩大到全单位共享。',
+    date: '2026-09-16',
+    lastUsed: '2026-09-22',
+    related: ['m13-method', 'm13-commitment'],
+    history: [
+      {
+        version: '1',
+        date: '2026-09-16',
+        reason: '会议闭环',
+        content: '保存关键经历及依据引用。',
+      },
+    ],
+  },
+  {
+    id: 'm13-commitment',
+    kind: 'M5',
+    title: '基础设施处补报验收支撑材料',
+    content: MEETING_13.open,
+    owner: '杨XX的跟踪视图',
+    scope: '原纪要授权的跟踪范围',
+    state: '有效',
+    tier: '热',
+    version: '1',
+    taskId: 'party-history',
+    source: 'M13-MINUTES-v2 / 第三项决定',
+    evidence: '责任来自已审核纪要，本人仅跟踪，不新增责任人或变更期限。',
+    date: '2026-09-16',
+    lastUsed: '2026-09-22',
+    related: ['m13-working', 'm13-episode'],
+    history: [
+      {
+        version: '1',
+        date: '2026-09-16',
+        reason: '依据会议决定记录',
+        content: '到期检查补件情况，未回执则继续待核。',
+      },
+    ],
+  },
+  {
+    id: 'fiscal-term',
+    kind: 'M2',
+    title: '支付备注中的“绩效分析”',
+    content:
+      'ERS电子资源利用绩效分析平台数据库费中的“绩效分析”属于产品名称，应结合合同标的、服务内容、支付对象及依据核对，不仅凭关键词认定为人员绩效奖励。',
+    owner: '杨XX',
+    scope: '该笔数据库服务申请',
+    state: '有效',
+    tier: '温',
+    version: '1',
+    taskId: 'payment-history',
+    source: '财政支付审查 / 用途说明',
+    evidence: '来自使用者对原备注的纠正；不代表支付申请审核通过。',
+    date: '2026-09-03',
+    lastUsed: '2026-09-08',
+    related: ['fiscal-personal', 'fiscal-org'],
+    history: [
+      {
+        version: '1',
+        date: '2026-09-03',
+        reason: '用户提供业务语境',
+        content: '保留产品名称与实际用途的区别。',
+      },
+    ],
+  },
+  {
+    id: 'fiscal-personal',
+    kind: 'M3',
+    title: '支付用途备注核对与补充说明方法',
+    content:
+      '先读用途与合同材料；确认资金性质；核对支付对象与适用依据；对缺口形成补充说明请求。关键词仅作线索，不直接裁决。',
+    owner: '杨XX',
+    scope: '本人财政核查辅助',
+    state: '有效',
+    tier: '温',
+    version: '2',
+    taskId: 'payment-history',
+    source: '个人教法记录 / 财政审查对话',
+    evidence:
+      '个人源版本v2；曾贡献不含单据、账号和人员信息的方法快照v1，组织副本独立更新。',
+    date: '2026-09-03',
+    lastUsed: '2026-09-08',
+    related: ['fiscal-term', 'fiscal-org'],
+    history: [
+      {
+        version: '1',
+        date: '2026-09-03',
+        reason: '提取已确认教法',
+        content: '不能只凭绩效关键词判断。',
+      },
+      {
+        version: '2',
+        date: '2026-09-08',
+        reason: '个人补充适用例外',
+        content: '先核定资金性质；无依据保持待核。',
+      },
+    ],
+  },
+  {
+    id: 'fiscal-org',
+    kind: 'M6',
+    title: '支付用途备注核对与补充说明方法',
+    content:
+      '组织采用脱敏方法快照，供财政资金监管岗位咨询使用。适用条件、检查步骤、例外和来源齐全；不包含个人原始单据。',
+    owner: '财政资金监管业务组',
+    scope: '本人获准使用的岗位经验',
+    state: '有效',
+    tier: '温',
+    version: '1.0',
+    taskId: 'payment-history',
+    source: 'ORG-METHOD-01 / 独立组织版本',
+    evidence:
+      '组织采纳记录ORG-ADOPT-01，来源为个人v1快照。个人后续改动不会自动覆盖组织版本。',
+    date: '2026-09-05',
+    lastUsed: '2026-09-08',
+    related: ['fiscal-personal', 'role-consult'],
+    history: [
+      {
+        version: '1.0',
+        date: '2026-09-05',
+        reason: '组织评测与批准采用',
+        content: '以独立组织对象发布授权岗位方法。',
+      },
+    ],
+  },
+  {
+    id: 'ops-working',
+    kind: 'M1',
+    title: '2027年运维申报的材料版本与反馈',
+    content:
+      '运维项目已形成申报材料；提交来源为本人告知，未取得真实源系统回执。继续核对审核反馈与材料版本。',
+    owner: '杨XX',
+    scope: '本人项目申报',
+    state: '待核',
+    tier: '热',
+    version: '4',
+    taskId: 'maintenance-history',
+    source: '运维申报历史 / 用户提交说明',
+    evidence:
+      '“我已在平台提交”与平台受理回执是不同证据，不能直接推定正式受理。',
+    date: '2026-09-07',
+    lastUsed: '2026-09-08',
+    related: ['ops-method', 'ops-commitment'],
+    history: [
+      {
+        version: '3',
+        date: '2026-09-07',
+        reason: '材料整理',
+        content: '形成工作稿。',
+      },
+      {
+        version: '4',
+        date: '2026-09-07',
+        reason: '用户告知已提交',
+        content: '记录提交来源，等待平台反馈依据。',
+      },
+    ],
+  },
+  {
+    id: 'ops-method',
+    kind: 'M3',
+    title: '运维项目申报材料检查清单',
+    content:
+      '先确定运维边界与既有资产，核对服务期、费用口径、必要附件和版本，再交本人到业务平台确认提交。',
+    owner: '杨XX',
+    scope: '同类运维申报辅助',
+    state: '有效',
+    tier: '温',
+    version: '1',
+    taskId: 'maintenance-history',
+    source: '项目统筹岗位咨询摘要',
+    evidence: '岗位建议是办理指引，不能代替项目审批或费用核定。',
+    date: '2026-09-07',
+    lastUsed: '2026-09-08',
+    related: ['ops-working', 'role-consult'],
+    history: [
+      {
+        version: '1',
+        date: '2026-09-07',
+        reason: '依据授权咨询及办理过程',
+        content: '形成个人材料核对方法。',
+      },
+    ],
+  },
+  {
+    id: 'ops-commitment',
+    kind: 'M5',
+    title: '跟踪运维项目审核反馈',
+    content:
+      '本人已要求持续关注该申报的反馈；出现退补材料时回到原对话，核对原因并形成修订清单。',
+    owner: '杨XX',
+    scope: '本人已授权的反馈跟踪',
+    state: '有效',
+    tier: '热',
+    version: '1',
+    taskId: 'maintenance-history',
+    source: '运维对话 / 开启反馈追踪的选择',
+    evidence: '只有已有授权范围内的反馈读取，修订和再次提交分别确认。',
+    date: '2026-09-07',
+    lastUsed: '2026-09-08',
+    related: ['ops-working'],
+    history: [
+      {
+        version: '1',
+        date: '2026-09-07',
+        reason: '继承本人跟踪授权',
+        content: '反馈到达后提醒并提供处理建议。',
+      },
+    ],
+  },
+  {
+    id: 'role-consult',
+    kind: 'M2',
+    title: '岗位咨询与业务审批的职责边界',
+    content:
+      '财政资金监管岗位提供用途核对建议；项目统筹岗位提供运维申报指引。咨询答复不构成正式审批，也不会因一次提问启动系统提交。',
+    owner: '杨XX',
+    scope: '财政与运维岗位咨询',
+    state: '有效',
+    tier: '温',
+    version: '1',
+    taskId: 'maintenance-history',
+    source: '岗位职责摘要及咨询对话',
+    evidence: '仅采用公开职责与授权经验，不暴露其他处室原文或个人记忆。',
+    date: '2026-09-08',
+    lastUsed: '2026-09-08',
+    related: ['fiscal-org', 'ops-method'],
+    history: [
+      {
+        version: '1',
+        date: '2026-09-08',
+        reason: '咨询职责说明',
+        content: '区分建议、本人判断和正式业务执行。',
+      },
+    ],
+  },
+  {
+    id: 'data-method',
+    kind: 'M3',
+    title: '拟外发分析结果的隐私检查方法',
+    content:
+      '完成授权范围内的数据汇聚后，在生成拟外发报告前检查分析推理结果。若结果可能识别个人或小群体，立即停止生成与外发，等待本人明确脱敏和删减要求；处理后重新复核结果粒度、接收方和用途。',
+    owner: '杨XX',
+    scope: '跨系统报告编制',
+    state: '有效',
+    tier: '温',
+    version: '1',
+    taskId: 'data-history',
+    source: 'DATA-RISK-01 / 处置记录',
+    evidence:
+      '一体化数字资源管理系统、人口基础信息服务、民政服务数据接口和一体化政务服务平台的四次单源读取均在授权范围内；汇聚后的初步分析对年龄、街道、独居情况与办件记录进行交叉推理，产生组合隐私风险并触发主动停止。按用户指令脱敏和删减后重新生成聚合版本。',
+    date: '2026-09-18',
+    lastUsed: '2026-09-18',
+    related: ['role-consult'],
+    history: [
+      {
+        version: '1',
+        date: '2026-09-18',
+        reason: '由已完成处置提取方法',
+        content:
+          '授权读取不等于分析推理结果可以外发；拟外发结果需单独检查隐私风险。',
+      },
+    ],
+  },
+  {
+    id: 'm13-old',
+    kind: 'M2',
+    title: '验收事项整体完成（旧判断）',
+    content:
+      '旧来源曾以技术验收状态推断整体办结。该推断已被更正，不再参与第14次工作续接。',
+    owner: '杨XX',
+    scope: '历史审计可见；禁止作为当前依据',
+    state: '已替代',
+    tier: '冷',
+    version: '1',
+    taskId: 'party-history',
+    source: 'M13-MINUTES-v1 → COR-13-01',
+    evidence:
+      '保留原事件用于追溯，不删除或暗改过去。当前引用“技术验收不等于手续材料齐套”的更正解释。',
+    date: '2026-09-16',
+    lastUsed: '2026-09-16',
+    related: ['m13-correction'],
+    history: [
+      {
+        version: '1',
+        date: '2026-09-16',
+        reason: '旧来源',
+        content: '当时错误推断。',
+      },
+      {
+        version: '替代',
+        date: '2026-09-21',
+        reason: '源更正',
+        content: '退出当前有效检索，仅供历史审计。',
+      },
+    ],
+  },
+];
+export const MEETING_COMPARISON = [
+  {
+    step: '恢复背景',
+    before: '人工补充上次决定和未完成项',
+    after: '按当前权限返回有效纪要、未完成承诺和证据',
+    evidence: 'M13-MINUTES-v2 / m13-commitment',
+  },
+  {
+    step: '完成状态检查',
+    before: '成果审阅时发现证据缺失',
+    after: '计划内预先检查状态与材料，缺口保留待核',
+    evidence: 'M13-REVIEW-03 / M14-CHECK-01',
+  },
+  {
+    step: '来源纠错',
+    before: '旧稿采用整体完成表述',
+    after: '停用旧判断并说明技术验收与材料齐套的区别',
+    evidence: 'COR-13-01',
+  },
+  {
+    step: '任务变更',
+    before: '人工重新交代材料范围',
+    after: '保留来源核查，仅更新受时间和接收范围影响的稿件',
+    evidence: '计划版本差异',
+  },
+];
+
+export const storySnapshots = [
+  {
+    id: 'party-history',
+    name: '第13—14次党组会',
+    at: '2026-09-25 17:30',
+    source: 'M13-MINUTES-v2 / COR-13-01 / M14-EVAL',
+    process:
+      '第13次更正后的有效依据进入第14次计划，时间和接收范围变更仅重做受影响工作。',
+    risk: '读取不扩权；通知与纪要逐项确认。纪要受理不等于审定。',
+    result:
+      '固定评测样本通过证据、来源更正及权限三项质量门。承诺依据与源系统状态分别记录。',
+  },
+  {
+    id: 'payment-history',
+    name: '财政支付审查',
+    at: '2026-09-08 09:00',
+    source: 'PAY-1 / PAY-2 / ORG-ADOPT-01',
+    process:
+      '关键词提示疑点，用户补充业务语境，先核资金性质再核适用依据。个人方法v1贡献快照形成组织独立v1.0，个人后续v2不覆盖组织版。',
+    risk: '人工判断与正式审批分离；回写只含审查意见和草稿，不进行支付审批或拨付。',
+    result: '两笔疑点保留补充说明要求；合成回写记录不证明真实业务提交。',
+  },
+  {
+    id: 'maintenance-history',
+    name: '运维申报与反馈',
+    at: '2026-09-08 09:00',
+    source: 'CZ-OA-20260907-018 / 材料v4',
+    process:
+      '先咨询岗位指引，明确办理请求后核对资产与服务边界，再整理材料和费用测算。',
+    risk: '费用为案例测算；本人告知已手动提交，与源系统受理回执分别记录。',
+    result: '材料v4保留，反馈待核；续办形成新版本，不重放历史提交。',
+  },
+  {
+    id: 'annual-brainstorm',
+    name: '年度工作报告',
+    at: '2026-09-19 09:05',
+    source: '13岗位 / 两轮协作 / 用户结构裁决',
+    process:
+      '13个岗位按五组提供观点，经两轮交叉审阅，用户选择以业务效果组织成果，删除无依据数字。',
+    risk: '计划事实截止11月30日，当前未到期指标全部待核；岗位意见不能冒充正式组织决定。',
+    result:
+      '主稿、事实核验、政策回应、分歧裁决四项成果；未核实内容不能进入正式成效结论。',
+  },
+  {
+    id: 'data-history',
+    name: '跨系统分析与隐私处置',
+    at: '2026-09-18 09:05',
+    source: '来文〔2026〕87号 / DATA-RISK-01 / LOCAL-DATA-v2',
+    process:
+      '分别从数字资源、人口基础信息、民政服务和政务服务四个来源完成授权读取，经过字段映射、时点对齐和跨源推理后，拟外发结果出现可识别个人或小群体的组合隐私风险，系统主动停止生成与外发；用户给出脱敏和部分删减指令后重新生成聚合版。',
+    risk: '强制阻断不设绕过；接收方、用途、范围和版本变化均使旧确认失效。',
+    result:
+      '脱敏、删减后的聚合v2通过结果粒度复核，经用户单独确认取得合成受理回执；原始敏感分析保持阻断。',
+  },
+];

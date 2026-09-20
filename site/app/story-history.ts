@@ -1,0 +1,382 @@
+import type { WorkspaceState } from './fiscal-domain.ts';
+import { MEETING_13, CASE_SOURCE } from './shared/story-corpus.ts';
+export type StoryRound = {
+  version: number;
+  anchor: string;
+  artifact: string;
+  stage: 'review' | 'confirm' | 'done';
+  mode: string;
+  request: string;
+  receiver: string;
+  receipt?: string;
+};
+const titles: Record<string, string> = {
+  'party-history': MEETING_13.title,
+  'data-history': '跨系统分析 · 隐私处置与结果外发',
+};
+const fixture: Record<
+  string,
+  { date: string; messages: [string, string][]; files: [string, string][] }
+> = {
+  'party-history': {
+    date: '2026-09-16',
+    messages: [
+      ['user', '准备第13次党组会，梳理上次决定、本次议题和督办情况。'],
+      [
+        'assistant',
+        '已核对OA、议题报送和督办跟踪的授权范围。计划先核对决定，再收集材料、形成会前稿；正式发送另行确认。',
+      ],
+      ['user', '按该范围推进。验收事项要检查附件，不能只看完成标签。'],
+      [
+        'assistant',
+        '已形成议程、落实清单、督办情况和通知工作稿。发现技术验收状态与手续附件不齐并存，单列核查，不作整体办结结论。',
+      ],
+      [
+        'user',
+        '保留待核项。确认发送本次通知给办公室及相关报送处室，只含会议时间和报送要求。',
+      ],
+      [
+        'assistant',
+        '通知已取得合成回执LOCAL-M13-NOTICE。该历史选择已完成，不能重复执行。',
+      ],
+      [
+        'user',
+        '会后记录：基础设施处补齐验收支撑材料，9月23日16:00前报送。进度统计待责任处室核实后引用。',
+      ],
+      [
+        'assistant',
+        '纪要工作稿已形成，新责任按会议记录原文保留，提交尚待确认。',
+      ],
+      ['user', '纪要已审阅，确认提交至办公室会务审核岗。'],
+      [
+        'assistant',
+        '已记录合成提交受理结果。随后会务审核形成M13-MINUTES-v2，第三项决定进入承诺跟踪；过程与依据保留在材料中。',
+      ],
+      [
+        'user',
+        '9月21日责任处室更正：原“验收完成”仅指技术验收，手续材料尚未齐套。',
+      ],
+      [
+        'assistant',
+        MEETING_13.correctionText +
+          ' 当前背景已更新，原始记录仍保留供追溯。个人核对方法自动记录，未发布组织制度。',
+      ],
+    ],
+    files: [
+      [
+        '第13次党组会会前材料',
+        '# 第13次党组会会前材料\n\n## 议程\n核对上次决定、审阅报送议题、核查督办进展。\n\n## 材料核查\n技术验收状态与附件齐套分别核验；手续材料缺失列为待补。\n\n## 通知\n向本人获准通知的办公室及报送处室发送会议安排；合成回执LOCAL-M13-NOTICE。\n\n当时选择与结果为只读历史。',
+      ],
+      [
+        '第13次党组会纪要与跟踪依据',
+        `# 第13次党组会纪要与跟踪依据\n\n依据：${MEETING_13.source}\n\n## 第三项决定\n${MEETING_13.open}\n\n## 后续来源更正\n${MEETING_13.correctionText}\n\n## 当前有效背景\n材料待补，不能标记整体办结。统计口径未经核实不引用。\n\n## 已用方法\n${MEETING_13.method}`,
+      ],
+    ],
+  },
+  'data-history': {
+    date: '2026-09-18',
+    messages: [
+      [
+        'user',
+        '根据办公室来文〔2026〕87号，汇聚相关系统数据，分析数据资源与服务短板，形成报市政府办公厅的报告。',
+      ],
+      [
+        'assistant',
+        '已从4个来源完成授权读取：一体化数字资源管理系统提供数据资源目录、共享服务和接口可用状态；人口基础信息服务提供年龄区间与街道归属授权字段；民政服务数据接口提供独居服务标记与服务覆盖字段；一体化政务服务平台提供办件数量、事项类型和办理时长。完成字段映射、时点对齐和跨源分析后，准备生成拟外发报告时，安全检查发现：推理结果将年龄、街道、独居情况与办件记录交叉后，可能识别特定个人或小群体，涉及个人隐私。我已主动停止报告生成与外发，未向市政府办公厅提交，也未形成可外发的原始版本。请明确脱敏和删减要求后再继续。',
+      ],
+      [
+        'user',
+        '按以下方式处理：姓名、证件号码等直接标识全部脱敏；删除独居情况与办件明细的交叉分析；年龄改为区间，街道数据只保留全区汇总；不提供能够回推个人或小群体的分组。',
+      ],
+      [
+        'assistant',
+        '已按指令完成脱敏和部分删减，并重新生成聚合报告v2，内容包括总体情况、服务短板、原因分析和改进建议。复核未发现可回推个人或小群体的结果。当前版本仅为待审阅工作稿，尚未外发；原始敏感分析仍保持阻断。',
+      ],
+      [
+        'user',
+        '审阅通过。确认只提交聚合报告v2给市政府办公厅，用于本次来文办理。',
+      ],
+      [
+        'assistant',
+        '已记录合成受理回执LOCAL-DATA-v2。提交对象、报告版本、办理用途及此前的隐私阻断记录均已保留；源系统正式状态仍需实际核验。',
+      ],
+    ],
+    files: [
+      [
+        '数据资源与服务短板报告（聚合版）',
+        '# 数据资源与服务短板报告\n\n版本v2；来文〔2026〕87号。\n\n## 数据来源\n一体化数字资源管理系统的数据资源目录、共享服务和接口状态；人口基础信息服务的年龄区间与街道归属授权字段；民政服务数据接口的独居服务标记与服务覆盖字段；一体化政务服务平台的办件数量、事项类型和办理时长。\n\n## 总体情况\n四个来源按固定阶段快照完成口径映射和全区聚合，用于描述数据资源供给、服务覆盖与办件运行情况，不输出个人或小群体画像。\n\n## 服务短板\n跨系统字段口径、统计时点和授权范围尚需持续对齐。\n\n## 原因分析\n仅保留不能回推个人的聚合结论；删除独居情况与办件明细的交叉分析，年龄采用区间，街道数据降为全区汇总。\n\n## 改进建议\n统一口径、按最小必要范围汇聚，并在外发前复核结果粒度、接收方和用途。\n\n直接标识已脱敏，敏感交叉分析已删减；统计数字待核。',
+      ],
+      [
+        '隐私风险阻断与处置记录',
+        '# DATA-RISK-01\n\n## 来源与触发原因\n一体化数字资源管理系统提供资源与服务底表，人口基础信息服务提供年龄区间和街道字段，民政服务数据接口提供独居服务标记，一体化政务服务平台提供办件统计。四次单源读取均在授权范围内，但汇聚后的初步分析将年龄、街道、独居情况与办件记录交叉推理，产生了可能识别特定个人或小群体的组合隐私风险。\n\n## 系统动作\n在生成拟外发报告时主动停止，未提交、未形成可外发的原始敏感版本。预览、再检查或内部可读均不能解除阻断。\n\n## 用户处置指令\n直接标识脱敏；删除独居情况与办件明细的交叉分析；年龄改为区间；街道降为全区汇总；移除可回推个人或小群体的分组。\n\n## 最终结果\n重新生成聚合报告v2并复核，随后单独确认接收方、内容和用途。合成受理回执LOCAL-DATA-v2；原隐私阻断记录继续保留。',
+      ],
+    ],
+  },
+};
+function addMessage(
+  s: WorkspaceState,
+  id: string,
+  role: 'user' | 'assistant',
+  text: string,
+  at?: string,
+) {
+  const task = s.memory.tasks.find((t) => t.id === id)!;
+  const mid = `history-event-${++s.memory.counter}`;
+  task.messages.push({
+    id: mid,
+    role,
+    text,
+    at:
+      at ||
+      new Date(
+        Math.max(s.memory.now, Date.parse('2026-09-25T17:30:00+08:00')) +
+          s.memory.counter * 1000,
+      ).toISOString(),
+  });
+  return mid;
+}
+function addArtifact(
+  s: WorkspaceState,
+  id: string,
+  name: string,
+  body: string,
+  version: number,
+  anchor: string,
+  at: string,
+) {
+  const key = `history-artifact-${++s.memory.counter}`;
+  s.artifacts[key] = {
+    id: key,
+    taskId: id,
+    name,
+    body: body + `\n\n---\n来源：${CASE_SOURCE}；不代表真实系统提交。`,
+    version,
+    originMessageId: anchor,
+    createdAt: at,
+    source: CASE_SOURCE,
+    annotations: [],
+  };
+  return key;
+}
+export function seedStoryHistory(s: WorkspaceState) {
+  addMessage(
+    s,
+    'payment-history',
+    'user',
+    '查看个人方法修订与组织采纳版本的来源关系。',
+    '2026-09-08T09:00:00+08:00',
+  );
+  const methodAnchor = addMessage(
+    s,
+    'payment-history',
+    'assistant',
+    '组织采纳依据ORG-ADOPT-01已关联本人提交的方法v1快照。9月8日本人将方法补充为个人v2，组织独立v1.0保持不变；不含个人原始单据。',
+    '2026-09-08T09:00:00+08:00',
+  );
+  addArtifact(
+    s,
+    'payment-history',
+    '个人方法与组织版本来源对照',
+    '# 方法来源对照\n\n个人方法v1快照提交后，组织经评测审批以ORG-ADOPT-01独立发布v1.0。本人后续v2增加资金性质和适用条件核对，不自动覆盖组织版本。\n\n组织版本仅供本人获准使用的岗位咨询，原单据与他人私有记忆不共享。',
+    2,
+    methodAnchor,
+    '2026-09-08T09:00:00+08:00',
+  );
+  for (const [id, x] of Object.entries(fixture)) {
+    const at = x.date + 'T09:00:00+08:00';
+    s.memory.tasks.push({
+      id,
+      title: titles[id],
+      context: '已发生工作；原记录只读，续聊追加新轮次',
+      messages: [],
+      grants: [],
+      pending: [],
+      uses: [],
+      type: 'work',
+      planIds: [],
+      savedScroll: 0,
+    });
+    let anchor = '';
+    x.messages.forEach(([role, text], i) => {
+      anchor = addMessage(
+        s,
+        id,
+        role as 'user' | 'assistant',
+        text,
+        id === 'party-history' && i >= 10
+          ? '2026-09-21T10:00:00+08:00'
+          : new Date(Date.parse(at) + i * 60000).toISOString(),
+      );
+    });
+    x.files.forEach(([name, body]) =>
+      addArtifact(
+        s,
+        id,
+        name,
+        body,
+        id === 'data-history' || name.includes('纪要与跟踪依据') ? 2 : 1,
+        anchor,
+        s.memory.tasks.find((t) => t.id === id)!.messages.at(-1)!.at,
+      ),
+    );
+  }
+}
+const known = [
+  'party-history',
+  'data-history',
+  'payment-history',
+  'maintenance-history',
+];
+export function continueStory(
+  s: WorkspaceState,
+  id: string,
+  text: string,
+): boolean {
+  if (!known.includes(id)) return false;
+  addMessage(s, id, 'user', text);
+  s.memory.tasks.find((t) => t.id === id)!.draftText = '';
+  if (
+    !/修改|补充|继续|重新|再次|内部|聚合|脱敏|材料|反馈|核查|观点|案例|范围|申报|办理|咨询|调整|报告/.test(
+      text,
+    )
+  ) {
+    addMessage(
+      s,
+      id,
+      'assistant',
+      '请说明本轮要修改的材料、核查范围或反馈内容。原结果保留；超出已有案例的事项需要补充依据，不能直接推定已办理。',
+    );
+    return true;
+  }
+  const old = s.storyRounds[id];
+  if (old?.stage === 'confirm') old.stage = 'review';
+  const version =
+    Math.max(
+      old?.version || 1,
+      ...Object.values(s.artifacts)
+        .filter((a) => a.taskId === id)
+        .map((a) => a.version),
+    ) + 1;
+  let mode = '工作稿',
+    body = '',
+    receiver = '';
+  if (id === 'data-history') {
+    if (
+      /(接收方|外发给|发送至|提交给)/.test(text) &&
+      !/市政府办公厅|内部/.test(text)
+    ) {
+      addMessage(
+        s,
+        id,
+        'assistant',
+        '新的接收方不在本次来文授权范围内。请补充用途与授权依据；原发送确认已失效，本轮未提交。',
+      );
+      return true;
+    }
+    if (/明细|个人画像|取消.*阻断|绕过|强制外发/.test(text)) {
+      addMessage(
+        s,
+        id,
+        'assistant',
+        '该请求会重新生成可识别个人或小群体的分析结果。我已停止报告生成与外发，本轮未提交。请明确脱敏和删减要求，或改为不能回推个人的聚合分析；“再检查”和“内部可读”都不会自动解除阻断。',
+      );
+      return true;
+    }
+    mode = /内部/.test(text) ? '内部版' : '聚合版';
+    receiver = mode === '聚合版' ? '市政府办公厅' : '';
+    body = `## 本轮范围\n${text}\n\n## 处理过程\n先在授权范围内汇聚数据并形成分析结果，再检查分析推理是否产生新的个人隐私风险。发现可识别个人或小群体的结果时，停止报告生成与外发，等待本人给出脱敏和删减要求。\n\n## 四项内容\n总体情况：只采用不能回推个人的聚合口径。\n服务短板：核对字段口径和统计时点。\n原因分析：删除独居情况与办件明细的交叉分析，年龄采用区间，街道降为全区汇总。\n改进建议：按最小必要范围处理，并在外发前复核结果粒度、接收方和用途。\n\n${mode === '内部版' ? '本轮只形成授权范围内的内部工作稿，不提供外发操作；内部可读不能解除原隐私阻断。' : '直接标识已脱敏，可回推个人或小群体的分组已删除；数值缺少来源时继续待核。'}`;
+  } else if (id === 'payment-history') {
+    body = `## 本轮核查要求\n${text}\n\n## 已用方法\n先核对资金性质、合同标的与支付对象，再核对依据。产品名中的“绩效分析”不能直接判作人员奖励。\n\n## 待本人判断\n新期间支付数据尚未提供，疑点和金额保持待核。本轮形成核查清单，不沿用历史批准或回写结果。`;
+  } else if (id === 'maintenance-history') {
+    body = `## 本轮补充与反馈\n${text}\n\n## 材料校验\n项目范围、资产清单、费用测算和反馈要求逐项核对；材料修订形成新版本。\n\n## 提交来源\n历史为本人报告手动提交。新反馈按本人提供记录，未核验源系统，不标记正式受理或审批完成。\n\n## 下一步\n据反馈补齐依据后，由本人审阅材料并在授权系统提交。`;
+  } else if (id === 'party-history') {
+    body = `## 本轮续接\n${text}\n\n${MEETING_13.open}\n\n${MEETING_13.correctionText}\n\n本轮只整理跟踪材料；第14次会议从“继续上次工作”的党组会入口开始。`;
+  }
+
+  const anchor = addMessage(
+    s,
+    id,
+    'assistant',
+    `本轮${mode} v${version}已形成，请预览。历史材料及当时选择保持原样，修改意见继续在此对话追加。`,
+  );
+  const artifact = addArtifact(
+    s,
+    id,
+    `${s.memory.tasks.find((t) => t.id === id)!.title} · ${mode}`,
+    `# ${mode} v${version}\n\n${body}`,
+    version,
+    anchor,
+    new Date(
+      Math.max(s.memory.now, Date.parse('2026-09-25T17:30:00+08:00')) +
+        s.memory.counter * 1000,
+    ).toISOString(),
+  );
+  s.storyRounds[id] = {
+    version,
+    anchor,
+    artifact,
+    stage: 'review',
+    mode,
+    request: text,
+    receiver,
+  };
+  return true;
+}
+export function decideStory(
+  s: WorkspaceState,
+  id: string,
+  version: number,
+  choice: 'prepare' | 'submit' | 'cancel' | 'keep',
+) {
+  const r = s.storyRounds[id];
+  if (!r || r.version !== version || r.stage === 'done') return;
+  if (choice === 'prepare' && r.stage === 'review' && r.receiver) {
+    r.stage = 'confirm';
+    r.anchor = addMessage(
+      s,
+      id,
+      'assistant',
+      `脱敏与删减后的聚合报告 v${version} 已通过结果粒度复核。是否确认提交至${r.receiver}，用于来文〔2026〕87号办理？原始敏感分析仍保持阻断。`,
+    );
+  } else if (choice === 'submit' && r.stage === 'confirm' && r.receiver) {
+    r.stage = 'done';
+    r.receipt = `LOCAL-DATA-v${version}`;
+    addMessage(s, id, 'user', `确认本次聚合报告v${version}提交。`);
+    r.anchor = addMessage(
+      s,
+      id,
+      'assistant',
+      `已记录合成受理回执${r.receipt}。源系统正式状态以实际核验为准。`,
+    );
+  } else if (choice === 'cancel' && r.stage === 'confirm') {
+    r.stage = 'review';
+    r.anchor = addMessage(
+      s,
+      id,
+      'assistant',
+      '已取消本次提交，保留当前工作稿。',
+    );
+  } else if (choice === 'keep' && r.stage === 'review') {
+    r.stage = 'done';
+    r.anchor = addMessage(
+      s,
+      id,
+      'assistant',
+      '已保留本轮成果；没有执行正式提交。后续可继续追加修改。',
+    );
+  }
+}
+
+export const retiredHistoryIds = ['annual-history', 'consultation-history'];
+export function removeDuplicateHistory(s: WorkspaceState) {
+  s.memory.tasks = s.memory.tasks.filter(
+    (t) => !retiredHistoryIds.includes(t.id),
+  );
+  for (const id of retiredHistoryIds) {
+    delete s.storyRounds[id];
+    delete s.folderTasks[id];
+  }
+  for (const [id, artifact] of Object.entries(s.artifacts)) {
+    if (retiredHistoryIds.includes(artifact.taskId)) delete s.artifacts[id];
+  }
+}

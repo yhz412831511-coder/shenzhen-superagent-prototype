@@ -4,7 +4,13 @@
 
 <https://yhz412831511-coder.github.io/shenzhen-superagent-prototype/>
 
-这是用户端交互原型，包含统一任务工作台、历史任务、任务概览、内置浏览器、成果审阅与批注、资料库、AI Memory、专业智能体、技能、插件与连接器、自动化、模型调度以及输入区命令／权限／语音交互。
+这是三产品统一交互原型，包含超级智能体、智能体管理后台和记忆管理系统。超级智能体提供统一任务工作台、历史任务、任务概览、内置浏览器、成果审阅与批注、资料库、专业智能、工作技能、系统与工具、自动化和模型调度；管理后台提供组织、能力、Token、评测、运行与安全治理；记忆管理系统提供六类记忆、来源证据、生命周期、授权调用与异常治理。
+
+三个产品共用一个长期维护地址：
+
+- 超级智能体：<https://yhz412831511-coder.github.io/shenzhen-superagent-prototype/>
+- 智能体管理后台：<https://yhz412831511-coder.github.io/shenzhen-superagent-prototype/?product=admin>
+- 记忆管理系统：<https://yhz412831511-coder.github.io/shenzhen-superagent-prototype/?product=memory-system>
 
 本仓库同时作为超级智能体、智能体管理后台和记忆管理系统的统一原型入口。三个产品的地址、接入方式和后续目录约定见 [UNIFIED_PRODUCT_ENTRY.md](UNIFIED_PRODUCT_ENTRY.md)，本地实施约束见 [AGENTS.md](AGENTS.md)。
 

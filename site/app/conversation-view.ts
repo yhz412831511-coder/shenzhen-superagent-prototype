@@ -179,6 +179,18 @@ const operationNames: Record<string, string> = {
   'submit-project': '提交项目申报',
   track: '创建反馈追踪',
   consultation: '咨询专业智能体',
+  'read-resource-catalog': '读取数据资源目录与共享服务清单',
+  'read-population-summary': '读取人口基础信息授权字段',
+  'read-civil-affairs-summary': '读取民政服务授权字段',
+  'read-service-cases': '读取政务服务办件统计',
+  'harmonize-data': '统一字段口径和统计时点',
+  'analyse-service-gaps': '分析数据资源与服务短板',
+  'check-derived-privacy': '检查拟外发结果的个人隐私风险',
+  'deidentify-results': '脱敏直接身份标识',
+  'remove-sensitive-inference': '删除敏感交叉分析',
+  'regenerate-aggregate-report': '重新生成聚合报告v2',
+  'recheck-derived-privacy': '复核拟外发报告',
+  'submit-sanitized-report': '提交脱敏、删减后的聚合报告v2',
 };
 export function operationTitle(op: Operation) {
   return `${op.status === '成功' ? '已' : ''}${operationNames[op.cmd] || op.scope}`;
@@ -201,6 +213,8 @@ export function confirmationResolution(op: Operation, operations: Operation[]) {
 
 /** Authorization precedes execution; never infer authorization from success alone. */
 export function authorizationLabel(op: Operation) {
+  if (op.cmd === 'check-derived-privacy' && op.status === '已阻止')
+    return '隐私检查未通过';
   if (op.risk === '无') return '本地处理';
   if (!op.checks.length) return '鉴权待核实';
   if (op.status === '待确认') return '待授权确认';

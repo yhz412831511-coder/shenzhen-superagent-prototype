@@ -1291,6 +1291,16 @@
   overflow-x: auto;
   margin: 20px 0;
 }
+.fw-analysis-source-table {
+  min-width: 0 !important;
+}
+.fw-analysis-source-table th {
+  width: 132px;
+  white-space: nowrap;
+}
+.fw-analysis-source-table td {
+  color: var(--ui-text);
+}
 .fw-app table {
   width: 100%;
   border-collapse: collapse;
@@ -1653,13 +1663,48 @@
 }
 
 /* Catalog categories stay visible at every viewport size. */
-.fw-category-filters { border: 0; padding: 0; min-width: 0; display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
-.fw-category-filters button { border: 1px solid var(--ui-border); border-radius: 8px; padding: 7px 12px; background: var(--ui-surface); color: var(--ui-muted); font: inherit; font-size: var(--ui-font-control); overflow-wrap: anywhere; }
-.fw-category-filters button:hover { background: var(--ui-hover); }
-.fw-category-filters button[aria-pressed='true'] { background: var(--ui-brand-soft); border-color: var(--ui-brand-border); color: var(--ui-brand); }
-.fw-skill-form { display: grid; gap: 20px; max-width: 720px; }
-.fw-skill-form label { display: grid; gap: 8px; min-width: 0; }
-.fw-skill-form input, .fw-skill-form textarea { width: 100%; min-width: 0; }
+.fw-category-filters {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+.fw-category-filters button {
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  padding: 7px 12px;
+  background: var(--ui-surface);
+  color: var(--ui-muted);
+  font: inherit;
+  font-size: var(--ui-font-control);
+  overflow-wrap: anywhere;
+}
+.fw-category-filters button:hover {
+  background: var(--ui-hover);
+}
+.fw-category-filters button[aria-pressed='true'] {
+  background: var(--ui-brand-soft);
+  border-color: var(--ui-brand-border);
+  color: var(--ui-brand);
+}
+.fw-skill-form {
+  display: grid;
+  gap: 20px;
+  max-width: 720px;
+}
+.fw-skill-form label {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.fw-skill-form input,
+.fw-skill-form textarea {
+  width: 100%;
+  min-width: 0;
+}
 
 .fw-visually-hidden {
   position: absolute;

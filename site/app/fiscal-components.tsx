@@ -1,4 +1,6 @@
 'use client';
+import { StoryAttachment } from './story-components';
+import { PartyAttachment } from './party-components';
 import { oaAssignment } from './fiscal-catalog';
 import { currentUser } from './current-user';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
@@ -774,7 +776,8 @@ export function Conversation({
 }) {
   const { state, dispatch } = useWorkspace(),
     flow = state.flows[task.id],
-    brainstorm = state.brainstorm.flows[task.id];
+    brainstorm = state.brainstorm.flows[task.id],
+    party = state.party[task.id];
   const { value: appearance } = useAppearance();
   const initialScroll = useRef(task.savedScroll);
   const lastScroll = useRef(task.savedScroll);
@@ -813,7 +816,9 @@ export function Conversation({
     last.current = task.messages.length;
     return () => cancelAnimationFrame(frame);
   }, [task.messages]);
-  const artifactIds = flow?.artifactIds || brainstorm?.artifactIds || [];
+  const artifactIds = Object.values(state.artifacts)
+    .filter((a) => a.taskId === task.id)
+    .map((a) => a.id);
   const arts = artifactIds.map((id) => state.artifacts[id]).filter(Boolean);
   const turns = conversationTurns(
     task,
@@ -943,6 +948,19 @@ export function Conversation({
                         )}
                       </div>
                     )}
+                    <StoryAttachment
+                      taskId={task.id}
+                      messageId={m.id}
+                      onOpen={onOpen}
+                    />
+                    {party && (
+                      <PartyAttachment
+                        key={`${m.id}-${party.planVersion}`}
+                        flow={party}
+                        messageId={m.id}
+                        onOpen={onOpen}
+                      />
+                    )}
                     {brainstorm ? (
                       <BrainstormAttachment
                         flow={brainstorm}
@@ -953,29 +971,43 @@ export function Conversation({
                   </article>
                 );
               })}
-            {turn.artifacts.length > 0 && (
-              <div className="fw-turn-artifacts" aria-label="本轮成果">
-                {turn.artifacts.slice(0, 3).map((a) => (
-                  <ArtifactRow
-                    key={a.id}
-                    art={a}
-                    onOpen={() => onOpen({ kind: 'artifact', id: a.id })}
-                  />
-                ))}
-                {turn.artifacts.length > 3 && (
-                  <details className="fw-artifact-more">
-                    <summary>另有 {turn.artifacts.length - 3} 项成果</summary>
-                    {turn.artifacts.slice(3).map((a) => (
-                      <ArtifactRow
-                        key={a.id}
-                        art={a}
-                        onOpen={() => onOpen({ kind: 'artifact', id: a.id })}
-                      />
-                    ))}
-                  </details>
-                )}
-              </div>
-            )}
+            {turn.artifacts.length > 0 &&
+              !turn.blocks.some(
+                (block) =>
+                  block.message.id === state.storyRounds[task.id]?.anchor,
+              ) &&
+              !(
+                party &&
+                ['review', 'minutes'].includes(party.stage) &&
+                turn.blocks.some((block) => block.message.id === party.anchor)
+              ) && (
+                <details
+                  className="fw-turn-artifacts fw-compact-artifacts"
+                  aria-label="本轮成果"
+                  open={!party && !state.storyRounds[task.id]}
+                >
+                  <summary>查看本轮 {turn.artifacts.length} 项成果</summary>
+                  {turn.artifacts.slice(0, 3).map((a) => (
+                    <ArtifactRow
+                      key={a.id}
+                      art={a}
+                      onOpen={() => onOpen({ kind: 'artifact', id: a.id })}
+                    />
+                  ))}
+                  {turn.artifacts.length > 3 && (
+                    <details className="fw-artifact-more">
+                      <summary>另有 {turn.artifacts.length - 3} 项成果</summary>
+                      {turn.artifacts.slice(3).map((a) => (
+                        <ArtifactRow
+                          key={a.id}
+                          art={a}
+                          onOpen={() => onOpen({ kind: 'artifact', id: a.id })}
+                        />
+                      ))}
+                    </details>
+                  )}
+                </details>
+              )}
             {flow?.agentId &&
               turn.blocks.some(
                 (b) =>
@@ -1299,13 +1331,29 @@ export function ArtifactPreview({
         <span>{artifact.name}</span>
         <Tag>v{artifact.version}</Tag>
         <Tag>只读预览</Tag>
-        {artifact.version !== state.flows[artifact.taskId]?.version && (
-          <Tag tone="amber">历史版本 · 当前办理不再采用</Tag>
-        )}
+        {state.party[artifact.taskId]?.noticeArtifact === artifact.id &&
+          state.party[artifact.taskId]?.stage === 'sent' && (
+            <Tag>发送前内容快照 · 已关联合成回执</Tag>
+          )}
+        {artifact.version !==
+          ((state.party[artifact.taskId]?.minutesArtifact === artifact.id
+            ? state.party[artifact.taskId]?.minutesVersion
+            : state.party[artifact.taskId]?.planVersion) ??
+            state.brainstorm.flows[artifact.taskId]?.version ??
+            Math.max(
+              ...Object.values(state.artifacts)
+                .filter(
+                  (a) =>
+                    a.taskId === artifact.taskId && a.name === artifact.name,
+                )
+                .map((a) => a.version),
+            )) && <Tag tone="amber">历史版本 · 当前办理不再采用</Tag>}
       </div>
       <div className="fw-paper">
         <PlainText text={artifact.body} />
         <footer>
+          数据说明：合成业务记录，界面回执不证明真实源系统操作。
+          <br />
           来源：{artifact.source}
           <br />
           形成时间：{formatTime(artifact.createdAt)}
@@ -1342,6 +1390,42 @@ export type SystemViewState = {
   tab?: string;
   edits?: Partial<Project>;
   selection?: string[];
+};
+const analysisSourceViews: Partial<
+  Record<
+    SystemId,
+    {
+      data: string;
+      handling: string;
+      contribution: string;
+      boundary: string;
+    }
+  >
+> = {
+  resources: {
+    data: '数据资源目录、共享服务清单、接口可用状态',
+    handling: '按来文涉及的资源和服务范围读取，形成固定阶段快照',
+    contribution: '形成资源供给与服务覆盖底表，供后续跨源字段映射',
+    boundary: '未读取个人明细；只读访问，未写回源系统',
+  },
+  population: {
+    data: '年龄区间、街道归属授权字段',
+    handling: '不读取姓名、证件号码等直接身份标识',
+    contribution: '用于分析不同年龄区间和区域的服务覆盖',
+    boundary: '细粒度交叉结果已阻断；外发版仅保留全区汇总',
+  },
+  civilAffairs: {
+    data: '独居服务标记、民政服务覆盖字段',
+    handling: '按本次分析最小必要范围只读获取',
+    contribution: '用于识别服务覆盖缺口；与其他来源组合时触发隐私复核',
+    boundary: '不展示源系统个人明细；外发版删除敏感交叉分析',
+  },
+  governmentServices: {
+    data: '办件数量、事项类型、办理时长',
+    handling: '限定为来文相关服务事项的统计字段',
+    contribution: '与资源供给和服务覆盖对照，识别服务短板',
+    boundary: '外发版不包含可回推个人或小群体的办件分组',
+  },
 };
 export function SystemPage({
   system,
@@ -1402,6 +1486,11 @@ export function SystemPage({
   const selectedAssets = assets.filter((a) =>
     (system === 'resources' ? flow.assetIds : flow.syncedIds).includes(a.id),
   );
+  const analysisSource =
+    flow.kind === 'analysis' ? analysisSourceViews[system] : undefined;
+  const sourceOperation = analysisSource
+    ? flow.operations.find((operation) => operation.system === system)
+    : undefined;
   return (
     <div className="fw-system">
       <header>
@@ -1427,6 +1516,49 @@ export function SystemPage({
         )}
       </div>
       <div className="fw-system-body">
+        {analysisSource && (
+          <>
+            <h2>本次授权读取结果</h2>
+            <p>
+              用于办公室来文〔2026〕87号的数据资源与服务短板分析。以下为
+              2026-09-18固定阶段快照，不展示原始个人明细。
+            </p>
+            <div className="fw-table-wrap">
+              <table className="fw-analysis-source-table">
+                <tbody>
+                  <tr>
+                    <th>返回数据</th>
+                    <td>{analysisSource.data}</td>
+                  </tr>
+                  <tr>
+                    <th>读取与处理</th>
+                    <td>{analysisSource.handling}</td>
+                  </tr>
+                  <tr>
+                    <th>进入后续分析</th>
+                    <td>{analysisSource.contribution}</td>
+                  </tr>
+                  <tr>
+                    <th>数据使用限制</th>
+                    <td>{analysisSource.boundary}</td>
+                  </tr>
+                  <tr>
+                    <th>调用结果</th>
+                    <td>
+                      {sourceOperation?.status || '待核实'} ·{' '}
+                      {sourceOperation?.receipt
+                        ? `回执 ${sourceOperation.receipt}`
+                        : '只读调用，无写回回执'}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p className="fw-meta">
+              单源读取通过不代表汇聚结果可以外发。四个来源完成字段映射与跨源推理后，组合隐私检查发现可识别个人或小群体的风险，已阻断原始分析；最终报告仅使用脱敏、删减后的聚合结果。
+            </p>
+          </>
+        )}
         {(system === 'payment' || system === 'supervision') && (
           <>
             <h2>
@@ -1526,7 +1658,7 @@ export function SystemPage({
             )}
           </>
         )}
-        {system === 'resources' && (
+        {system === 'resources' && flow.kind !== 'analysis' && (
           <>
             <h2>关联运维资产</h2>
             <p>{flow.project.name}</p>

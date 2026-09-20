@@ -172,7 +172,8 @@ html[data-theme] ::selection {
 .fw-theme-toggle {
   margin-left: auto;
 }
-.fw-product-switcher + .fw-theme-toggle {
+/* The menu inserts focus guards between these controls while open. */
+.fw-product-switcher ~ .fw-theme-toggle {
   margin-left: 0;
 }
 .fw-theme-toggle + .fw-top-action {
@@ -1869,11 +1870,13 @@ html[data-reduced-motion='true']
     min-height: 44px;
   }
   .fw-conversation .fw-turn-tools {
-    height: 44px;
+    position: static;
+    height: 22px;
+    margin-top: 2px;
   }
   .fw-conversation .fw-copy {
-    min-width: 44px;
-    min-height: 44px;
+    min-width: 28px;
+    min-height: 28px;
   }
   .fw-composer-area {
     padding-right: 12px;

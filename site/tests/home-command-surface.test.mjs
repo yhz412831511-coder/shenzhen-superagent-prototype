@@ -12,17 +12,20 @@ test('首页使用左对齐任务入口并移除装饰机器人图标', () => {
     component,
     /className="fw-home-kicker">你好，\{currentUser\.name\}/,
   );
-  assert.match(component, /className="fw-recents-list"/);
-  assert.match(component, /className="fw-recent-task"/);
+  assert.match(component, /className="fw-home-continuation-grid"/);
+  assert.match(component, /className="fw-home-continuation"/);
   assert.doesNotMatch(component, /className="fw-home-icon"/);
 });
 
 test('首页保持原任务数据与打开行为', () => {
   const component = read('../app/fiscal-workbench.tsx');
 
-  assert.match(component, /\{filteredTasks\.map\(\(t\) => \(/);
+  assert.match(component, /className="fw-task-list" aria-label="最近对话"/);
   assert.match(component, /onClick=\{\(\) => openTask\(t\.id\)\}/);
-  assert.match(component, /folder \? '项目内的对话' : '最近对话'/);
+  assert.match(
+    component,
+    /item\.taskId\s*\? \(\) => openTask\(item\.taskId\)\s*: openPartyMeeting/,
+  );
   assert.match(component, /\{composer\(true\)\}/);
 });
 

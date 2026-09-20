@@ -3,10 +3,7 @@ import type { WorkTask } from './memory-domain';
 import type { BrainstormFlow } from './brainstorm-types.ts';
 import { brainstormProgress } from './brainstorm-selectors.ts';
 
-export type TaskProgressStatus =
-  | 'completed'
-  | 'in_progress'
-  | 'not_started';
+export type TaskProgressStatus = 'completed' | 'in_progress' | 'not_started';
 
 export type TaskProgressItem = {
   id: string;
@@ -88,6 +85,15 @@ const consultationSteps: StepDefinition[] = [
   { id: 'deliver', title: '交付咨询结果', stages: [] },
 ];
 
+const analysisSteps: StepDefinition[] = [
+  { id: 'read', title: '读取并汇聚授权数据', stages: [] },
+  { id: 'analyse', title: '分析数据资源与服务短板', stages: [] },
+  { id: 'privacy', title: '检查拟外发结果的隐私风险', stages: [] },
+  { id: 'revise', title: '按本人指令脱敏和删减', stages: [] },
+  { id: 'review', title: '重新生成并复核聚合报告', stages: [] },
+  { id: 'submit', title: '确认接收方和用途后提交', stages: [] },
+];
+
 function currentDetail(flow: Flow) {
   if (flow.stopped) return '任务已暂停';
   if (/等待本人确认/.test(flow.status)) return '等待本人确认';
@@ -159,7 +165,11 @@ function genericProgress(task: WorkTask) {
       !message.text.includes('未经确认不执行业务操作') &&
       !message.text.includes('已保存任务目标'),
   );
-  const active = hasResult ? definitions.length - 1 : task.commandMode === 'plan' ? 2 : 1;
+  const active = hasResult
+    ? definitions.length - 1
+    : task.commandMode === 'plan'
+      ? 2
+      : 1;
   return definitions.map<TaskProgressItem>((step, index) => ({
     id: step.id,
     title: step.title,
@@ -173,11 +183,17 @@ function genericProgress(task: WorkTask) {
 }
 
 /** A task-facing view of business progress. It never infers work from chat copy or audit records. */
-export function taskProgress(task: WorkTask, flow?: Flow, brainstorm?: BrainstormFlow): TaskProgressItem[] {
+export function taskProgress(
+  task: WorkTask,
+  flow?: Flow,
+  brainstorm?: BrainstormFlow,
+): TaskProgressItem[] {
   if (brainstorm) return brainstormProgress(brainstorm);
   if (!flow) return genericProgress(task);
   if (flow.kind === 'payment') return linearProgress(paymentSteps, flow);
-  if (flow.kind === 'maintenance') return linearProgress(maintenanceSteps, flow);
+  if (flow.kind === 'maintenance')
+    return linearProgress(maintenanceSteps, flow);
   if (flow.kind === 'feedback') return linearProgress(feedbackSteps, flow, 3);
+  if (flow.kind === 'analysis') return linearProgress(analysisSteps, flow);
   return consultationProgress(flow);
 }

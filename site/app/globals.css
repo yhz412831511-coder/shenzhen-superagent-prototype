@@ -5,6 +5,7 @@
 @import './visual-theme.css';
 @import './visual-refinement.css';
 @import './brainstorm.css';
+@import './party.css';
 @import './professional-intelligence.css';
 
 @custom-variant dark (&:is(.dark *));
@@ -52,8 +53,10 @@
 }
 
 :root {
-  --font-ui: "SF Pro Text", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif;
-  --font-code: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --font-ui:
+    'SF Pro Text', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', Arial,
+    sans-serif;
+  --font-code: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
   --background: #f6f9fe;
   --foreground: #10213d;
   --card: #ffffff;
@@ -175,8 +178,15 @@
   background-image:
     linear-gradient(rgba(95, 118, 159, 0.035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(95, 118, 159, 0.035) 1px, transparent 1px),
-    radial-gradient(circle at 68% 28%, rgba(81, 107, 218, 0.08), transparent 28%);
-  background-size: 28px 28px, 28px 28px, auto;
+    radial-gradient(
+      circle at 68% 28%,
+      rgba(81, 107, 218, 0.08),
+      transparent 28%
+    );
+  background-size:
+    28px 28px,
+    28px 28px,
+    auto;
 }
 
 .environment-panel {
@@ -190,7 +200,12 @@
   left: 24px;
   height: 1px;
   content: '';
-  background: linear-gradient(90deg, transparent, rgba(63, 99, 220, 0.75), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(63, 99, 220, 0.75),
+    transparent
+  );
 }
 
 .run-summary-card {
@@ -204,7 +219,12 @@
   left: 22px;
   height: 1px;
   content: '';
-  background: linear-gradient(90deg, transparent, rgba(65, 104, 218, 0.62), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(65, 104, 218, 0.62),
+    transparent
+  );
 }
 
 .timeline-icon.normal {
@@ -244,7 +264,10 @@
 }
 
 .document-preview {
-  background-image: linear-gradient(rgba(92, 111, 142, 0.025) 1px, transparent 1px);
+  background-image: linear-gradient(
+    rgba(92, 111, 142, 0.025) 1px,
+    transparent 1px
+  );
   background-size: 100% 22px;
 }
 
@@ -262,4 +285,27 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+/* Independent product palettes also apply to portal menus and dialogs. */
+body:has(.admin-shell),
+body:has(.mem-app) {
+  color-scheme: light;
+  --background: #f6f9fe;
+  --foreground: #10213d;
+  --card: #fff;
+  --card-foreground: #10213d;
+  --popover: #fff;
+  --popover-foreground: #10213d;
+  --primary: #075dcc;
+  --primary-foreground: #fff;
+  --secondary: #e5efff;
+  --secondary-foreground: #075dcc;
+  --muted: #edf4fd;
+  --muted-foreground: #51647f;
+  --accent: #e5efff;
+  --accent-foreground: #075dcc;
+  --border: #d7e1ef;
+  --input: #a9bcd4;
+  --ring: #075dcc;
 }

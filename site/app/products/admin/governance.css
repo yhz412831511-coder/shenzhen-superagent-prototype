@@ -1,0 +1,258 @@
+.gov-view {
+  display: grid;
+  gap: 18px;
+  color: #203b54;
+}
+.gov-lead {
+  background: #173c5c;
+  color: #fff;
+  border-radius: 10px;
+  padding: 26px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 25px;
+}
+.gov-lead small {
+  color: #acc9dd;
+  font-size: 12px;
+}
+.gov-lead h2 {
+  font-size: 23px;
+  font-weight: 600;
+  margin: 7px 0 12px;
+}
+.gov-lead p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: #d0dfeb;
+  max-width: 750px;
+}
+.gov-badge {
+  font-size: 12px;
+  padding: 6px 12px;
+  border: 1px solid #91b4ce;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.gov-panel {
+  padding: 23px;
+  background: white;
+  border: 1px solid #dce5ed;
+  border-radius: 9px;
+  min-width: 0;
+}
+.gov-panel h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 15px;
+}
+.gov-panel p {
+  font-size: 13px;
+  color: #5d7386;
+  line-height: 1.8;
+  margin: 12px 0;
+}
+.gov-section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.gov-section-title > b {
+  font-size: 12px;
+  color: #397a8b;
+}
+.gov-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.gov-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: #60768a;
+}
+.gov-form input,
+.gov-form select {
+  border: 1px solid #d7e1ea;
+  border-radius: 5px;
+  padding: 9px;
+  font-size: 13px;
+  background: #fff;
+  color: #24405a;
+  width: 100%;
+}
+.gov-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.gov-actions button {
+  border: 1px solid #bbcddb;
+  border-radius: 5px;
+  padding: 8px 13px;
+  background: #fff;
+  color: #285375;
+  font-size: 13px;
+}
+.gov-actions button:first-child {
+  background: #235e88;
+  color: white;
+  border-color: #235e88;
+}
+.gov-panel details {
+  font-size: 12px;
+  margin-top: 18px;
+}
+.gov-panel summary {
+  cursor: pointer;
+  color: #4f718b;
+}
+.gov-steps {
+  display: flex;
+  gap: 22px;
+  padding: 0;
+  list-style: none;
+  flex-wrap: wrap;
+}
+.gov-steps li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+}
+.gov-steps span {
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  background: #eef4f8;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+}
+.gov-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.gov-panel dl {
+  font-size: 13px;
+  display: grid;
+  grid-template-columns: 115px 1fr;
+  gap: 10px;
+  margin-top: 20px;
+}
+.gov-panel dt {
+  color: #7b8f9f;
+}
+.gov-panel dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.gov-table-wrap {
+  overflow-x: auto;
+}
+.gov-panel table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.gov-panel th {
+  text-align: left;
+  background: #f4f7fa;
+  font-weight: 500;
+  color: #6b7f90;
+  padding: 11px;
+}
+.gov-panel td {
+  padding: 12px 11px;
+  border-bottom: 1px solid #e7edf2;
+  max-width: 280px;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+.gov-text {
+  border: 0;
+  background: transparent;
+  color: #286b99;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+}
+.gov-error {
+  background: #fff0ed;
+  color: #99483b;
+  border: 1px solid #f1cdc5;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.admin-shell .topbar .fw-product-switcher {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #d6e2ed;
+  border-radius: 5px;
+  color: #34536e;
+  background: white;
+}
+.admin-role-select {
+  max-width: 142px;
+  border: 1px solid #d5e0e8;
+  border-radius: 5px;
+  padding: 6px;
+  color: #365774;
+  font-size: 12px;
+  background: white;
+}
+.admin-shell .sidebar .brand b {
+  font-size: 21px;
+}
+.admin-shell .sidebar .brand span {
+  font-size: 11px;
+}
+.admin-shell .sidebar .group-button {
+  font-size: 14px;
+}
+.admin-shell .workspace {
+  min-width: 0;
+}
+.admin-shell .gov-read-role {
+  font-size: 12px;
+  color: #6b7f90;
+}
+.admin-shell .topbar {
+  gap: 10px;
+}
+.admin-shell .topbar > div {
+  flex-wrap: wrap;
+}
+.admin-shell .nav-caption {
+  color: #a5bed0;
+}
+@media (max-width: 1050px) {
+  .gov-two,
+  .gov-form {
+    grid-template-columns: 1fr;
+  }
+  .gov-lead {
+    padding: 20px;
+  }
+  .admin-shell .account-label {
+    display: none;
+  }
+}
+.gov-actions button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.admin-shell .main {
+  min-width: 0;
+}
+.admin-shell .content-grid > * {
+  min-width: 0;
+}

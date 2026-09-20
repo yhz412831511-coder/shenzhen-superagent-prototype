@@ -85,13 +85,13 @@ test('截图中的穿透核查、正文、成果生成和结果正文连续显�
   assert.match(turnText(turn), /审查结果已生成/);
   assert.ok(!turnText(turn).includes('本次确认的两笔申请，核对信息完整性'));
 });
-test('7份成果逐一关联产生事件，跨任务或失联成果不混入对话', () => {
+test('全部成果逐一关联产生事件，跨任务或失联成果不混入对话', () => {
   const s = initial();
   for (const art of Object.values(s.artifacts)) {
     const task = taskFor(s, art.taskId);
     assert.ok(task.messages.some((m) => m.id === art.originMessageId));
     assert.equal(
-      conversationTurns(task, s.flows[task.id].operations, [art]).flatMap(
+      conversationTurns(task, s.flows[task.id]?.operations, [art]).flatMap(
         (t) => t.artifacts,
       ).length,
       1,

@@ -1,7 +1,10 @@
 import retained from './retained-catalog.json' with { type: 'json' };
 import profiles from './digital-person-profiles.json' with { type: 'json' };
 import agentDetails from './agent-detail-profiles.json' with { type: 'json' };
-import { builtOrganizationCarriers, unitForCarrier } from './professional-intelligence-domain.ts';
+import {
+  builtOrganizationCarriers,
+  unitForCarrier,
+} from './professional-intelligence-domain.ts';
 export const systems = {
   payment: {
     name: '智慧财政支付系统',
@@ -30,8 +33,26 @@ export const systems = {
   resources: {
     name: '一体化数字资源管理系统',
     short: '数字资源管理',
-    scope: '本单位关联项目资产；原称 CDOS',
-    path: '运维资产 / 项目资产关联',
+    scope: '数据资源目录、共享服务及本单位关联项目资产；原称 CDOS',
+    path: '资源目录 / 共享服务 / 项目资产关联',
+  },
+  population: {
+    name: '人口基础信息服务',
+    short: '人口基础信息',
+    scope: '授权范围内的年龄区间与街道归属汇总字段',
+    path: '人口基础信息 / 授权查询',
+  },
+  civilAffairs: {
+    name: '民政服务数据接口',
+    short: '民政服务数据',
+    scope: '授权范围内的独居服务标记与服务覆盖汇总字段',
+    path: '民政服务 / 主题数据接口',
+  },
+  governmentServices: {
+    name: '一体化政务服务平台',
+    short: '政务服务平台',
+    scope: '办件数量、事项类型与办理时长统计',
+    path: '政务服务 / 办件统计',
   },
 } as const;
 export type SystemId = keyof typeof systems;
@@ -164,7 +185,19 @@ export function initialCatalog(): CatalogEntry[] {
     ...(retained as CatalogEntry[]),
   ];
 }
-export const paymentWarningTerms = ['基本建设', '基建', '投资', '资本金', '股权', '绩效', '奖金', '社保', '年金', '幼儿园', '附小'];
+export const paymentWarningTerms = [
+  '基本建设',
+  '基建',
+  '投资',
+  '资本金',
+  '股权',
+  '绩效',
+  '奖金',
+  '社保',
+  '年金',
+  '幼儿园',
+  '附小',
+];
 export const originalRemarks = [
   '12-14601 转材料系等46个院系人员年薪补差-一次性奖金计税至基本户代扣代缴',
   'ERS电子资源利用绩效分析平台（数据库费）|BX2026030900029',
@@ -225,7 +258,8 @@ export const knowledgeText =
 /** 交办单号为本地故事设定，所有读取入口使用同一单据。 */
 export const oaAssignment = {
   id: 'CZ-OA-20260907-018',
-  request: '请帮我处理财政内部交办事项，单号是 CZ-OA-20260907-018。先帮我看看具体要求是什么。',
+  request:
+    '请帮我处理财政内部交办事项，单号是 CZ-OA-20260907-018。先帮我看看具体要求是什么。',
 } as const;
 
 export const paymentReturnOpinions = [
