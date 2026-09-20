@@ -1184,6 +1184,8 @@ export function Monitor({
     f = state.flows[task.id],
     brainstorm = state.brainstorm.flows[task.id],
     party = state.party[task.id];
+  const isPartyMeeting =
+    task.id === 'party-meeting-14' || task.title === '第14次党组会筹备';
   const memories = state.memory.memories.filter(
     (m) =>
       current(m).source.taskId === task.id ||
@@ -1202,8 +1204,9 @@ export function Monitor({
   const usedSystems = [
     ...new Set([
       ...(f?.operations.flatMap((o) => (o.system ? [o.system] : [])) || []),
-      ...(party?.selected.map(partySystemTargetId) ||
-        (task.id === 'party-history'
+      ...(
+        party?.selected.map(partySystemTargetId) ||
+        ((task.id === 'party-history' || isPartyMeeting)
           ? PARTY_HISTORY_SYSTEMS.map(partySystemTargetId)
           : [])),
     ]),
@@ -1269,8 +1272,8 @@ export function Monitor({
                     (system) => system.id === partySystemFromTargetId(id),
                   )?.name
                 : systems[id as SystemId]?.name}
-              <small>
-                {partySystemFromTargetId(id)
+                <small>
+                  {partySystemFromTargetId(id)
                   ? `${task.id === 'party-history' ? '第13次' : '第14次'}党组会 · ${partySystemResult(partySystemFromTargetId(id)!, task.id === 'party-history').status}`
                   : '本次任务调用'}
               </small>

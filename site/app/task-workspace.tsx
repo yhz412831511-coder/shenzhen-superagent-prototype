@@ -83,6 +83,7 @@ export function TaskWorkspace({taskId,request,visible,onClose,onMemory,onConsult
   useEffect(()=>{if(!visible)return;returnFocus.current=document.activeElement as HTMLElement;panel.current?.focus({preventScroll:true});return()=>returnFocus.current?.focus({preventScroll:true});},[visible]);
   const update=(patch:Partial<DockState>)=>setDock(old=>{const value={...old,...patch};caches.set(taskId,value);return value;});
   const task=state.memory.tasks.find(t=>t.id===taskId), flow=state.flows[taskId];
+  const isPartyMeeting = taskId === 'party-meeting-14' || task?.title === '第14次党组会筹备';
   const operationGroups=task?conversationTurns(task,flow?.operations).flatMap(turn=>turn.segments.flatMap(segment=>segment.kind==='operation-group'?[segment.group]:[])):[];
   const session=sessionFor(taskId);
   useEffect(()=>subscribeSandbox(()=>tick(n=>n+1)),[]);
@@ -140,7 +141,7 @@ export function TaskWorkspace({taskId,request,visible,onClose,onMemory,onConsult
     if(t.kind==='file')return <FilePreview file={session.files.find(f=>f.path===t.id)}/>;
     if(t.kind==='system'){
       const partySystem = partySystemFromTargetId(t.id);
-      if (partySystem && (state.party[taskId] || taskId === 'party-history'))
+      if (partySystem && (state.party[taskId] || taskId === 'party-history' || isPartyMeeting))
         return <PartySystemPage system={partySystem} historical={taskId === 'party-history'} />;
       return flow?<SystemPage system={t.id as SystemId} flow={flow} onOpen={open} view={dock.systemViews[t.id]} onViewChange={patch=>update({systemViews:{...dock.systemViews,[t.id]:{...dock.systemViews[t.id],...patch}}})}/>:<p>此任务尚无关联系统数据。</p>;
     }
