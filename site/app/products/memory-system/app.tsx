@@ -46,7 +46,6 @@ import {
   Sparkles,
   ThermometerSun,
   Trash2,
-  UserRoundCog,
   Workflow,
   X,
 } from 'lucide-react';
@@ -77,9 +76,7 @@ type PageId =
   | 'grants'
   | 'calls'
   | 'issues'
-  | 'audit'
-  | 'story-meeting'
-  | 'story-permission';
+  | 'audit';
 
 type NavItem = { id: PageId; label: string; icon: typeof Search };
 
@@ -134,8 +131,6 @@ const PAGE_TITLES: Record<PageId, string> = Object.fromEntries(
     group.items.map((item) => [item.id, item.label]),
   ),
 ) as Record<PageId, string>;
-PAGE_TITLES['story-meeting'] = '党组会跨周期续接';
-PAGE_TITLES['story-permission'] = '权限撤销与自动传播';
 
 let retainedState = createInitialMemoryState();
 let retainedView: { page: PageId; selected?: string } = { page: 'overview' };
@@ -410,25 +405,6 @@ function Overview({
             </button>
           ))}
         </div>
-      </section>
-
-      <section className="mem-story-grid">
-        <button onClick={() => go('story-meeting')}>
-          <span className="mem-story-number">故事一</span>
-          <h2>党组会跨周期续接</h2>
-          <p>看六类记忆如何从第13次会议形成第14次任务的最小必要证据包。</p>
-          <b>
-            进入故事 <ArrowUpRight size={15} />
-          </b>
-        </button>
-        <button onClick={() => go('story-permission')}>
-          <span className="mem-story-number">故事二</span>
-          <h2>权限撤销与自动传播</h2>
-          <p>看个人撤权和来源权限变化如何立即阻断调用，并保留历史审计。</p>
-          <b>
-            进入故事 <ArrowUpRight size={15} />
-          </b>
-        </button>
       </section>
 
       <details className="mem-data-note">
@@ -1080,260 +1056,6 @@ function AuditPage({ state }: { state: MemorySystemState }) {
   );
 }
 
-function MeetingStory({
-  state,
-  dispatch,
-  back,
-  openMemory,
-  onConversation,
-}: {
-  state: MemorySystemState;
-  dispatch: (action: MemoryAction) => void;
-  back: () => void;
-  openMemory: (id: string) => void;
-  onConversation: (id: string) => void;
-}) {
-  const chain: { id: string; label: string; note: string }[] = [
-    {
-      id: 'm13-episode',
-      label: 'M4 经历',
-      note: '保留第13次会议当时发生的审阅与决定',
-    },
-    {
-      id: 'm13-correction',
-      label: 'M2 有效解释',
-      note: '来源更正后，旧“整体完成”判断退出当前视图',
-    },
-    {
-      id: 'm13-method',
-      label: 'M3 核对方法',
-      note: '把已验证的证据核对做法用于下一次会议',
-    },
-    {
-      id: 'm13-working',
-      label: 'M1 当前工作',
-      note: '恢复仍待补齐的验收材料与当前阻塞',
-    },
-    {
-      id: 'm13-commitment',
-      label: 'M5 已有承诺',
-      note: '继续跟踪原纪要已经确认的责任和期限',
-    },
-    {
-      id: 'role-consult',
-      label: 'M6 权限边界',
-      note: '按当前岗位和授权范围组装证据，不扩大可见内容',
-    },
-  ];
-  return (
-    <>
-      <button className="mem-back" onClick={back}>
-        <ArrowLeft size={15} />
-        返回总览
-      </button>
-      <PageHeading
-        eyebrow="演示故事一"
-        title="党组会跨周期续接"
-        description="不是把上次聊天全部塞进新任务，而是组合当前有效、来源可追溯、权限合规的最小证据包。"
-      />
-      <section className="mem-story-stage">
-        <div className="mem-story-chain">
-          {chain.map((item, index) => {
-            const memory = state.memories.find((entry) => entry.id === item.id);
-            return (
-              <button key={item.id} onClick={() => openMemory(item.id)}>
-                <span>{index + 1}</span>
-                <div>
-                  <small>{item.label}</small>
-                  <strong>{memory?.title}</strong>
-                  <p>{item.note}</p>
-                </div>
-                <Badge tone={statusClass(memory?.state || '待核')}>
-                  {memory?.state}
-                </Badge>
-              </button>
-            );
-          })}
-        </div>
-        <aside className="mem-story-result">
-          <span>第14次任务准备</span>
-          <h2>
-            {state.meetingPackGenerated ? '证据包已生成' : '等待生成最小证据包'}
-          </h2>
-          <p>
-            {state.meetingPackGenerated
-              ? '已纳入当前工作、有效解释、核对方法、历史经历、未完承诺和权限边界；旧判断与无关记忆未进入。'
-              : '生成前将重新校验来源版本、当前权限、有效状态与明确缺口。'}
-          </p>
-          {state.meetingPackGenerated ? (
-            <>
-              <div className="mem-pack-list">
-                <span>
-                  <CheckCircle2 size={15} />
-                  6类记忆各1项
-                </span>
-                <span>
-                  <CheckCircle2 size={15} />
-                  4个来源锚点
-                </span>
-                <span>
-                  <CircleAlert size={15} />
-                  1项完成率口径待核
-                </span>
-                <span>
-                  <LockKeyhole size={15} />
-                  仅限第13—14次会议
-                </span>
-              </div>
-              <button
-                className="mem-primary"
-                onClick={() => onConversation('party-history')}
-              >
-                进入来源任务
-                <ArrowUpRight size={15} />
-              </button>
-            </>
-          ) : (
-            <button
-              className="mem-primary"
-              onClick={() => dispatch({ type: 'generate-meeting-pack' })}
-            >
-              <Sparkles size={15} />
-              生成证据包
-            </button>
-          )}
-        </aside>
-      </section>
-    </>
-  );
-}
-
-function PermissionStory({
-  state,
-  dispatch,
-  back,
-}: {
-  state: MemorySystemState;
-  dispatch: (action: MemoryAction) => void;
-  back: () => void;
-}) {
-  const grant = state.grants.find((item) => item.id === 'grant-meeting')!;
-  const source = state.sources.find((item) => item.id === 'source-meeting')!;
-  const latestCall = state.calls.find((call) => call.result === '已阻断');
-  return (
-    <>
-      <button className="mem-back" onClick={back}>
-        <ArrowLeft size={15} />
-        返回总览
-      </button>
-      <PageHeading
-        eyebrow="演示故事二"
-        title="权限撤销与自动传播"
-        description="个人授权和权威来源权限分开控制；任一失效，后续读取立即重新校验并阻断。"
-      />
-      <section className="mem-permission-story">
-        <article>
-          <header>
-            <UserRoundCog size={20} />
-            <Badge tone={statusClass(grant.status)}>{grant.status}</Badge>
-          </header>
-          <span>本人授予的AI调用范围</span>
-          <h2>{grant.ai}</h2>
-          <p>{grant.scope}</p>
-          <button
-            className={
-              grant.status === '已撤销' ? 'mem-secondary' : 'mem-danger'
-            }
-            onClick={() => dispatch({ type: 'revoke-grant', id: grant.id })}
-          >
-            {grant.status === '已撤销' ? (
-              <RotateCcw size={14} />
-            ) : (
-              <Ban size={14} />
-            )}
-            {grant.status === '已撤销' ? '恢复本人授权' : '撤销本人授权'}
-          </button>
-        </article>
-        <article>
-          <header>
-            <Database size={20} />
-            <Badge tone={statusClass(source.status)}>{source.status}</Badge>
-          </header>
-          <span>权威来源的业务权限</span>
-          <h2>{source.name}</h2>
-          <p>
-            个人不能扩大或伪造源权限；这里只演示来源系统发出撤权事件后的传播。
-          </p>
-          <button
-            className="mem-danger"
-            onClick={() => dispatch({ type: 'propagate-source-revocation' })}
-            disabled={source.status === '权限已收缩'}
-          >
-            <LockKeyhole size={14} />
-            模拟来源撤权
-          </button>
-        </article>
-      </section>
-      <section
-        className={`mem-propagation ${state.permissionPropagation ? 'active' : ''}`}
-      >
-        <div>
-          <span>1</span>
-          <strong>读取前权限复验</strong>
-          <small>
-            {state.permissionPropagation
-              ? '发现授权或来源权限变化'
-              : '等待权限变化'}
-          </small>
-        </div>
-        <ChevronRight size={17} />
-        <div>
-          <span>2</span>
-          <strong>当前视图收缩</strong>
-          <small>
-            {state.permissionPropagation
-              ? '不再返回已失效派生内容'
-              : '当前内容保持可用'}
-          </small>
-        </div>
-        <ChevronRight size={17} />
-        <div>
-          <span>3</span>
-          <strong>缓存与索引失效</strong>
-          <small>
-            {state.permissionPropagation
-              ? '权限版本已更新'
-              : '绑定当前权限版本'}
-          </small>
-        </div>
-        <ChevronRight size={17} />
-        <div>
-          <span>4</span>
-          <strong>历史审计保留</strong>
-          <small>
-            {state.permissionPropagation
-              ? '记录谁、何时、为何阻断'
-              : '不删除过去合法调用'}
-          </small>
-        </div>
-      </section>
-      {latestCall && (
-        <section className="mem-block-receipt">
-          <LockKeyhole size={22} />
-          <div>
-            <Badge tone="danger">{latestCall.result}</Badge>
-            <h2>{latestCall.purpose}</h2>
-            <p>{latestCall.evidence}</p>
-            <small>
-              {latestCall.time} · {latestCall.coverage}
-            </small>
-          </div>
-        </section>
-      )}
-    </>
-  );
-}
-
 function MemoryDetail({
   memory,
   state,
@@ -1793,23 +1515,7 @@ export default function MemoryProduct({
     if (page === 'issues')
       return <IssuesPage state={state} dispatch={dispatch} />;
     if (page === 'audit') return <AuditPage state={state} />;
-    if (page === 'story-meeting')
-      return (
-        <MeetingStory
-          state={state}
-          dispatch={dispatch}
-          back={() => go('overview')}
-          openMemory={openMemory}
-          onConversation={onConversation}
-        />
-      );
-    return (
-      <PermissionStory
-        state={state}
-        dispatch={dispatch}
-        back={() => go('overview')}
-      />
-    );
+    return <Overview state={state} go={go} onAdd={() => setAddOpen(true)} />;
   };
 
   return (
