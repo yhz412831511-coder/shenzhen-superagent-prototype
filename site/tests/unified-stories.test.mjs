@@ -182,7 +182,21 @@ test('惠企咨询以固定合成答复收尾，续聊不创建助手或外部�
   let s = initialWorkspace();
   const task = s.memory.tasks.find((item) => item.id === 'policy-consultation-history');
   assert.ok(task.messages.at(-1).text.includes('构建新的企业问答助手'));
-  assert.equal(s.flows['policy-consultation-history'], undefined);
+  assert.match(task.messages[1].text, /已识别/);
+  assert.match(task.messages[2].text, /任务规划/);
+  assert.match(task.messages[3].text, /已在本地/);
+  assert.equal(s.flows['policy-consultation-history'].operations.length, 3);
+  assert.ok(
+    s.flows['policy-consultation-history'].operations.every(
+      (operation) => !operation.system,
+    ),
+  );
+  assert.equal(
+    Object.values(s.artifacts).filter(
+      (artifact) => artifact.taskId === 'policy-consultation-history',
+    ).length,
+    0,
+  );
   const beforeArtifacts = Object.keys(s.artifacts).length;
   s = reduce(s, {
     type: 'say',
@@ -199,6 +213,11 @@ test('惠企咨询以固定合成答复收尾，续聊不创建助手或外部�
 
 test('培训讲稿只产生版本化送审工作稿，党组会与运维既有骨架不回退', () => {
   let s = initialWorkspace();
+  const training = s.memory.tasks.find((task) => task.id === 'training-speech-history');
+  assert.match(training.messages[1].text, /已识别/);
+  assert.match(training.messages[2].text, /任务规划/);
+  assert.match(training.messages[3].text, /已执行本地依据核对/);
+  assert.equal(s.flows['training-speech-history'].operations.length, 3);
   const partyBefore = structuredClone(s.memory.tasks.find((task) => task.id === 'party-history').messages);
   const maintenanceBefore = structuredClone(s.flows['maintenance-history'].operations);
   s = reduce(s, {

@@ -911,6 +911,9 @@ test('两条故事按读、本地处理、草稿写入和正式提交统一分�
     'regenerate-aggregate-report': '无',
     'recheck-derived-privacy': '中',
     'submit-sanitized-report': '高',
+    'story-intent': '无',
+    'story-plan': '无',
+    'story-execute': '无',
   };
   for (const flow of Object.values(s.flows))
     for (const op of flow.operations) {

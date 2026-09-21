@@ -649,7 +649,7 @@ export const aiMemoryStories: AiMemoryStory[] = [
     source: CASE_SOURCE,
     interaction: 'fixed',
     progress: ['解析原回答', '调用记忆依据', '形成专业答复'],
-    artifacts: ['市民原问与既有回答', '政策适配核查单', '专业答复'],
+    artifacts: [],
     learning: '保留“先核事实、再说明边界、最后给出材料与下一步”的窗口答复方法；不自动升级为组织规则。',
     closing: '如需，我可以基于这些已审核口径帮你构建新的企业问答助手。',
     evidence: [

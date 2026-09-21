@@ -1,4 +1,4 @@
-import type { WorkspaceState } from './fiscal-domain.ts';
+import type { Flow, Operation, WorkspaceState } from './fiscal-domain.ts';
 import { MEETING_13, CASE_SOURCE } from './shared/story-corpus.ts';
 export type StoryRound = {
   version: number;
@@ -118,20 +118,20 @@ const fixture: Record<
     date: '2026-09-21',
     messages: [
       ['user', '市民在深I企智能助手里问：“我们企业准备采购一批语料，能享受哪条惠企政策？”\n\n深I企智能助手回答：“请查询相关申报指南，按要求准备材料并向主管部门咨询。”\n\n这个回答太泛了。请基于我们已有经验，给我一份更专业的窗口答复。'],
-      ['assistant', '我先把原回答保留为用户提供的材料。以下专业答复只使用当前合成案例中的已授权记忆依据，不代表真实政策结论或系统查询结果。'],
+      ['assistant', '已识别为“对既有企业问答作专业补充”的窗口咨询任务：目标是说明需要核实的事实和下一步材料，不替企业作资格、金额或申报结论。原问与既有回答仅作为用户粘贴材料保留。'],
+      ['assistant', '任务规划：①保留既有回答的边界；②按当前适用条件、历史退回教训、岗位核对方法和窗口期提醒组成最小证据包；③把证据转为待核事实、材料清单和复核安排。全程不连接深I企或其他外部系统。'],
+      ['assistant', '已在本地按任务最小必要范围核对4项合成记忆依据：它们共同限制答复的判断边界，并决定三项待核事实和材料清单的排列顺序。'],
       ['assistant', '专业答复：现阶段不能仅凭“准备采购语料”确认可享受何种支持或金额。建议先核对三项事实：一是采购路径及是否存在关联关系；二是该笔支出是否已获得同类支持、支持对象和支出范围是否重叠；三是采购凭证、合同及合规材料能否一一对应。\n\n如其中任一项尚未核实，建议先形成待补材料清单并安排复核，不宜直接答复“符合条件”。本次可先准备采购路径说明、合同与凭证对应材料、已获支持情况说明；具体期限与受理规则以届时有效的正式指南为准。\n\n如需，我可以基于这些已审核口径帮你构建新的企业问答助手。'],
     ],
-    files: [
-      ['市民原问与既有回答（合成）', '# 市民原问与既有回答\n\n该材料由窗口工作人员粘贴，未连接或读取深I企系统。原回答仅作“通用答复与专业答复”的对照。'],
-      ['政策适配核查单（合成）', '# 政策适配核查单\n\n- 采购路径与关联关系：待核\n- 同类支持及适用范围：待核\n- 合同、凭证与合规材料：待核\n\n本清单不构成资格认定、金额核定或正式受理材料。'],
-      ['专业答复（合成）', '# 专业答复\n\n说明已有依据、待核事实、材料准备和下一步安排；由窗口工作人员确认后方可对外使用。'],
-    ],
+    files: [],
   },
   'training-speech-history': {
     date: '2026-09-21',
     messages: [
       ['user', '请帮我准备局长下周在市委培训班讲“AI在政务领域的发展和应用”的90分钟讲稿。希望能接续去年讲过的本局案例，同时使用当前有效口径。'],
-      ['assistant', '我先形成《历年案例沿革与本次更新清单》：旧稿中的案例保留当时表述；没有当前授权依据的进展只标注待业务处室确认，不写成既成成绩。'],
+      ['assistant', '已识别为“沿用旧稿、更新案例并形成送审工作稿”的办文任务：成果是可审阅的讲稿工作稿和待核清单，不是正式讲稿或组织口径。'],
+      ['assistant', '任务规划：①核对旧稿的案例沿革；②用案例更新依据、授课方法和当前口径组成证据包；③按“案例—做法—成效”组织90分钟提纲；④将待核项留在送审清单，由主任决定采用版本。'],
+      ['assistant', '已执行本地依据核对：旧稿表述保留当时版本，当前依据只用于标记可更新部分；没有授权来源的进展和成效均不进入正文。'],
       ['user', '按“案例—做法—成效”的结构组织；送审前把案例状态和当前口径再核一遍。'],
       ['assistant', '已形成90分钟授课提纲、讲稿初稿和待核事项清单。讲稿把历史与当前安排分开叙述；未核实成效不进入正文。请由主任审阅后确定采用版本。'],
     ],
@@ -248,6 +248,103 @@ export function seedStoryHistory(s: WorkspaceState) {
         s.memory.tasks.find((t) => t.id === id)!.messages.at(-1)!.at,
       ),
     );
+  }
+  seedAiMemoryStoryFlows(s);
+}
+
+function seedAiMemoryStoryFlows(s: WorkspaceState) {
+  const fixtures: Record<
+    'policy-consultation-history' | 'training-speech-history',
+    { kind: Flow['kind']; source: string; scopes: string[] }
+  > = {
+    'policy-consultation-history': {
+      kind: 'consultation',
+      source: '窗口人员粘贴材料 · 合成固定快照',
+      scopes: [
+        '识别“既有企业问答的专业补充”意图与答复边界',
+        '规划四项记忆依据到待核事实、材料清单和复核安排的映射',
+        '按已授权合成证据形成专业答复，不连接外部系统',
+      ],
+    },
+    'training-speech-history': {
+      kind: 'analysis',
+      source: '旧稿沿革与当前口径 · 合成固定快照',
+      scopes: [
+        '识别为讲稿沿革、案例更新与送审准备任务',
+        '规划旧稿沿革、案例依据、授课结构和待核项的核对顺序',
+        '按最小必要合成依据形成送审工作稿，不发布组织口径',
+      ],
+    },
+  };
+  for (const [id, config] of Object.entries(fixtures) as [
+    keyof typeof fixtures,
+    (typeof fixtures)[keyof typeof fixtures],
+  ][]) {
+    const task = s.memory.tasks.find((item) => item.id === id)!;
+    const assistantMessages = task.messages.filter(
+      (message) => message.role === 'assistant',
+    );
+    const operations: Operation[] = config.scopes.map((scope, index) => ({
+      id: `${id}-operation-${index + 1}`,
+      messageId: assistantMessages[index].id,
+      cmd: `story-${index === 0 ? 'intent' : index === 1 ? 'plan' : 'execute'}`,
+      risk: '无',
+      scope,
+      at: assistantMessages[index].at,
+      actor: '深圳政务超级智能体',
+      version: 1,
+      checks: [
+        {
+          label:
+            index === 2
+              ? '只使用当前任务最小必要的合成记忆依据'
+              : '不扩大任务范围或来源访问权限',
+          passed: true,
+        },
+      ],
+      status: '成功',
+      detail:
+        index === 2
+          ? '本地固定快照处理完成；未调用外部系统，未生成正式提交、发布或回执。'
+          : '本地任务组织完成；该记录只说明本次工作过程，不替代业务判断。',
+    }));
+    s.flows[id] = {
+      id,
+      kind: config.kind,
+      stage: 'complete',
+      status: '已完成',
+      source: config.source,
+      historical: true,
+      stopped: false,
+      version: 1,
+      operations,
+      artifactIds: Object.values(s.artifacts)
+        .filter((artifact) => artifact.taskId === id)
+        .map((artifact) => artifact.id),
+      decisions: [],
+      findings: [],
+      rulePassed: true,
+      written: {},
+      project: {
+        name: task.title,
+        unit: '深圳市XX局',
+        constructionUnit: '',
+        budgetUnit: '',
+        contact: '杨XX',
+        phone: '',
+        year: '2026',
+        months: '',
+        service: '',
+        history: '',
+        content: task.context,
+      },
+      assetIds: [],
+      syncedIds: [],
+      materialsVersion: 1,
+      uploadedVersion: 1,
+      submission: 'draft',
+      folder: '',
+    };
   }
 }
 const known = [
