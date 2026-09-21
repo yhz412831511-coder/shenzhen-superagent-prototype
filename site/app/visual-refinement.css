@@ -698,65 +698,6 @@ html[data-theme='light'] .fw-product-portal-account {
   padding: 4px 0;
   color: var(--ui-muted);
 }
-.fw-memory-references {
-  border: 0;
-}
-.fw-story-evidence {
-  padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, var(--ui-brand) 22%, var(--ui-border));
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--ui-brand-soft) 48%, transparent);
-}
-.fw-story-boundary {
-  margin: 7px 0;
-  line-height: 1.45;
-}
-.fw-story-evidence-list {
-  display: grid;
-  gap: 5px;
-}
-.fw-story-evidence-list > button,
-.fw-story-evidence-list > div {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 2px 8px;
-  padding: 7px 8px;
-  border: 0;
-  border-radius: 6px;
-  background: color-mix(in srgb, var(--ui-surface) 72%, transparent);
-  color: var(--ui-text);
-  text-align: left;
-}
-.fw-story-evidence-list > button:hover {
-  background: var(--ui-hover);
-}
-.fw-story-evidence-list small,
-.fw-story-evidence-list span {
-  grid-column: 1 / -1;
-  color: var(--ui-muted);
-  line-height: 1.45;
-}
-.fw-story-evidence-list svg {
-  grid-column: 2;
-  grid-row: 1;
-  color: var(--ui-muted);
-}
-.fw-story-learning {
-  display: grid;
-  gap: 3px;
-  margin-top: 9px;
-  padding-top: 8px;
-  border-top: 1px dashed var(--ui-border);
-  color: var(--ui-muted);
-  line-height: 1.5;
-}
-.fw-story-learning b { color: var(--ui-text); }
-.fw-monitor-evidence > b {
-  display: block;
-  margin: 5px 8px;
-  font-size: var(--ui-font-meta);
-  color: var(--ui-muted);
-}
 .fw-source-entry button {
   color: var(--ui-brand);
 }

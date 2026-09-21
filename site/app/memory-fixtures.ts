@@ -6,6 +6,129 @@ import type {
   Scope,
   Source,
 } from './memory-domain';
+import { memoryCases, type MemoryCase } from './shared/story-corpus.ts';
+
+function storyCasePayload(item: MemoryCase): Payload {
+  switch (item.kind) {
+    case 'M1':
+      return {
+        kind: 'working',
+        work: item.title,
+        context: item.scope,
+        keyPoints: [
+          {
+            kind: 'result',
+            text: item.content,
+            eventId: `story-${item.id}`,
+            at: `${item.date}T00:00:00+08:00`,
+          },
+        ],
+        memories: [],
+      };
+    case 'M2':
+      return {
+        kind: 'semantic',
+        term: item.title,
+        aliases: [],
+        definition: item.content,
+        context: item.scope,
+        distinction: item.evidence,
+        example: item.content,
+      };
+    case 'M3':
+      return {
+        kind: 'procedural',
+        method: item.title,
+        conditions: item.scope,
+        steps: item.content
+          .split(/[；。]/)
+          .map((step) => step.trim())
+          .filter(Boolean),
+        exceptions: item.evidence,
+      };
+    case 'M4':
+      return {
+        kind: 'episodic',
+        subtype: 'past',
+        context: item.scope,
+        event: item.content,
+        decision: item.history.at(-1)?.reason || '固定案例记录',
+        outcome: item.evidence,
+        occurredAt: `${item.date}T00:00:00+08:00`,
+      };
+    case 'M5':
+      return {
+        kind: 'episodic',
+        subtype: 'plan',
+        goal: item.content,
+        context: item.scope,
+        responsible: item.owner,
+        due: '',
+        phase: '按实际反馈复核',
+        completion: item.evidence,
+        progress: 'planned',
+      };
+    case 'M6':
+      return {
+        kind: 'functional',
+        subtype: 'formal',
+        entity: item.owner,
+        responsibility: item.content,
+        context: item.scope,
+        confirmedBy: item.source,
+      };
+  }
+}
+
+function storyCaseMemory(item: MemoryCase): Memory {
+  const scope: Scope =
+    item.kind === 'M6'
+      ? 'unit'
+      : item.owner.includes('杨XX')
+        ? 'personal'
+        : 'department';
+  const revisionId = `${item.id}-v${item.history.length || 1}`;
+  return {
+    id: item.id,
+    scope,
+    owner: item.owner,
+    current: revisionId,
+    subscribed: scope !== 'personal',
+    revisions: [
+      {
+        id: revisionId,
+        number: item.history.length || 1,
+        title: item.title,
+        payload: storyCasePayload(item),
+        application: {
+          workRole: `为“${item.taskId}”提供可下钻的固定案例记录。`,
+          applicableWork: item.scope,
+          workBenefit: item.content,
+          responsibilityBoundary: item.evidence,
+        },
+        source: {
+          taskId: item.taskId,
+          label: item.source,
+          quote: item.evidence,
+          nature: 'event',
+          accessible: true,
+        },
+        validFrom: `${item.date}T00:00:00+08:00`,
+        validTo: '',
+        recordedAt: `${item.date}T00:00:00+08:00`,
+        status: item.state === '已替代' ? 'superseded' : 'active',
+        reason: item.history.at(-1)?.reason || '固定案例建立',
+        confirmedBy: '合成固定快照',
+      },
+    ],
+    events: [
+      {
+        at: `${item.date}T00:00:00+08:00`,
+        text: '五故事固定案例装载为可下钻记忆对象',
+      },
+    ],
+  };
+}
 
 export function initialMemoryState(now: number): MemoryState {
   const date = new Date(now).toISOString();
@@ -57,7 +180,7 @@ export function initialMemoryState(now: number): MemoryState {
     events: [{ at: date, text: '从工作过程形成' }],
   });
 
-  return {
+  const state: MemoryState = {
     now,
     offset: 0,
     counter: 20,
@@ -331,4 +454,17 @@ export function initialMemoryState(now: number): MemoryState {
       ),
     ],
   };
+  const existingIds = new Set(state.memories.map((memory) => memory.id));
+  const storyTaskIds = new Set([
+    'party-history',
+    'maintenance-history',
+    'policy-consultation-history',
+    'training-speech-history',
+  ]);
+  state.memories.push(
+    ...memoryCases
+      .filter((item) => storyTaskIds.has(item.taskId) && !existingIds.has(item.id))
+      .map(storyCaseMemory),
+  );
+  return state;
 }

@@ -146,8 +146,8 @@ test('普通新任务生成五项业务进度', () => {
 test('两条新增历史任务使用故事进度，培训续办不改变历史完成状态', () => {
   let s = initial();
   for (const [id, expected] of [
-    ['policy-consultation-history', ['解析原回答', '调用记忆依据', '形成专业答复']],
-    ['training-speech-history', ['核对旧稿与案例沿革', '校验当前口径', '形成送审材料']],
+    ['policy-consultation-history', ['核对企业实际情况', '比对支持与材料', '给出窗口办理建议']],
+    ['training-speech-history', ['核对旧稿与案例沿革', '校验案例状态与当前口径', '形成并修订送审工作稿']],
   ]) {
     const progress = taskProgress(taskFor(s, id));
     assert.deepEqual(progress.map((step) => step.title), expected);
@@ -184,8 +184,18 @@ test('任务进度只保留业务步骤并实现三态视觉', () => {
     /查看此前|提交来源|定位当前待办|安全与授权|fw-monitor-attention/,
   );
   assert.match(monitor, /任务进度/);
-  assert.match(monitor, /本次工作依据/);
-  assert.match(monitor, /本次留下的经验/);
+  assert.match(monitor, /相关记忆/);
+  assert.doesNotMatch(
+    monitor,
+    /本次工作依据|本次留下的经验|参考了 .*项记忆|有界记忆证据包/,
+  );
+  assert.doesNotMatch(
+    component,
+    /可用于本次工作的记忆|授权后，相关记忆会用于这次工作|用于本次任务/,
+  );
+  assert.match(monitor, /storyMemoryIds\.has\(m\.id\)/);
+  assert.match(monitor, /onMemory\(m\.id\)/);
+  assert.match(monitor, /本次未关联可下钻的记忆/);
   assert.match(css, /text-decoration:\s*line-through/);
   assert.match(css, /fw-task-progress-spin/);
   assert.match(css, /data-reduced-motion='true'.*fw-task-progress/s);

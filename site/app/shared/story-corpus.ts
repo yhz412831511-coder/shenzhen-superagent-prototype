@@ -631,7 +631,6 @@ export type AiMemoryStory = {
   interaction: 'fixed' | 'guided' | 'existing' | 'static';
   progress: string[];
   artifacts: string[];
-  learning: string;
   closing?: string;
   evidence: StoryMemoryEvidence[];
 };
@@ -648,9 +647,8 @@ export const aiMemoryStories: AiMemoryStory[] = [
     name: '惠企政策咨询',
     source: CASE_SOURCE,
     interaction: 'fixed',
-    progress: ['解析原回答', '调用记忆依据', '形成专业答复'],
+    progress: ['核对企业实际情况', '比对支持与材料', '给出窗口办理建议'],
     artifacts: [],
-    learning: '保留“先核事实、再说明边界、最后给出材料与下一步”的窗口答复方法；不自动升级为组织规则。',
     closing: '如需，我可以基于这些已审核口径帮你构建新的企业问答助手。',
     evidence: [
       { id: 'policy-rule', label: '当前政策适用条件', source: '合成政策条件卡', condition: '仅作当前样例的待核依据', effect: '提示先核对采购路径与关联关系。', memoryId: 'policy-rule' },
@@ -665,9 +663,8 @@ export const aiMemoryStories: AiMemoryStory[] = [
     name: '局长培训讲稿',
     source: CASE_SOURCE,
     interaction: 'guided',
-    progress: ['核对旧稿与案例沿革', '校验当前口径', '形成送审材料'],
+    progress: ['核对旧稿与案例沿革', '校验案例状态与当前口径', '形成并修订送审工作稿'],
     artifacts: ['历年案例沿革与更新清单', '90分钟授课提纲', '讲稿初稿与待核清单'],
-    learning: '把旧稿沿革、当前依据和待核项分开，送审前由有权人员决定采用版本。',
     evidence: [
       { id: 'training-episode', label: '去年讲稿与修改经历', source: '合成历史讲稿', condition: '历史表述不自动更新为当前事实', effect: '定位需要补充证据的旧案例。', memoryId: 'training-episode' },
       { id: 'training-method', label: '授课组织方法', source: '已审核合成岗位包', condition: '仅适用于本类培训', effect: '采用“案例—做法—成效”结构。', memoryId: 'training-method' },
@@ -681,7 +678,6 @@ export const aiMemoryStories: AiMemoryStory[] = [
     name: '党组会准备', source: CASE_SOURCE, interaction: 'existing',
     progress: ['恢复上次决定', '核查落实与缺口', '形成会前材料'],
     artifacts: ['议程与落实清单', '督办核查稿', '会议通知工作稿'],
-    learning: '会务续接时同步保留来源更正、核对方法和未完成承诺，不以完成标签替代证据。',
     evidence: [
       { id: 'm13-correction', label: '来源更正依据', source: 'COR-13-01', condition: '只适用于第13—14次会务', effect: '阻止将技术验收写成整体办结。', memoryId: 'm13-correction' },
       { id: 'm13-method', label: '三项核对方法', source: 'M13-REVIEW-03', condition: '个人方法，未自动成为制度', effect: '同时核对材料、时点与责任意见。', memoryId: 'm13-method' },
@@ -693,7 +689,6 @@ export const aiMemoryStories: AiMemoryStory[] = [
     taskIds: [], name: '工作报告脑暴', source: CASE_SOURCE, interaction: 'existing',
     progress: ['还原目标与决策沿革', '形成有证据的主线', '保留选择理由与补证安排'],
     artifacts: ['报告主线对照', '事实与证据缺口清单', '脑暴工作稿'],
-    learning: '保留主线选择理由与补证安排，未核事实不因文字需要而写成结论。',
     evidence: [
       { id: 'annual-goal', label: '目标与成效尺度', source: '合成年度工作材料', condition: '未核实指标保持待核', effect: '区分建设进展与问题解决成效。' },
       { id: 'annual-history', label: '决策与执行沿革', source: '合成会议与审稿记录', condition: '不从结果倒推原因', effect: '支持说明措施为何形成及后续变化。' },
@@ -705,7 +700,6 @@ export const aiMemoryStories: AiMemoryStory[] = [
     taskIds: ['maintenance-history'], name: '财政系统运维费用申报', source: CASE_SOURCE, interaction: 'static',
     progress: ['读取既有申报记录', '核对资产与服务范围', '保留反馈续办边界'],
     artifacts: ['申报材料版本', '费用估算明细', '反馈跟踪记录'],
-    learning: '后续续办前重核范围与反馈，历史手动提交不等于新的系统受理或审批结果。',
     evidence: [
       { id: 'ops-working', label: '当前申报状态', source: 'CZ-OA-20260907-018', condition: '本人报告提交不等于系统回执', effect: '保持反馈跟踪而不伪造审批状态。', memoryId: 'ops-working' },
       { id: 'ops-method', label: '资产与服务范围核对法', source: '合成历史退回教训', condition: '范围变化后需重新核对', effect: '在材料形成前提示范围差异。', memoryId: 'ops-method' },

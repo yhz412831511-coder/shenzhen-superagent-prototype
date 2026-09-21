@@ -123,53 +123,6 @@ type AgentDetailProfile = {
   sampleQuestions: string[];
 };
 
-function StoryEvidencePanel({
-  taskId,
-  isBrainstorm,
-  onMemory,
-}: {
-  taskId: string;
-  isBrainstorm: boolean;
-  onMemory: (id: string) => void;
-}) {
-  const story = aiMemoryStoryForTask(taskId, isBrainstorm);
-  if (!story) return null;
-  return (
-    <details
-      className="fw-story-evidence fw-source-entry"
-      open={story.interaction === 'fixed'}
-    >
-      <summary>
-        <BrainCircuit size={14} /> 本次工作依据 · {story.evidence.length}项
-      </summary>
-      <p className="fw-story-boundary">{story.source}；仅作本地验证，不代表真实政策、案例或系统回执。</p>
-      <div className="fw-story-evidence-list">
-        {story.evidence.map((item) => {
-          const content = (
-            <>
-              <strong>{item.label}</strong>
-              <small>{item.source} · {item.condition}</small>
-              <span>影响：{item.effect}</span>
-            </>
-          );
-          return item.memoryId ? (
-            <button key={item.id} onClick={() => onMemory(item.memoryId!)}>
-              {content}
-              <ArrowUpRight size={13} />
-            </button>
-          ) : (
-            <div key={item.id}>{content}</div>
-          );
-        })}
-      </div>
-      <div className="fw-story-learning">
-        <b>本次留下的经验</b>
-        <span>{story.learning}</span>
-      </div>
-    </details>
-  );
-}
-
 function agentProfileFor(entry: CatalogEntry): AgentDetailProfile | undefined {
   if (entry.kind !== '专业智能体') return undefined;
   const officialProfile = digitalProfiles.agents.find(
@@ -1095,31 +1048,6 @@ export function Conversation({
               )}
             {turn.role === 'assistant' && turn.id === lastAssistantTurn?.id && (
               <>
-                <StoryEvidencePanel
-                  taskId={task.id}
-                  isBrainstorm={Boolean(brainstorm)}
-                  onMemory={onMemory}
-                />
-                {task.uses.length > 0 && (
-                  <details className="fw-memory-references fw-source-entry">
-                    <summary>
-                      <BrainCircuit size={14} />
-                      参考了 {task.uses.length} 项记忆
-                    </summary>
-                    {task.uses.map((r, i) => {
-                      const m = state.memory.memories.find(
-                        (x) => x.id === r.memoryId,
-                      );
-                      return (
-                        <button key={i} onClick={() => onMemory(r.memoryId)}>
-                          {m ? current(m).title : '来源已不可访问'} ·{' '}
-                          {r.revisionId}
-                          <ArrowUpRight size={13} />
-                        </button>
-                      );
-                    })}
-                  </details>
-                )}
                 {flow && (
                   <DecisionPanel
                     flow={flow}
@@ -1152,33 +1080,6 @@ export function Conversation({
         ))}
         {flow && !lastAssistantTurn && (
           <DecisionPanel flow={flow} onOpen={onOpen} onMemory={onMemory} />
-        )}
-        {!flow && task.pending.length > 0 && (
-          <div className="fw-decision">
-            <strong>可用于本次工作的记忆</strong>
-            <p>授权后，相关记忆会用于这次工作；不会扩大对外分享范围。</p>
-            {task.pending.map((r) => {
-              const m = state.memory.memories.find((x) => x.id === r.memoryId);
-              return (
-                <p key={r.memoryId}>{m ? current(m).title : r.memoryId}</p>
-              );
-            })}
-            <Btn
-              primary
-              onClick={() =>
-                dispatch({
-                  type: 'memory',
-                  action: {
-                    type: 'grant',
-                    taskId: task.id,
-                    refs: task.pending,
-                  },
-                })
-              }
-            >
-              用于本次任务
-            </Btn>
-          </div>
         )}
       </div>
       {newMessages && (
@@ -1320,7 +1221,7 @@ export function Monitor({
       ) : null}
       <details>
         <summary>
-          系统与能力 <span>{usedSystems.length + usedCapabilities.length + (story && !usedSystems.length && !usedCapabilities.length ? 1 : 0)}</span>
+          系统与能力 <span>{usedSystems.length + usedCapabilities.length}</span>
         </summary>
         {usedSystems.map((id) => (
           <button
@@ -1360,44 +1261,16 @@ export function Monitor({
             <ArrowUpRight size={13} />
           </button>
         ))}
-        {story && !usedSystems.length && !usedCapabilities.length && (
-          <p className="fw-meta">
-            有界记忆证据包：仅提供本任务所需的合成快照；未连接外部系统。
-          </p>
-        )}
       </details>
       <details>
         <summary>
-          本次记忆与依据 <span>{story?.evidence.length || memories.length}</span>
+          相关记忆 <span>{memories.length}</span>
         </summary>
-        {story && (
-          <div className="fw-monitor-evidence">
-            <b>本次工作依据</b>
-            {story.evidence.map((item) =>
-              item.memoryId ? (
-                <button
-                  key={item.id}
-                  className="fw-detail-link"
-                  onClick={() => onMemory(item.memoryId!)}
-                >
-                  <BrainCircuit size={15} />
-                  <span>
-                    {item.label}
-                    <small>{item.effect}</small>
-                  </span>
-                </button>
-              ) : (
-                <p className="fw-meta" key={item.id}>
-                  {item.label}：{item.effect}
-                </p>
-              ),
-            )}
-            <p className="fw-meta">
-              本次留下的经验：{story.learning}
-            </p>
-          </div>
-        )}
-        {memories.map((m) => (
+        {memories.map((m) => {
+          const purpose = story?.evidence.find(
+            (item) => item.memoryId === m.id,
+          )?.effect;
+          return (
           <button
             key={m.id}
             className="fw-detail-link"
@@ -1408,10 +1281,13 @@ export function Monitor({
               {current(m).title}
               <small>
                 {kindLabels[current(m).payload.kind]} · v{current(m).number}
+                {purpose ? ` · ${purpose}` : ''}
               </small>
             </span>
           </button>
-        ))}
+          );
+        })}
+        {!memories.length && <p className="fw-meta">本次未关联可下钻的记忆。</p>}
         {f?.contributionId && (
           <p className="fw-meta">
             组织贡献：

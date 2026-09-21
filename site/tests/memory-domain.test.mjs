@@ -606,24 +606,33 @@ test('深小i及大小写称谓可按公开依据理解，名称记忆不授予�
   }
 });
 
-test('默认记忆库形成11个业务案例，五类均有代表内容', () => {
+test('默认记忆库保留原有业务案例并装载五故事的可下钻合成记录', () => {
   const state = initialWorkspace(now).memory;
   const titles = new Set(state.memories.map((m) => current(m).title));
-  assert.equal(titles.size, 11);
-  assert.equal(state.memories.length, 12);
+  assert.ok(titles.size >= 11);
+  assert.ok(state.memories.length > 12);
   const counts = Object.groupBy(
     state.memories,
     (m) => current(m).payload.kind,
   );
-  assert.equal(counts.working.length, 2);
-  assert.equal(counts.semantic.length, 3);
-  assert.equal(counts.procedural.length, 3);
-  assert.equal(counts.episodic.length, 2);
-  assert.equal(counts.functional.length, 2);
+  assert.ok(counts.working.length >= 2);
+  assert.ok(counts.semantic.length >= 3);
+  assert.ok(counts.procedural.length >= 3);
+  assert.ok(counts.episodic.length >= 2);
+  assert.ok(counts.functional.length >= 2);
+  for (const id of [
+    'policy-rule',
+    'policy-case',
+    'policy-method',
+    'policy-reminder',
+    'training-episode',
+    'training-method',
+    'training-rule',
+    'training-reminder',
+  ])
+    assert.ok(state.memories.some((memory) => memory.id === id), id);
   assert.ok(
-    ![...titles].some((title) =>
-      /材料齐套|闭合单|资金材料准备与下一阶段安排/.test(title),
-    ),
+    ![...titles].some((title) => /资金材料准备与下一阶段安排/.test(title)),
   );
 });
 

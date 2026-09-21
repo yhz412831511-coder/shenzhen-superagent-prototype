@@ -652,11 +652,11 @@ const opSpecs: Partial<
   'read-resource-assets': {
     system: 'resources',
     risk: '低',
-    scope: '通过一体化数字资源管理系统连接器查询本单位关联历史项目的资产',
+    scope: '通过一体化数字资源管理系统连接器查询本单位关联历史项目的资产，并与本次服务范围逐项核对',
   },
   'read-knowledge-plans': {
     risk: '低',
-    scope: '检索本单位知识库中的系统方案、历史运维资料与保障说明',
+    scope: '检索本单位知识库中的系统方案、历史运维资料与保障说明；历史材料仅作核对参考',
     capability: 'finance-knowledge',
   },
   'discover-capability': {
@@ -694,7 +694,7 @@ const opSpecs: Partial<
   },
   'prepare-materials': {
     risk: '无',
-    scope: '根据本处室资料生成申报材料',
+    scope: '根据本处室资料生成申报材料，并核对资产、服务范围、周期与当前要求的差异',
     capability: 'finance-knowledge',
   },
   'upload-materials': {
@@ -1058,8 +1058,8 @@ function applyCommand(s: WorkspaceState, a: CommandAction) {
       prerequisite === 'read-project-requirements'
         ? '项管平台连接器返回：选择运维类项目；基础信息包括申报单位、预算单位、联系人、年度、服务周期与历史建设项目。后续须同步运维资产、上传方案材料，再获取平台费用估算。'
         : prerequisite === 'read-resource-assets'
-          ? `一体化数字资源管理系统（原 CDOS）连接器返回 ${assets.length} 项可关联资产，包含资产标识、所属历史项目及运维信息；下一步选择并同步至项管平台。`
-          : '已从本单位知识库提取系统方案、历史运维资料与保障说明，作为申报材料编制依据；将与已同步资产和本次服务周期核对后整理上传。';
+          ? `一体化数字资源管理系统（原 CDOS）连接器返回 ${assets.length} 项可关联资产，包含资产标识、所属历史项目及运维信息；历史资产不自动等同本次范围，下一步选择并同步至项管平台后逐项核对。`
+          : '已从本单位知识库提取系统方案、历史运维资料与保障说明。上年度材料仅作说明参考，不照抄旧金额或扩大范围；将与已同步资产、本次服务周期和当前要求核对后整理上传。';
   }
   if (a.cmd === 'guide') {
     if (!gate(s, f, { ...a, cmd: 'discover-capability' })) return;
@@ -1338,7 +1338,7 @@ function applyCommand(s: WorkspaceState, a: CommandAction) {
         s,
         id,
         'assistant',
-        '项目统筹处数字人已返回办理指引。\n\n### 办理路径\n\n1. 在项管平台选择“运维类项目”，填报基本信息并关联历史建设项目。\n2. 从一体化数字资源管理系统（原 CDOS）关联本单位运维资产并同步。\n3. 根据本处室资料准备方案及附件，核对平台与材料一致性后上传。\n4. 读取项管平台费用估算；经你确认后正式提交，进入主管单位内审。\n\n### 依据\n\n本次指引引用项目统筹处数字人的程序记忆《运维项目申报办理流程》。该记忆由政数局工作人员在日常办理中沉淀，经组织确认后纳入数字人。',
+        '项目统筹处数字人已返回办理指引。\n\n### 办理路径\n\n1. 在项管平台选择“运维类项目”，填报基本信息并关联历史建设项目。\n2. 从一体化数字资源管理系统（原 CDOS）关联本单位运维资产并同步。\n3. 根据本处室资料准备方案及附件，核对平台与材料一致性后上传。\n4. 读取项管平台费用估算；经你确认后正式提交，进入主管单位内审。\n\n### 历史核对提醒\n\n历史反馈曾要求补足资产范围与服务保障说明。本次将其作为上传前核对点：资产、服务范围、周期和费用均按当前资料重新核对或估算，不照抄旧材料。\n\n### 依据\n\n本次指引引用项目统筹处数字人的程序记忆《运维项目申报办理流程》。该记忆由政数局工作人员在日常办理中沉淀，经组织确认后纳入数字人。',
       );
       f.agentId = projectAgent;
       break;
@@ -1381,7 +1381,7 @@ function applyCommand(s: WorkspaceState, a: CommandAction) {
         s,
         id,
         'assistant',
-        '基础信息已保存到项管平台草稿；此前材料及估算需要与当前版本重新核对。',
+        '基础信息已保存到项管平台草稿；历史申报材料和费用不能直接沿用，资产、服务范围、周期与估算需要按当前版本重新核对。',
       );
       break;
     }
@@ -1416,7 +1416,7 @@ function applyCommand(s: WorkspaceState, a: CommandAction) {
         s,
         id,
         'assistant',
-        `已将 ${f.syncedIds.length} 项资产同步至项管平台的运维对象清单。此操作只同步资产，不启动审批。`,
+        `已将 ${f.syncedIds.length} 项资产同步至项管平台的运维对象清单。此操作只同步资产，不启动审批；后续仍须检查资产清单与服务范围是否一致。`,
       );
       break;
     case 'prepare-materials': {
@@ -1482,7 +1482,7 @@ function applyCommand(s: WorkspaceState, a: CommandAction) {
         s,
         id,
         'assistant',
-        '已整理七份申报材料，并核对单位、运维对象及服务周期一致。请先预览，再确认上传项管平台。',
+        '已整理七份申报材料，并核对单位、运维对象及服务周期一致；上传前还应检查资产清单、服务范围与当前版本是否存在差异。请先预览，再确认上传项管平台。',
       );
       break;
     }
@@ -1494,7 +1494,7 @@ function applyCommand(s: WorkspaceState, a: CommandAction) {
       }
       f.uploadedVersion = f.version;
       lastOp(f).receipt = 'PM-FILES-' + id + '-v' + f.version;
-      lastOp(f).detail = '项管平台已接收当前版本的七份申报材料，未发起审批。';
+      lastOp(f).detail = '项管平台已接收当前版本的七份申报材料，未发起审批；上传前已按当前版本检查资产清单、服务范围和周期的一致性。';
       f.stage = 'estimate';
       f.status = '获取费用估算';
       say(

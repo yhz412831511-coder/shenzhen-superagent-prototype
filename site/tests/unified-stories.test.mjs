@@ -150,6 +150,7 @@ test('all memory links resolve to historical stories and replacements never beco
   assert.notEqual(p.version, o.version);
 });
 test('五条合成故事共用证据定义，并可由任务或脑暴上下文解析', () => {
+  const workspace = initialWorkspace();
   const ids = aiMemoryStories.map((story) => story.id);
   assert.deepEqual(ids, [
     'policy-consultation',
@@ -176,15 +177,35 @@ test('五条合成故事共用证据定义，并可由任务或脑暴上下文�
     'annual-brainstorm',
   );
   assert.equal(aiMemoryStoryForTask('annual-history'), undefined);
+  for (const taskId of [
+    'policy-consultation-history',
+    'training-speech-history',
+    'party-history',
+    'maintenance-history',
+  ]) {
+    const story = aiMemoryStoryForTask(taskId);
+    const ids = story.evidence.flatMap((item) =>
+      item.memoryId ? [item.memoryId] : [],
+    );
+    assert.ok(ids.length > 0, taskId);
+    assert.ok(
+      ids.every((id) => workspace.memory.memories.some((memory) => memory.id === id)),
+      taskId,
+    );
+  }
 });
 
-test('惠企咨询以固定合成答复收尾，续聊不创建助手或外部调用', () => {
+test('惠企咨询按固定多轮核对收尾，续聊不创建助手或外部调用', () => {
   let s = initialWorkspace();
   const task = s.memory.tasks.find((item) => item.id === 'policy-consultation-history');
-  assert.ok(task.messages.at(-1).text.includes('构建新的企业问答助手'));
+  assert.match(task.messages.at(-1).text, /构建企业问答助手/);
   assert.match(task.messages[1].text, /已识别/);
-  assert.match(task.messages[2].text, /任务规划/);
-  assert.match(task.messages[3].text, /已在本地/);
+  assert.match(task.messages[2].text, /处理计划/);
+  assert.match(task.messages[3].text, /本地核对/);
+  assert.match(task.messages[4].text, /补充情况/);
+  assert.match(task.messages[5].text, /可继续核对/);
+  assert.match(task.messages[5].text, /待补证核查/);
+  assert.match(task.messages[5].text, /存在材料冲突/);
   assert.equal(s.flows['policy-consultation-history'].operations.length, 3);
   assert.ok(
     s.flows['policy-consultation-history'].operations.every(
@@ -211,13 +232,21 @@ test('惠企咨询以固定合成答复收尾，续聊不创建助手或外部�
   );
 });
 
-test('培训讲稿只产生版本化送审工作稿，党组会与运维既有骨架不回退', () => {
+test('培训讲稿以主任审阅后的送审工作稿收尾，党组会与运维既有骨架不回退', () => {
   let s = initialWorkspace();
   const training = s.memory.tasks.find((task) => task.id === 'training-speech-history');
   assert.match(training.messages[1].text, /已识别/);
-  assert.match(training.messages[2].text, /任务规划/);
-  assert.match(training.messages[3].text, /已执行本地依据核对/);
+  assert.match(training.messages[2].text, /处理计划/);
+  assert.match(training.messages[3].text, /历年案例沿革/);
+  assert.match(training.messages[5].text, /逐项核对/);
+  assert.match(training.messages[8].text, /修订讲稿工作稿 v2/);
   assert.equal(s.flows['training-speech-history'].operations.length, 3);
+  assert.equal(
+    Object.values(s.artifacts).filter(
+      (artifact) => artifact.taskId === 'training-speech-history',
+    ).length,
+    4,
+  );
   const partyBefore = structuredClone(s.memory.tasks.find((task) => task.id === 'party-history').messages);
   const maintenanceBefore = structuredClone(s.flows['maintenance-history'].operations);
   s = reduce(s, {
