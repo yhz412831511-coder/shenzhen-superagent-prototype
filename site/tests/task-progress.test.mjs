@@ -143,6 +143,29 @@ test('普通新任务生成五项业务进度', () => {
   assert.match(progress[0].title, /工作简报/);
 });
 
+test('两条新增历史任务使用故事进度，培训续办不改变历史完成状态', () => {
+  let s = initial();
+  for (const [id, expected] of [
+    ['policy-consultation-history', ['解析原回答', '调用记忆依据', '形成专业答复']],
+    ['training-speech-history', ['核对旧稿与案例沿革', '校验当前口径', '形成送审材料']],
+  ]) {
+    const progress = taskProgress(taskFor(s, id));
+    assert.deepEqual(progress.map((step) => step.title), expected);
+    assert.ok(progress.every((step) => step.status === 'completed'));
+  }
+  s = workspaceReducer(s, {
+    type: 'say',
+    taskId: 'training-speech-history',
+    text: '补充案例沿革和待核来源，形成送审工作稿。',
+  });
+  assert.ok(s.storyRounds['training-speech-history']);
+  assert.ok(
+    taskProgress(taskFor(s, 'training-speech-history')).every(
+      (step) => step.status === 'completed',
+    ),
+  );
+});
+
 test('任务进度只保留业务步骤并实现三态视觉', () => {
   const component = readFileSync(
     new URL('../app/fiscal-components.tsx', import.meta.url),
@@ -161,6 +184,8 @@ test('任务进度只保留业务步骤并实现三态视觉', () => {
     /查看此前|提交来源|定位当前待办|安全与授权|fw-monitor-attention/,
   );
   assert.match(monitor, /任务进度/);
+  assert.match(monitor, /本次工作依据/);
+  assert.match(monitor, /本次留下的经验/);
   assert.match(css, /text-decoration:\s*line-through/);
   assert.match(css, /fw-task-progress-spin/);
   assert.match(css, /data-reduced-motion='true'.*fw-task-progress/s);

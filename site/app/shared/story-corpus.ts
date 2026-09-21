@@ -442,6 +442,62 @@ export const memoryCases: MemoryCase[] = [
     ],
   },
   {
+    id: 'policy-rule', kind: 'M2', title: '惠企咨询：当前适用条件（合成）',
+    content: '仅在当前合成案例中，先核对采购路径、关联关系和支持范围；信息不全时不下资格或金额结论。',
+    owner: '组织政策服务岗', scope: '惠企受理岗位包', state: '待核', tier: '热', version: '1', taskId: 'policy-consultation-history',
+    source: '合成政策条件卡', evidence: '固定演示快照；不代表已核验的真实政策、条款或窗口期。', date: '2026-09-21', lastUsed: '2026-09-21', related: ['policy-case', 'policy-method'],
+    history: [{ version: '1', date: '2026-09-21', reason: '演示样例建立', content: '用于解释为何不能只复述通用政策。' }],
+  },
+  {
+    id: 'policy-case', kind: 'M4', title: '惠企咨询：凭证不一致退回案例（合成）',
+    content: '历史样例中，材料名称相似但凭证与合同无法对应，需保留待补项而不是直接判断符合。',
+    owner: '组织政策服务岗', scope: '惠企受理岗位包', state: '待核', tier: '温', version: '1', taskId: 'policy-consultation-history',
+    source: '合成退回案例', evidence: '仅说明演示中的核对方向，不能泛化为真实企业记录或普遍政策。', date: '2026-09-21', lastUsed: '2026-09-21', related: ['policy-rule', 'policy-method'],
+    history: [{ version: '1', date: '2026-09-21', reason: '演示样例建立', content: '帮助解释“为什么还要核对”。' }],
+  },
+  {
+    id: 'policy-method', kind: 'M3', title: '惠企咨询：三项初步核对法（合成）',
+    content: '先问采购路径与关联关系，再核同类支持范围，最后核凭证、合同与节点；仅用于窗口初步辅助。',
+    owner: '组织政策服务岗', scope: '惠企受理岗位包', state: '待核', tier: '热', version: '1', taskId: 'policy-consultation-history',
+    source: '已审核合成岗位包', evidence: '演示用岗位经验；正式发布须另经有权人员审核。', date: '2026-09-21', lastUsed: '2026-09-21', related: ['policy-rule', 'policy-reminder'],
+    history: [{ version: '1', date: '2026-09-21', reason: '演示样例建立', content: '把泛化回答转为可核对的下一步。' }],
+  },
+  {
+    id: 'policy-reminder', kind: 'M5', title: '惠企咨询：补件与复核提醒（合成）',
+    content: '材料补齐或窗口期临近时提醒复核；具体日期和责任人在真实办理时重新确认。',
+    owner: '杨XX', scope: '本人窗口跟进授权范围', state: '待核', tier: '温', version: '1', taskId: 'policy-consultation-history',
+    source: '合成办理节点', evidence: '演示提醒不构成真实时限、企业承诺或自动办理结果。', date: '2026-09-21', lastUsed: '2026-09-21', related: ['policy-method'],
+    history: [{ version: '1', date: '2026-09-21', reason: '演示样例建立', content: '说明前瞻记忆只提示下一步。' }],
+  },
+  {
+    id: 'training-episode', kind: 'M4', title: '培训讲稿：去年案例与修改经历（合成）',
+    content: '旧稿中的案例和措辞保留当时版本；本次是否更新须以新的授权依据核对，不从故事需要推定进展。',
+    owner: '综合文字岗', scope: '综合文字岗位包', state: '待核', tier: '温', version: '1', taskId: 'training-speech-history',
+    source: '合成历史讲稿', evidence: '固定演示快照；不代表真实局长讲稿、案例状态或组织决定。', date: '2026-09-21', lastUsed: '2026-09-21', related: ['training-rule', 'training-method'],
+    history: [{ version: '1', date: '2026-09-21', reason: '演示样例建立', content: '说明旧稿如何成为本次核对起点。' }],
+  },
+  {
+    id: 'training-method', kind: 'M3', title: '培训讲稿：案例—做法—成效结构（合成）',
+    content: '先用可核实案例进入，再说明做法，最后只使用已核实成效；适用范围限于本类培训。',
+    owner: '综合文字岗', scope: '综合文字岗位包', state: '待核', tier: '热', version: '1', taskId: 'training-speech-history',
+    source: '已审核合成岗位包', evidence: '演示用方法，不代表个人偏好已成为普遍规范。', date: '2026-09-21', lastUsed: '2026-09-21', related: ['training-episode', 'training-reminder'],
+    history: [{ version: '1', date: '2026-09-21', reason: '演示样例建立', content: '组织90分钟讲稿的结构。' }],
+  },
+  {
+    id: 'training-rule', kind: 'M2', title: '培训讲稿：当前口径校验（合成）',
+    content: '当前安排与历史描述分别呈现；没有有效依据时标记待业务处室确认，不编造调整原因。',
+    owner: '综合文字岗', scope: '综合文字岗位包', state: '待核', tier: '热', version: '1', taskId: 'training-speech-history',
+    source: '合成有效口径卡', evidence: '真实使用时须以正式文件和来源版本重新核验。', date: '2026-09-21', lastUsed: '2026-09-21', related: ['training-episode'],
+    history: [{ version: '1', date: '2026-09-21', reason: '演示样例建立', content: '防止旧提法被直接沿用。' }],
+  },
+  {
+    id: 'training-reminder', kind: 'M5', title: '培训讲稿：送审与补证提醒（合成）',
+    content: '对尚待核实的案例设置送审前复核提醒；建议日期不自动成为其他处室承诺。',
+    owner: '杨XX', scope: '本人材料准备授权范围', state: '待核', tier: '温', version: '1', taskId: 'training-speech-history',
+    source: '合成工作节点', evidence: '只展示前瞻提醒机制，不代表真实日程或正式送审状态。', date: '2026-09-21', lastUsed: '2026-09-21', related: ['training-method'],
+    history: [{ version: '1', date: '2026-09-21', reason: '演示样例建立', content: '防止待核材料遗漏。' }],
+  },
+  {
     id: 'm13-old',
     kind: 'M2',
     title: '验收事项整体完成（旧判断）',
@@ -557,3 +613,109 @@ export const storySnapshots = [
       '脱敏、删减后的聚合v2通过结果粒度复核，经用户单独确认取得合成受理回执；原始敏感分析保持阻断。',
   },
 ];
+
+export type StoryMemoryEvidence = {
+  id: string;
+  label: string;
+  source: string;
+  condition: string;
+  effect: string;
+  memoryId?: string;
+};
+
+export type AiMemoryStory = {
+  id: string;
+  taskIds: string[];
+  name: string;
+  source: string;
+  interaction: 'fixed' | 'guided' | 'existing' | 'static';
+  progress: string[];
+  artifacts: string[];
+  learning: string;
+  closing?: string;
+  evidence: StoryMemoryEvidence[];
+};
+
+/**
+ * Shared, synthetic evidence definitions used by the task conversation, right
+ * workspace, memory product and governance evaluation. They are not policy
+ * facts, production records or a substitute for source-system receipts.
+ */
+export const aiMemoryStories: AiMemoryStory[] = [
+  {
+    id: 'policy-consultation',
+    taskIds: ['policy-consultation-history'],
+    name: '惠企政策咨询',
+    source: CASE_SOURCE,
+    interaction: 'fixed',
+    progress: ['解析原回答', '调用记忆依据', '形成专业答复'],
+    artifacts: ['市民原问与既有回答', '政策适配核查单', '专业答复'],
+    learning: '保留“先核事实、再说明边界、最后给出材料与下一步”的窗口答复方法；不自动升级为组织规则。',
+    closing: '如需，我可以基于这些已审核口径帮你构建新的企业问答助手。',
+    evidence: [
+      { id: 'policy-rule', label: '当前政策适用条件', source: '合成政策条件卡', condition: '仅作当前样例的待核依据', effect: '提示先核对采购路径与关联关系。', memoryId: 'policy-rule' },
+      { id: 'policy-case', label: '历史退回教训', source: '合成退回案例', condition: '不推广为普遍结论', effect: '提示核对是否存在同类支持及凭证一致性。', memoryId: 'policy-case' },
+      { id: 'policy-method', label: '岗位核对方法', source: '已审核合成岗位包', condition: '只适用于窗口初步核对', effect: '将回答组织为三项待核事实与材料清单。', memoryId: 'policy-method' },
+      { id: 'policy-reminder', label: '窗口期提醒', source: '合成办理节点', condition: '日期必须在真实办理时重新核实', effect: '给出补件与复核的下一步安排。', memoryId: 'policy-reminder' },
+    ],
+  },
+  {
+    id: 'training-speech',
+    taskIds: ['training-speech-history'],
+    name: '局长培训讲稿',
+    source: CASE_SOURCE,
+    interaction: 'guided',
+    progress: ['核对旧稿与案例沿革', '校验当前口径', '形成送审材料'],
+    artifacts: ['历年案例沿革与更新清单', '90分钟授课提纲', '讲稿初稿与待核清单'],
+    learning: '把旧稿沿革、当前依据和待核项分开，送审前由有权人员决定采用版本。',
+    evidence: [
+      { id: 'training-episode', label: '去年讲稿与修改经历', source: '合成历史讲稿', condition: '历史表述不自动更新为当前事实', effect: '定位需要补充证据的旧案例。', memoryId: 'training-episode' },
+      { id: 'training-method', label: '授课组织方法', source: '已审核合成岗位包', condition: '仅适用于本类培训', effect: '采用“案例—做法—成效”结构。', memoryId: 'training-method' },
+      { id: 'training-rule', label: '当前口径', source: '合成有效口径卡', condition: '须以正式文件重新核验', effect: '避免把历史提法直接用于当前安排。', memoryId: 'training-rule' },
+      { id: 'training-reminder', label: '送审与补证提醒', source: '合成工作节点', condition: '建议不自动成为跨部门承诺', effect: '形成待核事项与送审顺序。', memoryId: 'training-reminder' },
+    ],
+  },
+  {
+    id: 'party-meeting',
+    taskIds: ['party-history', 'party-meeting-14'],
+    name: '党组会准备', source: CASE_SOURCE, interaction: 'existing',
+    progress: ['恢复上次决定', '核查落实与缺口', '形成会前材料'],
+    artifacts: ['议程与落实清单', '督办核查稿', '会议通知工作稿'],
+    learning: '会务续接时同步保留来源更正、核对方法和未完成承诺，不以完成标签替代证据。',
+    evidence: [
+      { id: 'm13-correction', label: '来源更正依据', source: 'COR-13-01', condition: '只适用于第13—14次会务', effect: '阻止将技术验收写成整体办结。', memoryId: 'm13-correction' },
+      { id: 'm13-method', label: '三项核对方法', source: 'M13-REVIEW-03', condition: '个人方法，未自动成为制度', effect: '同时核对材料、时点与责任意见。', memoryId: 'm13-method' },
+      { id: 'm13-commitment', label: '未完成承诺', source: 'M13-MINUTES-v2', condition: '源回执前持续保护', effect: '在会前主动提示补件节点。', memoryId: 'm13-commitment' },
+    ],
+  },
+  {
+    id: 'annual-brainstorm',
+    taskIds: [], name: '工作报告脑暴', source: CASE_SOURCE, interaction: 'existing',
+    progress: ['还原目标与决策沿革', '形成有证据的主线', '保留选择理由与补证安排'],
+    artifacts: ['报告主线对照', '事实与证据缺口清单', '脑暴工作稿'],
+    learning: '保留主线选择理由与补证安排，未核事实不因文字需要而写成结论。',
+    evidence: [
+      { id: 'annual-goal', label: '目标与成效尺度', source: '合成年度工作材料', condition: '未核实指标保持待核', effect: '区分建设进展与问题解决成效。' },
+      { id: 'annual-history', label: '决策与执行沿革', source: '合成会议与审稿记录', condition: '不从结果倒推原因', effect: '支持说明措施为何形成及后续变化。' },
+      { id: 'annual-method', label: '审稿方法与教训', source: '合成岗位经验', condition: '本次选择不自动成为固定方法', effect: '约束主线选择并产生补证清单。' },
+    ],
+  },
+  {
+    id: 'maintenance-application',
+    taskIds: ['maintenance-history'], name: '财政系统运维费用申报', source: CASE_SOURCE, interaction: 'static',
+    progress: ['读取既有申报记录', '核对资产与服务范围', '保留反馈续办边界'],
+    artifacts: ['申报材料版本', '费用估算明细', '反馈跟踪记录'],
+    learning: '后续续办前重核范围与反馈，历史手动提交不等于新的系统受理或审批结果。',
+    evidence: [
+      { id: 'ops-working', label: '当前申报状态', source: 'CZ-OA-20260907-018', condition: '本人报告提交不等于系统回执', effect: '保持反馈跟踪而不伪造审批状态。', memoryId: 'ops-working' },
+      { id: 'ops-method', label: '资产与服务范围核对法', source: '合成历史退回教训', condition: '范围变化后需重新核对', effect: '在材料形成前提示范围差异。', memoryId: 'ops-method' },
+      { id: 'ops-commitment', label: '反馈节点', source: '本人授权跟踪设置', condition: '不替他人作出承诺', effect: '在反馈到达时提示下一步处理。', memoryId: 'ops-commitment' },
+    ],
+  },
+];
+
+export function aiMemoryStoryForTask(taskId: string, isBrainstorm = false) {
+  if (isBrainstorm)
+    return aiMemoryStories.find((story) => story.id === 'annual-brainstorm');
+  return aiMemoryStories.find((story) => story.taskIds.includes(taskId));
+}

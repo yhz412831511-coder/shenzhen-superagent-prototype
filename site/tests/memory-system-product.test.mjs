@@ -6,6 +6,7 @@ import {
   inferMemoryKind,
   memoryReducer,
 } from '../app/products/memory-system/domain.ts';
+import { aiMemoryStories } from '../app/shared/story-corpus.ts';
 
 const getMemory = (state, id) =>
   state.memories.find((memory) => memory.id === id);
@@ -217,4 +218,39 @@ test('MS11 跨周期续接产生六类记忆最小必要证据包', () => {
   assert.equal(state.calls[0].result, '已提供');
   assert.match(state.calls[0].evidence, /M1\/M2\/M3\/M4\/M5\/M6/);
   assert.match(state.calls[0].coverage, /第13—14次会议/);
+});
+
+test('MS12 五条固定合成案例可按故事下钻，撤权与个人组织版本边界不变', () => {
+  const state = createInitialMemoryState();
+  for (const story of aiMemoryStories) {
+    const evidenceIds = story.evidence
+      .map((item) => item.memoryId)
+      .filter(Boolean);
+    const memories = state.memories.filter(
+      (memory) =>
+        story.taskIds.includes(memory.taskId) || evidenceIds.includes(memory.id),
+    );
+    if (story.id !== 'annual-brainstorm') assert.ok(memories.length > 0, story.id);
+    assert.ok(
+      state.calls.some((call) => call.storyId === story.id),
+      `调用记录缺少${story.id}`,
+    );
+    assert.ok(
+      state.audit.some((entry) => entry.storyId === story.id),
+      `审计记录缺少${story.id}`,
+    );
+  }
+  const revoked = memoryReducer(state, {
+    type: 'revoke-grant',
+    id: 'grant-superagent',
+  });
+  assert.equal(
+    revoked.grants.find((grant) => grant.id === 'grant-superagent').status,
+    '已撤销',
+  );
+  assert.equal(getMemory(revoked, 'fiscal-org').kind, 'M6');
+  assert.notEqual(
+    getMemory(revoked, 'fiscal-org').owner,
+    getMemory(revoked, 'fiscal-personal').owner,
+  );
 });

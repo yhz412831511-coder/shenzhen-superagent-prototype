@@ -2,6 +2,7 @@ import type { Flow } from './fiscal-domain';
 import type { WorkTask } from './memory-domain';
 import type { BrainstormFlow } from './brainstorm-types.ts';
 import { brainstormProgress } from './brainstorm-selectors.ts';
+import { aiMemoryStoryForTask } from './shared/story-corpus.ts';
 
 export type TaskProgressStatus = 'completed' | 'in_progress' | 'not_started';
 
@@ -182,6 +183,16 @@ function genericProgress(task: WorkTask) {
   }));
 }
 
+function storyProgress(task: WorkTask) {
+  const story = aiMemoryStoryForTask(task.id);
+  if (!story || !task.context.includes('已发生工作')) return undefined;
+  return story.progress.map((title, index) => ({
+    id: `${story.id}-${index + 1}`,
+    title,
+    status: 'completed' as const,
+  }));
+}
+
 /** A task-facing view of business progress. It never infers work from chat copy or audit records. */
 export function taskProgress(
   task: WorkTask,
@@ -189,6 +200,8 @@ export function taskProgress(
   brainstorm?: BrainstormFlow,
 ): TaskProgressItem[] {
   if (brainstorm) return brainstormProgress(brainstorm);
+  const historicalStory = storyProgress(task);
+  if (historicalStory) return historicalStory;
   if (!flow) return genericProgress(task);
   if (flow.kind === 'payment') return linearProgress(paymentSteps, flow);
   if (flow.kind === 'maintenance')

@@ -109,6 +109,7 @@ import {
   TaskRoutingView,
   TokenDistribution,
 } from './token-governance-view';
+import { aiMemoryStories } from '../../shared/story-corpus';
 const icons = [
   LayoutDashboard,
   Building2,
@@ -166,6 +167,35 @@ type SummaryStat = {
   status?: string;
   note?: string;
 };
+function AiMemoryAuditSummary() {
+  return (
+    <Panel title="五条固定案例的记忆引用边界">
+      <p className="record-note">
+        本页只保留脱敏治理元数据；不展示个人记忆正文、任务正文或企业材料。
+      </p>
+      <div className="table-scroll">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>案例</TableHead>
+              <TableHead>引用依据</TableHead>
+              <TableHead>治理结论</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {aiMemoryStories.map((story) => (
+              <TableRow key={story.id}>
+                <TableCell>{story.name}</TableCell>
+                <TableCell>{story.evidence.length}项固定合成依据</TableCell>
+                <TableCell>撤权即停止调用；正式判断、共享和发布须人工确认；无回执不标系统成功。</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </Panel>
+  );
+}
 function directoryStats(
   page: PageId,
   rows: Row[],
@@ -1012,6 +1042,7 @@ export default function AdminProduct({ switcher }: { switcher: ReactNode }) {
                       ).map(([k, v]) => [fieldLabel(k), v])}
                     />
                   </Panel>
+                  <AiMemoryAuditSummary />
                 </>
               ) : page === 'overview' ? (
                 <SafetyOverview

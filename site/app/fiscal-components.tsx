@@ -94,6 +94,7 @@ import {
   partySystemResult,
   partySystemTargetId,
 } from './party-domain';
+import { aiMemoryStoryForTask } from './shared/story-corpus.ts';
 export type Target = WorkspaceTarget;
 
 type AgentCapabilityDetail = {
@@ -121,6 +122,53 @@ type AgentDetailProfile = {
   serviceBoundaries: string[];
   sampleQuestions: string[];
 };
+
+function StoryEvidencePanel({
+  taskId,
+  isBrainstorm,
+  onMemory,
+}: {
+  taskId: string;
+  isBrainstorm: boolean;
+  onMemory: (id: string) => void;
+}) {
+  const story = aiMemoryStoryForTask(taskId, isBrainstorm);
+  if (!story) return null;
+  return (
+    <details
+      className="fw-story-evidence fw-source-entry"
+      open={story.interaction === 'fixed'}
+    >
+      <summary>
+        <BrainCircuit size={14} /> 本次工作依据 · {story.evidence.length}项
+      </summary>
+      <p className="fw-story-boundary">{story.source}；仅作本地验证，不代表真实政策、案例或系统回执。</p>
+      <div className="fw-story-evidence-list">
+        {story.evidence.map((item) => {
+          const content = (
+            <>
+              <strong>{item.label}</strong>
+              <small>{item.source} · {item.condition}</small>
+              <span>影响：{item.effect}</span>
+            </>
+          );
+          return item.memoryId ? (
+            <button key={item.id} onClick={() => onMemory(item.memoryId!)}>
+              {content}
+              <ArrowUpRight size={13} />
+            </button>
+          ) : (
+            <div key={item.id}>{content}</div>
+          );
+        })}
+      </div>
+      <div className="fw-story-learning">
+        <b>本次留下的经验</b>
+        <span>{story.learning}</span>
+      </div>
+    </details>
+  );
+}
 
 function agentProfileFor(entry: CatalogEntry): AgentDetailProfile | undefined {
   if (entry.kind !== '专业智能体') return undefined;
@@ -1047,6 +1095,11 @@ export function Conversation({
               )}
             {turn.role === 'assistant' && turn.id === lastAssistantTurn?.id && (
               <>
+                <StoryEvidencePanel
+                  taskId={task.id}
+                  isBrainstorm={Boolean(brainstorm)}
+                  onMemory={onMemory}
+                />
                 {task.uses.length > 0 && (
                   <details className="fw-memory-references fw-source-entry">
                     <summary>
@@ -1184,12 +1237,17 @@ export function Monitor({
     f = state.flows[task.id],
     brainstorm = state.brainstorm.flows[task.id],
     party = state.party[task.id];
+  const story = aiMemoryStoryForTask(task.id, Boolean(brainstorm));
+  const storyMemoryIds = new Set(
+    story?.evidence.flatMap((item) => (item.memoryId ? [item.memoryId] : [])) || [],
+  );
   const isPartyMeeting =
     task.id === 'party-meeting-14' || task.title === '第14次党组会筹备';
   const memories = state.memory.memories.filter(
     (m) =>
       current(m).source.taskId === task.id ||
-      task.uses.some((u) => u.memoryId === m.id),
+      task.uses.some((u) => u.memoryId === m.id) ||
+      storyMemoryIds.has(m.id),
   );
   const usedCapabilities = [
     ...new Set([
@@ -1211,7 +1269,12 @@ export function Monitor({
           : [])),
     ]),
   ];
-  const artifactIds = f?.artifactIds || brainstorm?.artifactIds || [];
+  const directArtifactIds = f?.artifactIds || brainstorm?.artifactIds || [];
+  const artifactIds = directArtifactIds.length
+    ? directArtifactIds
+    : Object.values(state.artifacts)
+        .filter((artifact) => artifact.taskId === task.id)
+        .map((artifact) => artifact.id);
   const recentArtifacts = artifactIds.slice(-3).reverse();
   const progress = taskProgress(task, f, brainstorm);
   const completedProgress = progress.filter(
@@ -1257,7 +1320,7 @@ export function Monitor({
       ) : null}
       <details>
         <summary>
-          系统与能力 <span>{usedSystems.length + usedCapabilities.length}</span>
+          系统与能力 <span>{usedSystems.length + usedCapabilities.length + (story && !usedSystems.length && !usedCapabilities.length ? 1 : 0)}</span>
         </summary>
         {usedSystems.map((id) => (
           <button
@@ -1297,11 +1360,43 @@ export function Monitor({
             <ArrowUpRight size={13} />
           </button>
         ))}
+        {story && !usedSystems.length && !usedCapabilities.length && (
+          <p className="fw-meta">
+            有界记忆证据包：仅提供本任务所需的合成快照；未连接外部系统。
+          </p>
+        )}
       </details>
       <details>
         <summary>
-          本次记忆 <span>{memories.length}</span>
+          本次记忆与依据 <span>{story?.evidence.length || memories.length}</span>
         </summary>
+        {story && (
+          <div className="fw-monitor-evidence">
+            <b>本次工作依据</b>
+            {story.evidence.map((item) =>
+              item.memoryId ? (
+                <button
+                  key={item.id}
+                  className="fw-detail-link"
+                  onClick={() => onMemory(item.memoryId!)}
+                >
+                  <BrainCircuit size={15} />
+                  <span>
+                    {item.label}
+                    <small>{item.effect}</small>
+                  </span>
+                </button>
+              ) : (
+                <p className="fw-meta" key={item.id}>
+                  {item.label}：{item.effect}
+                </p>
+              ),
+            )}
+            <p className="fw-meta">
+              本次留下的经验：{story.learning}
+            </p>
+          </div>
+        )}
         {memories.map((m) => (
           <button
             key={m.id}

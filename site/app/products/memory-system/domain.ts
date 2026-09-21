@@ -47,6 +47,7 @@ export type AccessGrant = {
   expires: string;
   lastUsed: string;
   status: '有效' | '已撤销' | '已到期';
+  storyIds?: string[];
 };
 
 export type MemoryCall = {
@@ -57,6 +58,7 @@ export type MemoryCall = {
   result: '已提供' | '已阻断' | '部分提供';
   evidence: string;
   coverage: string;
+  storyId?: string;
 };
 
 export type MaintenanceJob = {
@@ -87,6 +89,7 @@ export type AuditEntry = {
   result: string;
   time: string;
   actor: '本人' | '系统自动维护' | '权威来源';
+  storyId?: string;
 };
 
 export type ContributionSnapshot = {
@@ -238,6 +241,13 @@ const initialGrants: AccessGrant[] = [
     expires: '持续有效，可随时撤销',
     lastUsed: '2026-09-25 17:18',
     status: '有效',
+    storyIds: [
+      'policy-consultation',
+      'training-speech',
+      'party-meeting',
+      'annual-brainstorm',
+      'maintenance-application',
+    ],
   },
   {
     id: 'grant-meeting',
@@ -248,6 +258,7 @@ const initialGrants: AccessGrant[] = [
     expires: '2026-09-30 18:00',
     lastUsed: '2026-09-25 16:42',
     status: '有效',
+    storyIds: ['party-meeting'],
   },
   {
     id: 'grant-fiscal',
@@ -258,6 +269,7 @@ const initialGrants: AccessGrant[] = [
     expires: '2026-12-31 23:59',
     lastUsed: '2026-09-08 09:18',
     status: '有效',
+    storyIds: ['maintenance-application'],
   },
 ];
 
@@ -270,6 +282,7 @@ const initialCalls: MemoryCall[] = [
     result: '已提供',
     evidence: '5条记忆、4个来源锚点、1项明确缺口',
     coverage: '只包含第13—14次会议授权范围',
+    storyId: 'party-meeting',
   },
   {
     id: 'call-2',
@@ -279,6 +292,7 @@ const initialCalls: MemoryCall[] = [
     result: '部分提供',
     evidence: '工作状态与个人方法；正式受理状态仍待源核验',
     coverage: '运维申报本人工作范围',
+    storyId: 'maintenance-application',
   },
   {
     id: 'call-3',
@@ -288,6 +302,36 @@ const initialCalls: MemoryCall[] = [
     result: '已提供',
     evidence: 'M2术语解释、M3组织方法、来源版本',
     coverage: '不含个人原始单据',
+  },
+  {
+    id: 'call-policy-consultation',
+    ai: '深圳政务超级智能体',
+    purpose: '形成惠企咨询专业答复（固定合成快照）',
+    time: '2026-09-21 10:04',
+    result: '已提供',
+    evidence: '4项最小必要合成依据；无外部系统调用、无资格或金额结论',
+    coverage: '仅本地案例的窗口答复范围',
+    storyId: 'policy-consultation',
+  },
+  {
+    id: 'call-training-speech',
+    ai: '深圳政务超级智能体',
+    purpose: '组织培训讲稿送审工作稿（固定合成快照）',
+    time: '2026-09-21 10:18',
+    result: '部分提供',
+    evidence: '旧稿沿革、授课方法、当前口径和待核提醒；未核成效未进入正文',
+    coverage: '仅讲稿送审准备，不含组织发布',
+    storyId: 'training-speech',
+  },
+  {
+    id: 'call-annual-brainstorm',
+    ai: '深圳政务超级智能体',
+    purpose: '工作报告脑暴的依据整理（固定合成快照）',
+    time: '2026-09-21 10:26',
+    result: '部分提供',
+    evidence: '仅返回目标、沿革和审稿方法摘要；指标与案例仍待核',
+    coverage: '报告工作稿范围，不含正式发布',
+    storyId: 'annual-brainstorm',
   },
 ];
 
@@ -382,6 +426,7 @@ const initialAudit: AuditEntry[] = [
     result: '5条派生记忆重算，旧判断退出当前视图',
     time: '2026-09-25 16:45',
     actor: '系统自动维护',
+    storyId: 'party-meeting',
   },
   {
     id: 'audit-2',
@@ -390,6 +435,7 @@ const initialAudit: AuditEntry[] = [
     result: '3条转温、1条转冷；保护对象未迁移',
     time: '2026-09-25 02:10',
     actor: '系统自动维护',
+    storyId: 'party-meeting',
   },
   {
     id: 'audit-3',
@@ -398,6 +444,42 @@ const initialAudit: AuditEntry[] = [
     result: '组织v1.0可用；个人v2保持独立',
     time: '2026-09-05 15:30',
     actor: '权威来源',
+  },
+  {
+    id: 'audit-policy-consultation',
+    action: '固定案例依据调用',
+    object: '惠企政策咨询',
+    result: '仅返回最小必要合成证据；未调用外部系统，未形成正式结论',
+    time: '2026-09-21 10:04',
+    actor: '系统自动维护',
+    storyId: 'policy-consultation',
+  },
+  {
+    id: 'audit-training-speech',
+    action: '送审工作稿留痕',
+    object: '局长培训讲稿',
+    result: '旧稿与当前口径分开；待核项保留，未发布组织口径',
+    time: '2026-09-21 10:18',
+    actor: '系统自动维护',
+    storyId: 'training-speech',
+  },
+  {
+    id: 'audit-annual-brainstorm',
+    action: '脑暴依据包生成',
+    object: '工作报告脑暴',
+    result: '仅提供目标、沿革与审稿方法摘要；不把待核事实写成结论',
+    time: '2026-09-21 10:26',
+    actor: '系统自动维护',
+    storyId: 'annual-brainstorm',
+  },
+  {
+    id: 'audit-maintenance-application',
+    action: '历史申报续办边界核查',
+    object: '财政系统运维费用申报',
+    result: '历史手动提交与新反馈分开；无源系统回执不标记受理成功',
+    time: '2026-09-21 10:34',
+    actor: '系统自动维护',
+    storyId: 'maintenance-application',
   },
 ];
 

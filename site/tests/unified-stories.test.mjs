@@ -4,7 +4,12 @@ import {
   initialWorkspace,
   workspaceReducer as reduce,
 } from '../app/fiscal-domain.ts';
-import { memoryCases, MEMORY_KINDS } from '../app/shared/story-corpus.ts';
+import {
+  aiMemoryStories,
+  aiMemoryStoryForTask,
+  memoryCases,
+  MEMORY_KINDS,
+} from '../app/shared/story-corpus.ts';
 import {
   initialGovernance,
   changeGovernance,
@@ -143,6 +148,73 @@ test('all memory links resolve to historical stories and replacements never beco
     o = memoryCases.find((m) => m.id === 'fiscal-org');
   assert.notEqual(p.owner, o.owner);
   assert.notEqual(p.version, o.version);
+});
+test('五条合成故事共用证据定义，并可由任务或脑暴上下文解析', () => {
+  const ids = aiMemoryStories.map((story) => story.id);
+  assert.deepEqual(ids, [
+    'policy-consultation',
+    'training-speech',
+    'party-meeting',
+    'annual-brainstorm',
+    'maintenance-application',
+  ]);
+  assert.equal(
+    aiMemoryStoryForTask('policy-consultation-history')?.evidence.length,
+    4,
+  );
+  assert.equal(
+    aiMemoryStoryForTask('training-speech-history')?.interaction,
+    'guided',
+  );
+  assert.equal(aiMemoryStoryForTask('party-history')?.interaction, 'existing');
+  assert.equal(
+    aiMemoryStoryForTask('maintenance-history')?.interaction,
+    'static',
+  );
+  assert.equal(
+    aiMemoryStoryForTask('unrelated-task', true)?.id,
+    'annual-brainstorm',
+  );
+  assert.equal(aiMemoryStoryForTask('annual-history'), undefined);
+});
+
+test('惠企咨询以固定合成答复收尾，续聊不创建助手或外部调用', () => {
+  let s = initialWorkspace();
+  const task = s.memory.tasks.find((item) => item.id === 'policy-consultation-history');
+  assert.ok(task.messages.at(-1).text.includes('构建新的企业问答助手'));
+  assert.equal(s.flows['policy-consultation-history'], undefined);
+  const beforeArtifacts = Object.keys(s.artifacts).length;
+  s = reduce(s, {
+    type: 'say',
+    taskId: 'policy-consultation-history',
+    text: '请直接帮我构建新的企业问答助手并连接深I企。',
+  });
+  assert.equal(Object.keys(s.artifacts).length, beforeArtifacts);
+  assert.equal(s.storyRounds['policy-consultation-history'], undefined);
+  assert.match(
+    s.memory.tasks.find((item) => item.id === 'policy-consultation-history').messages.at(-1).text,
+    /不会创建助手、连接深I企或自动沉淀组织经验/,
+  );
+});
+
+test('培训讲稿只产生版本化送审工作稿，党组会与运维既有骨架不回退', () => {
+  let s = initialWorkspace();
+  const partyBefore = structuredClone(s.memory.tasks.find((task) => task.id === 'party-history').messages);
+  const maintenanceBefore = structuredClone(s.flows['maintenance-history'].operations);
+  s = reduce(s, {
+    type: 'say',
+    taskId: 'training-speech-history',
+    text: '补充案例更新依据，并重新核对当前口径后送审。',
+  });
+  const round = s.storyRounds['training-speech-history'];
+  assert.equal(round.mode, '送审工作稿');
+  const artifact = s.artifacts[round.artifact];
+  assert.match(artifact.body, /不产生正式讲稿、组织口径、对外发布/);
+  assert.deepEqual(
+    s.memory.tasks.find((task) => task.id === 'party-history').messages,
+    partyBefore,
+  );
+  assert.deepEqual(s.flows['maintenance-history'].operations, maintenanceBefore);
 });
 test('every seeded story continues in place with immutable past and branch-specific outcomes', () => {
   for (const id of [

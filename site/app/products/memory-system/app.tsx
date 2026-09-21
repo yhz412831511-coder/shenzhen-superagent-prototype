@@ -53,6 +53,7 @@ import {
   CASE_AS_OF,
   CASE_SOURCE,
   MEMORY_KINDS,
+  aiMemoryStories,
   type MemoryKind,
 } from '../../shared/story-corpus';
 import {
@@ -171,6 +172,43 @@ function PageHeading({
 
 function Badge({ children, tone }: { children: ReactNode; tone?: string }) {
   return <span className={`mem-badge ${tone || 'neutral'}`}>{children}</span>;
+}
+
+type StoryScope = string;
+
+function StoryScopeFilter({
+  value,
+  onChange,
+}: {
+  value: StoryScope;
+  onChange: (value: StoryScope) => void;
+}) {
+  return (
+    <label className="mem-story-filter">
+      <span>固定案例</span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value as StoryScope)}
+      >
+        <option value="all">全部五条故事</option>
+        {aiMemoryStories.map((story) => (
+          <option key={story.id} value={story.id}>
+            {story.name}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function matchesStory(memory: ManagedMemory, storyId: StoryScope) {
+  if (storyId === 'all') return true;
+  const story = aiMemoryStories.find((item) => item.id === storyId);
+  return Boolean(
+    story &&
+      (story.taskIds.includes(memory.taskId) ||
+        story.evidence.some((item) => item.memoryId === memory.id)),
+  );
 }
 
 function StatCard({
@@ -377,6 +415,16 @@ function Overview({
           </div>
         </section>
       </div>
+
+      <section className="mem-panel mem-ownership-flow">
+        <div>
+          <span>归属与复用</span>
+          <h2>个人经验与组织版本分别保留</h2>
+        </div>
+        <p>
+          个人记忆经本人授权后，可提交不可变快照供组织评测；组织发布版本独立维护。岗位记忆包只是组织记忆按岗位与权限的筛选，不是第三个归属域，也不会覆盖个人后续编辑。
+        </p>
+      </section>
 
       <section className="mem-panel mem-maintenance-summary">
         <div className="mem-section-head">
@@ -589,12 +637,15 @@ function EvidencePage({
   state: MemorySystemState;
   openMemory: (id: string) => void;
 }) {
+  const [story, setStory] = useState<StoryScope>('all');
+  const memories = state.memories.filter((memory) => matchesStory(memory, story));
   return (
     <>
       <PageHeading
         eyebrow="来源与证据"
         title="证据与版本"
         description="原始来源、派生记忆和当前有效解释分层保存；纠正通过新版本表达。"
+        actions={<StoryScopeFilter value={story} onChange={setStory} />}
       />
       <section className="mem-panel">
         <div className="mem-version-legend">
@@ -619,7 +670,7 @@ function EvidencePage({
             <span>证据边界</span>
             <span />
           </div>
-          {state.memories.map((memory) => (
+          {memories.map((memory) => (
             <button key={memory.id} onClick={() => openMemory(memory.id)}>
               <span>
                 <b>{memory.kind}</b>
@@ -860,15 +911,20 @@ function GrantsPage({
   state: MemorySystemState;
   dispatch: (action: MemoryAction) => void;
 }) {
+  const [story, setStory] = useState<StoryScope>('all');
+  const grants = state.grants.filter(
+    (grant) => story === 'all' || grant.storyIds?.includes(story),
+  );
   return (
     <>
       <PageHeading
         eyebrow="授权与调用"
         title="AI调用授权"
         description="本人授权的是用途和范围，不是把全部记忆交给某个AI；每次调用仍执行权限复验。"
+        actions={<StoryScopeFilter value={story} onChange={setStory} />}
       />
       <div className="mem-grant-grid">
-        {state.grants.map((grant) => (
+        {grants.map((grant) => (
           <article
             key={grant.id}
             className={grant.status === '已撤销' ? 'revoked' : ''}
@@ -931,16 +987,21 @@ function GrantsPage({
 }
 
 function CallsPage({ state }: { state: MemorySystemState }) {
+  const [story, setStory] = useState<StoryScope>('all');
+  const calls = state.calls.filter(
+    (call) => story === 'all' || call.storyId === story,
+  );
   return (
     <>
       <PageHeading
         eyebrow="授权与调用"
         title="调用记录"
         description="每次调用记录用途、覆盖范围、证据包和阻断结果；调用成功不等于正式业务结论。"
+        actions={<StoryScopeFilter value={story} onChange={setStory} />}
       />
       <section className="mem-panel">
         <div className="mem-call-list">
-          {state.calls.map((call) => (
+          {calls.map((call) => (
             <article key={call.id}>
               <span className={`mem-call-icon ${statusClass(call.result)}`}>
                 {call.result === '已阻断' ? (
@@ -1026,16 +1087,21 @@ function IssuesPage({
 }
 
 function AuditPage({ state }: { state: MemorySystemState }) {
+  const [story, setStory] = useState<StoryScope>('all');
+  const audit = state.audit.filter(
+    (entry) => story === 'all' || entry.storyId === story,
+  );
   return (
     <>
       <PageHeading
         eyebrow="异常与审计"
         title="操作记录"
         description="本人控制、系统自动维护和权威来源变化分别记录，原始记录不被覆盖。"
+        actions={<StoryScopeFilter value={story} onChange={setStory} />}
       />
       <section className="mem-panel">
         <div className="mem-audit-list">
-          {state.audit.map((entry) => (
+          {audit.map((entry) => (
             <article key={entry.id}>
               <span>
                 <ScrollText size={17} />

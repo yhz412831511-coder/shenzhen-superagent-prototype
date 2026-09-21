@@ -206,6 +206,31 @@
 .mem-heading-actions {
   flex: 0 0 auto;
 }
+.mem-story-filter {
+  display: grid;
+  gap: 4px;
+  color: var(--mem-muted);
+  font-size: 12px;
+}
+.mem-story-filter select {
+  min-width: 174px;
+  height: 36px;
+  border: 1px solid var(--mem-border);
+  border-radius: 8px;
+  padding: 0 28px 0 10px;
+  background: var(--mem-panel);
+  color: var(--mem-text);
+}
+.mem-ownership-flow {
+  display: grid;
+  grid-template-columns: minmax(180px, .55fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: center;
+  margin-top: 20px;
+}
+.mem-ownership-flow span { color: var(--mem-brand); font-size: 12px; font-weight: 700; }
+.mem-ownership-flow h2 { margin: 5px 0 0; font-size: 18px; }
+.mem-ownership-flow p { margin: 0; color: var(--mem-muted); line-height: 1.7; }
 .mem-primary,
 .mem-secondary,
 .mem-danger,
@@ -1281,6 +1306,8 @@
   .mem-heading-actions .mem-primary {
     width: 100%;
   }
+  .mem-story-filter select { width: 100%; }
+  .mem-ownership-flow { grid-template-columns: 1fr; gap: 10px; }
   .mem-hero {
     padding: 22px;
   }

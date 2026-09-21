@@ -2184,7 +2184,12 @@ export function workspaceReducer(
       }
       if (
         (s.flows[a.taskId]?.historical ||
-          ['party-history', 'data-history'].includes(a.taskId)) &&
+          [
+            'party-history',
+            'data-history',
+            'policy-consultation-history',
+            'training-speech-history',
+          ].includes(a.taskId)) &&
         continueStory(s, a.taskId, a.text)
       )
         break;

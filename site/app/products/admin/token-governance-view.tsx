@@ -18,7 +18,7 @@ import {
   type RoutingLevel,
   type RoutingRule,
 } from '../../shared/routing-domain';
-import { MEETING_COMPARISON } from '../../shared/story-corpus';
+import { MEETING_COMPARISON, aiMemoryStories } from '../../shared/story-corpus';
 import type { AdminRole } from './governance';
 import { mayManage, meetingSamples } from './governance';
 import type { Filters, State } from './admin/data';
@@ -46,6 +46,42 @@ const levelName: Record<RoutingLevel, string> = {
 
 function modelName(id: string) {
   return modelById(id)?.name ?? id;
+}
+
+function AiMemoryGovernanceChecks() {
+  return (
+    <section className="token-panel ai-memory-governance">
+      <div className="token-panel-heading">
+        <div>
+          <h2>固定案例的记忆治理检查</h2>
+          <p>仅展示来源、版本、授权与实际作用等脱敏元数据，不展示个人记忆或任务正文。</p>
+        </div>
+        <span>五条合成快照</span>
+      </div>
+      <div className="token-table-wrap">
+        <table className="token-table compact">
+          <thead>
+            <tr>
+              <th>案例</th>
+              <th>来源与版本</th>
+              <th>授权与实际作用</th>
+              <th>人工确认与回执边界</th>
+            </tr>
+          </thead>
+          <tbody>
+            {aiMemoryStories.map((story) => (
+              <tr key={story.id}>
+                <td><b>{story.name}</b><small>{story.source}</small></td>
+                <td>固定合成快照 · {story.evidence.length}项依据</td>
+                <td>按任务最小必要范围提供；{story.evidence.map((item) => item.effect).join('；')}</td>
+                <td>正式判断、共享与发布均须人工确认；无源系统回执不标记系统成功。</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
 }
 
 export function TokenDistribution({
@@ -689,6 +725,7 @@ export function EvaluationCenter({
         </div>
         {isMeeting ? (
           <>
+            <AiMemoryGovernanceChecks />
             <section className="token-panel">
               <div className="token-panel-heading">
                 <div>
@@ -774,8 +811,10 @@ export function EvaluationCenter({
             </section>
           </>
         ) : (
-          <section className="token-panel">
-            <div className="token-panel-heading">
+          <>
+            <AiMemoryGovernanceChecks />
+            <section className="token-panel">
+              <div className="token-panel-heading">
               <div>
                 <h2>
                   {current.type === '模型准入'
@@ -810,7 +849,7 @@ export function EvaluationCenter({
               <dt>证据状态</dt>
               <dd>{current.evidence}</dd>
             </dl>
-            {editable && (
+              {editable && (
               <div className="token-actions">
                 {current.status === '待执行' && (
                   <Button
@@ -836,8 +875,9 @@ export function EvaluationCenter({
                     </Button>
                   )}
               </div>
-            )}
-          </section>
+              )}
+            </section>
+          </>
         )}
       </main>
     </div>
