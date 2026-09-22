@@ -4,6 +4,7 @@ import {
   initialWorkspace,
   workspaceReducer as reduce,
 } from '../app/fiscal-domain.ts';
+import { conversationTurns } from '../app/conversation-view.ts';
 import {
   aiMemoryStories,
   aiMemoryStoryForTask,
@@ -199,14 +200,18 @@ test('惠企咨询按固定多轮核对收尾，续聊不创建助手或外部�
   let s = initialWorkspace();
   const task = s.memory.tasks.find((item) => item.id === 'policy-consultation-history');
   assert.match(task.messages.at(-1).text, /构建企业问答助手/);
-  assert.match(task.messages[1].text, /已识别/);
-  assert.match(task.messages[2].text, /处理计划/);
-  assert.match(task.messages[3].text, /本地核对/);
+  assert.match(task.messages[1].text, /窗口咨询处理/);
+  assert.match(task.messages[2].text, /三个层次核对/);
+  assert.match(task.messages[3].text, /请补充三点/);
   assert.match(task.messages[4].text, /补充情况/);
   assert.match(task.messages[5].text, /可继续核对/);
   assert.match(task.messages[5].text, /待补证核查/);
   assert.match(task.messages[5].text, /存在材料冲突/);
   assert.equal(s.flows['policy-consultation-history'].operations.length, 3);
+  const turns = conversationTurns(task, s.flows['policy-consultation-history'].operations);
+  assert.equal(turns[1].role, 'assistant');
+  assert.match(turns[1].blocks.at(-1).message.text, /请补充三点/);
+  assert.equal(turns[2].role, 'user');
   assert.ok(
     s.flows['policy-consultation-history'].operations.every(
       (operation) => !operation.system,
@@ -235,12 +240,16 @@ test('惠企咨询按固定多轮核对收尾，续聊不创建助手或外部�
 test('培训讲稿以主任审阅后的送审工作稿收尾，党组会与运维既有骨架不回退', () => {
   let s = initialWorkspace();
   const training = s.memory.tasks.find((task) => task.id === 'training-speech-history');
-  assert.match(training.messages[1].text, /已识别/);
-  assert.match(training.messages[2].text, /处理计划/);
-  assert.match(training.messages[3].text, /历年案例沿革/);
+  assert.match(training.messages[1].text, /办文任务处理/);
+  assert.match(training.messages[2].text, /第一步会给你一份案例更新清单/);
+  assert.match(training.messages[3].text, /请确认本次采用的讲述结构/);
   assert.match(training.messages[5].text, /逐项核对/);
   assert.match(training.messages[8].text, /修订讲稿工作稿 v2/);
   assert.equal(s.flows['training-speech-history'].operations.length, 3);
+  const turns = conversationTurns(training, s.flows['training-speech-history'].operations);
+  assert.equal(turns[1].role, 'assistant');
+  assert.match(turns[1].blocks.at(-1).message.text, /请确认本次采用的讲述结构/);
+  assert.equal(turns[2].role, 'user');
   assert.equal(
     Object.values(s.artifacts).filter(
       (artifact) => artifact.taskId === 'training-speech-history',

@@ -898,13 +898,18 @@ export function Conversation({
                     ) : (
                       <div className="fw-message-content">
                         {op ? (
-                          <OperationRow
-                            op={op}
-                            resolution={confirmationResolution(
-                              op,
-                              flow?.operations || [],
+                          <>
+                            {op.cmd.startsWith('story-') && (
+                              <PlainText text={m.text} />
                             )}
-                          />
+                            <OperationRow
+                              op={op}
+                              resolution={confirmationResolution(
+                                op,
+                                flow?.operations || [],
+                              )}
+                            />
+                          </>
                         ) : (
                           <>
                             <PlainText text={m.text} />
