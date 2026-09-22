@@ -11,11 +11,11 @@ import { aiMemoryStories } from '../app/shared/story-corpus.ts';
 const getMemory = (state, id) =>
   state.memories.find((memory) => memory.id === id);
 
-test('MS01 六类记忆有独立管理定义，关键管理对象齐全', () => {
+test('MS01 五类记忆有独立管理定义，关键管理对象齐全', () => {
   const state = createInitialMemoryState();
   assert.deepEqual(
     [...new Set(state.memories.map((memory) => memory.kind))].sort(),
-    ['M1', 'M2', 'M3', 'M4', 'M5', 'M6'],
+    ['M1', 'M2', 'M3', 'M4', 'M5'],
   );
   assert.deepEqual(Object.keys(KIND_MANAGEMENT), [
     'M1',
@@ -23,7 +23,6 @@ test('MS01 六类记忆有独立管理定义，关键管理对象齐全', () => 
     'M3',
     'M4',
     'M5',
-    'M6',
   ]);
   for (const definition of Object.values(KIND_MANAGEMENT)) {
     assert.ok(definition.question);
@@ -39,17 +38,18 @@ test('MS01 六类记忆有独立管理定义，关键管理对象齐全', () => 
   assert.ok(state.audit.length >= 3);
 });
 
-test('MS02 自然语言新增会建议类别，但不冒充组织事实', () => {
-  assert.equal(inferMemoryKind('下周三截止，到期前提醒我跟踪补件'), 'M5');
-  assert.equal(inferMemoryKind('先核对口径再检查附件的步骤'), 'M3');
+test('MS02 自然语言新增会建议五类之一，但不冒充组织事实', () => {
+  assert.equal(inferMemoryKind('下周三截止，到期前提醒我跟踪补件'), 'M4');
+  assert.equal(inferMemoryKind('先核对口径再检查附件的步骤'), 'M2');
+  assert.equal(inferMemoryKind('凭证冲突时不能直接认定符合，这是历史退回教训'), 'M5');
   let state = createInitialMemoryState();
   state = memoryReducer(state, {
     type: 'add',
-    kind: 'M5',
+    kind: 'M4',
     text: '下周三前继续跟踪验收材料，到期前一天提醒我。',
   });
   const added = state.memories[0];
-  assert.equal(added.kind, 'M5');
+  assert.equal(added.kind, 'M4');
   assert.equal(added.scope, '本人私有；仅在具体任务授权后调用');
   assert.match(added.evidence, /未自动升级为组织事实/);
   assert.equal(added.protected, true);
@@ -74,7 +74,7 @@ test('MS03 纠正生成新版本，旧版和来源仍保留', () => {
   assert.equal(after.history.at(-1).reason, '本人纠正形成新版本');
 });
 
-test('MS04 M3贡献形成不可变独立快照，个人后续修改不覆盖快照', () => {
+test('MS04 M2贡献形成不可变独立快照，个人后续修改不覆盖快照', () => {
   let state = createInitialMemoryState();
   const originalOrganization = structuredClone(getMemory(state, 'fiscal-org'));
   const personalBefore = getMemory(state, 'fiscal-personal');
@@ -146,7 +146,7 @@ test('MS06 冷热自动评估不改变当前工作、未完承诺和有效权限
   assert.match(blockedArchive.notice, /生命周期保护/);
 });
 
-test('MS07 本人标记M5完成后，源回执核验前仍保持活跃与保护', () => {
+test('MS07 本人标记M4完成后，源回执核验前仍保持活跃与保护', () => {
   const state = memoryReducer(createInitialMemoryState(), {
     type: 'complete-commitment',
     id: 'm13-commitment',
@@ -210,13 +210,13 @@ test('MS10 摘要失败先降级，安全重试通过后才发布', () => {
   assert.match(state.notice, /保留回执限制/);
 });
 
-test('MS11 跨周期续接产生六类记忆最小必要证据包', () => {
+test('MS11 跨周期续接产生五类记忆最小必要证据包', () => {
   const state = memoryReducer(createInitialMemoryState(), {
     type: 'generate-meeting-pack',
   });
   assert.equal(state.meetingPackGenerated, true);
   assert.equal(state.calls[0].result, '已提供');
-  assert.match(state.calls[0].evidence, /M1\/M2\/M3\/M4\/M5\/M6/);
+  assert.match(state.calls[0].evidence, /M1\/M2\/M3\/M4\/M5/);
   assert.match(state.calls[0].coverage, /第13—14次会议/);
 });
 
@@ -248,7 +248,7 @@ test('MS12 五条固定合成案例可按故事下钻，撤权与个人组织版
     revoked.grants.find((grant) => grant.id === 'grant-superagent').status,
     '已撤销',
   );
-  assert.equal(getMemory(revoked, 'fiscal-org').kind, 'M6');
+  assert.equal(getMemory(revoked, 'fiscal-org').kind, 'M2');
   assert.notEqual(
     getMemory(revoked, 'fiscal-org').owner,
     getMemory(revoked, 'fiscal-personal').owner,

@@ -12,21 +12,6 @@ function storyCasePayload(item: MemoryCase): Payload {
   switch (item.kind) {
     case 'M1':
       return {
-        kind: 'working',
-        work: item.title,
-        context: item.scope,
-        keyPoints: [
-          {
-            kind: 'result',
-            text: item.content,
-            eventId: `story-${item.id}`,
-            at: `${item.date}T00:00:00+08:00`,
-          },
-        ],
-        memories: [],
-      };
-    case 'M2':
-      return {
         kind: 'semantic',
         term: item.title,
         aliases: [],
@@ -35,7 +20,7 @@ function storyCasePayload(item: MemoryCase): Payload {
         distinction: item.evidence,
         example: item.content,
       };
-    case 'M3':
+    case 'M2':
       return {
         kind: 'procedural',
         method: item.title,
@@ -46,7 +31,7 @@ function storyCasePayload(item: MemoryCase): Payload {
           .filter(Boolean),
         exceptions: item.evidence,
       };
-    case 'M4':
+    case 'M3':
       return {
         kind: 'episodic',
         subtype: 'past',
@@ -56,7 +41,7 @@ function storyCasePayload(item: MemoryCase): Payload {
         outcome: item.evidence,
         occurredAt: `${item.date}T00:00:00+08:00`,
       };
-    case 'M5':
+    case 'M4':
       return {
         kind: 'episodic',
         subtype: 'plan',
@@ -68,23 +53,21 @@ function storyCasePayload(item: MemoryCase): Payload {
         completion: item.evidence,
         progress: 'planned',
       };
-    case 'M6':
+    case 'M5':
       return {
-        kind: 'functional',
-        subtype: 'formal',
-        entity: item.owner,
-        responsibility: item.content,
+        kind: 'semantic',
+        term: item.title,
+        aliases: [],
+        definition: item.content,
         context: item.scope,
-        confirmedBy: item.source,
+        distinction: item.evidence,
+        example: item.content,
       };
   }
 }
 
 function storyCaseMemory(item: MemoryCase): Memory {
-  const scope: Scope =
-    item.kind === 'M6'
-      ? 'unit'
-      : item.owner.includes('杨XX')
+  const scope: Scope = item.owner.includes('杨XX')
         ? 'personal'
         : 'department';
   const revisionId = `${item.id}-v${item.history.length || 1}`;

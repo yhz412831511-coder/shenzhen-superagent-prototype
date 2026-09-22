@@ -466,13 +466,12 @@
   font-size: 12px;
   font-weight: 800;
 }
-.kind-M1,
-.kind-M5 {
+.kind-M1 {
   background: #e7f1fb;
   color: #25618c;
 }
 .kind-M2,
-.kind-M6 {
+.kind-M5 {
   background: #e8f5ee;
   color: #267058;
 }

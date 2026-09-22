@@ -130,7 +130,7 @@ export function GovernanceView({
               固定案例检查：术语误判纠正、缺少依据不裁决、提交权限独立。3/3通过后进入审批；无敏感明细，授权只覆盖已提交方法快照。
             </p>
             <p>
-              已有组织记忆：
+              已有组织发布版本：
               {memoryCases.find((item) => item.id === 'fiscal-org')?.source}
             </p>
           </details>

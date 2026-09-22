@@ -122,42 +122,35 @@ const KIND_DEFAULTS: Record<
   Pick<ManagedMemory, 'automation' | 'effect' | 'nextAction'>
 > = {
   M1: {
-    automation: 'A 自动维护',
-    effect: '支持从正确断点恢复当前工作。',
-    nextAction: '核对阻塞与下一步，必要时返回原任务。',
+    automation: 'B 自动继承',
+    effect: '为当前任务提供有来源、带适用边界的专业解释。',
+    nextAction: '来源变化时比较版本，不把单项解释扩大为通用规则。',
   },
   M2: {
     automation: 'B 自动继承',
-    effect: '为当前任务提供有来源、带有效期的解释。',
-    nextAction: '来源变化时比较版本，个人纠正不改写权威事实。',
-  },
-  M3: {
-    automation: 'C 有界试用',
-    effect: '复用本人已经验证的检查步骤与方法。',
+    effect: '复用已经验证的检查步骤与实操方法。',
     nextAction: '可编辑、停用或提交不可变快照供组织评测。',
   },
-  M4: {
+  M3: {
     automation: 'A 自动维护',
-    effect: '保留当时发生的经过、决定与证据语境。',
+    effect: '恢复上次发生的经过、决定与关键背景。',
     nextAction: '补充说明或纠正关联，历史事件本身不覆盖。',
+  },
+  M4: {
+    automation: 'B 自动继承',
+    effect: '只在办理节点提示下一步、复核条件与待办。',
+    nextAction: '可静默或调整提醒；正式责任变化回到原流程确认。',
   },
   M5: {
     automation: 'B 自动继承',
-    effect: '持续跟踪已有依据的责任、期限与提醒。',
-    nextAction: '个人可调提醒；正式责任变化回到原流程确认。',
-  },
-  M6: {
-    automation: 'B 自动继承',
-    effect: '在本人当前权限内使用组织经验和职责规则。',
-    nextAction: '只可使用、反馈或申请权限，不能直接修改。',
+    effect: '在关键判断处提示教训、红线和指导性原则。',
+    nextAction: '保留来源和适用范围，不能以系统建议代替人工判断。',
   },
 };
 
 function decorateMemory(memory: MemoryCase): ManagedMemory {
   const protectedMemory =
-    memory.kind === 'M5' ||
-    memory.kind === 'M6' ||
-    (memory.kind === 'M1' && memory.state !== '已替代');
+    memory.kind === 'M4' || memory.kind === 'M5';
   return {
     ...memory,
     ...KIND_DEFAULTS[memory.kind],
@@ -165,16 +158,16 @@ function decorateMemory(memory: MemoryCase): ManagedMemory {
     retention: memory.state === '已替代' ? '归档' : '保留',
     protected: protectedMemory,
     protectedReason:
-      memory.kind === 'M5'
+      memory.kind === 'M4'
         ? '未完成承诺不能因时间或降温退出活跃集合'
-        : memory.kind === 'M6'
-          ? '当前有效权限始终参与读取校验'
+        : memory.kind === 'M5'
+          ? '关键教训和红线必须保留来源与适用范围'
           : protectedMemory
             ? '当前工作恢复所需'
             : undefined,
-    reminder: memory.kind === 'M5' ? '到期前1个工作日提醒' : undefined,
+    reminder: memory.kind === 'M4' ? '到期前1个工作日提醒' : undefined,
     contribution:
-      memory.kind === 'M3'
+      memory.kind === 'M2'
         ? memory.id === 'fiscal-personal'
           ? '已有组织版本'
           : '未贡献'
@@ -236,7 +229,7 @@ const initialGrants: AccessGrant[] = [
     id: 'grant-superagent',
     ai: '深圳政务超级智能体',
     purpose: '本人发起的日常任务续接与材料处理',
-    kinds: ['M1', 'M2', 'M3', 'M4', 'M5', 'M6'],
+    kinds: ['M1', 'M2', 'M3', 'M4', 'M5'],
     scope: '每次任务按最小必要范围组装证据包',
     expires: '持续有效，可随时撤销',
     lastUsed: '2026-09-25 17:18',
@@ -253,7 +246,7 @@ const initialGrants: AccessGrant[] = [
     id: 'grant-meeting',
     ai: '党组会筹备场景工作智能体',
     purpose: '第14次会议材料准备与落实跟踪',
-    kinds: ['M1', 'M2', 'M4', 'M5'],
+    kinds: ['M1', 'M2', 'M3', 'M4', 'M5'],
     scope: '第13—14次会议；不含其他个人事项',
     expires: '2026-09-30 18:00',
     lastUsed: '2026-09-25 16:42',
@@ -264,7 +257,7 @@ const initialGrants: AccessGrant[] = [
     id: 'grant-fiscal',
     ai: '财政资金监管岗位',
     purpose: '支付用途说明核对与办理咨询',
-    kinds: ['M2', 'M3', 'M6'],
+    kinds: ['M1', 'M2', 'M5'],
     scope: '财政支付审查；只提供脱敏方法与有效解释',
     expires: '2026-12-31 23:59',
     lastUsed: '2026-09-08 09:18',
@@ -300,7 +293,7 @@ const initialCalls: MemoryCall[] = [
     purpose: '核对支付备注业务语境',
     time: '2026-09-08 09:18',
     result: '已提供',
-    evidence: 'M2术语解释、M3组织方法、来源版本',
+    evidence: 'M1术语解释、M2岗位方法、来源版本',
     coverage: '不含个人原始单据',
   },
   {
@@ -576,12 +569,12 @@ function updateMemory(
 }
 
 export function inferMemoryKind(text: string): MemoryKind {
-  if (/截止|提醒|到期|承诺|跟踪/.test(text)) return 'M5';
-  if (/步骤|方法|清单|流程|先.*再/.test(text)) return 'M3';
-  if (/会议|发生|当时|经过|反馈/.test(text)) return 'M4';
-  if (/权限|岗位|职责|组织|授权/.test(text)) return 'M6';
-  if (/规则|政策|术语|口径|解释/.test(text)) return 'M2';
-  return 'M1';
+  if (/截止|提醒|到期|承诺|跟踪|下一步|补件/.test(text)) return 'M4';
+  if (/教训|红线|禁止|不得|风险|冲突|避免/.test(text)) return 'M5';
+  if (/步骤|方法|清单|流程|先.*再/.test(text)) return 'M2';
+  if (/会议|发生|当时|经过|反馈|上次/.test(text)) return 'M3';
+  if (/规则|政策|术语|口径|定义|解释|职责/.test(text)) return 'M1';
+  return 'M3';
 }
 
 export function memoryReducer(
@@ -619,15 +612,15 @@ export function memoryReducer(
       ...KIND_DEFAULTS[action.kind],
       quality: '当前',
       retention: '保留',
-      protected: action.kind === 'M1' || action.kind === 'M5',
+      protected: action.kind === 'M4' || action.kind === 'M5',
       protectedReason:
-        action.kind === 'M1'
-          ? '当前工作恢复所需'
-          : action.kind === 'M5'
+        action.kind === 'M4'
             ? '未完成承诺不能自动降温'
-            : undefined,
-      reminder: action.kind === 'M5' ? '到期前1个工作日提醒' : undefined,
-      contribution: action.kind === 'M3' ? '未贡献' : undefined,
+            : action.kind === 'M5'
+              ? '关键教训和红线必须保留来源与适用范围'
+              : undefined,
+      reminder: action.kind === 'M4' ? '到期前1个工作日提醒' : undefined,
+      contribution: action.kind === 'M2' ? '未贡献' : undefined,
     };
     const notice = `已保存为${action.kind}，分类和范围可继续纠正。`;
     return {
@@ -782,7 +775,7 @@ export function memoryReducer(
       ...state,
       audit: audit(
         state,
-        '提交组织记忆反馈',
+        '提交组织版本反馈',
         target.title,
         '已提交纠错线索；组织版本和权限未被个人直接修改',
       ),
@@ -907,16 +900,16 @@ export function memoryReducer(
   if (action.type === 'adjust-grant') {
     const target = state.grants.find((grant) => grant.id === action.id);
     if (!target) return state;
-    const hasM4 = target.kinds.includes('M4');
+    const hasM3 = target.kinds.includes('M3');
     return {
       ...state,
       grants: state.grants.map((grant) =>
         grant.id === action.id
           ? {
               ...grant,
-              kinds: hasM4
-                ? grant.kinds.filter((kind) => kind !== 'M4')
-                : [...grant.kinds, 'M4'],
+              kinds: hasM3
+                ? grant.kinds.filter((kind) => kind !== 'M3')
+                : [...grant.kinds, 'M3'],
             }
           : grant,
       ),
@@ -924,11 +917,11 @@ export function memoryReducer(
         state,
         '调整AI调用范围',
         target.ai,
-        hasM4 ? '已移除M4经历原文' : '已增加M4经历摘要',
+        hasM3 ? '已移除M3情景原文' : '已增加M3情景摘要',
       ),
-      notice: hasM4
-        ? '已移除M4经历原文，其他授权保持不变。'
-        : '已增加M4经历摘要，仍按任务最小必要范围提供。',
+      notice: hasM3
+        ? '已移除M3情景原文，其他授权保持不变。'
+        : '已增加M3情景摘要，仍按任务最小必要范围提供。',
       revision: state.revision + 1,
     };
   }
@@ -983,7 +976,7 @@ export function memoryReducer(
           purpose: '生成第14次会议最小必要证据包',
           time: '2026-09-25 17:44',
           result: '已提供',
-          evidence: 'M1/M2/M3/M4/M5/M6各一项；4个来源锚点；1项待核缺口',
+          evidence: 'M1/M2/M3/M4/M5各一项；4个来源锚点；1项待核缺口',
           coverage: '第13—14次会议本人获准范围',
         },
         ...state.calls,
@@ -1113,45 +1106,38 @@ export const KIND_MANAGEMENT: Record<
   }
 > = {
   M1: {
-    question: '现在做到哪里？',
-    job: '恢复断点、核对阻塞、继续工作',
-    result: '得到可恢复的当前状态与下一步',
-    fields: ['当前目标', '步骤与阻塞', '下一步', '恢复来源'],
-    guardrail: '不把工作记忆当作正式业务台账。',
+    question: '这个专业概念在当前工作里是什么意思？',
+    job: '比较定义、来源、版本与适用范围',
+    result: '得到可追溯且边界明确的专业解释',
+    fields: ['术语或规则', '业务语境', '来源版本', '适用边界'],
+    guardrail: '单笔解释不能扩大为通用规则。',
   },
   M2: {
-    question: '当前有效依据是什么？',
-    job: '比较来源、版本、适用范围与冲突',
-    result: '得到可追溯且带边界的当前解释',
-    fields: ['事实或解释', '有效区间', '来源版本', '冲突与替代'],
-    guardrail: '个人纠正不能改写权威来源。',
-  },
-  M3: {
-    question: '这类工作应该怎样办？',
-    job: '维护个人方法、试用结果与贡献快照',
+    question: '这类工作怎样才能办成？',
+    job: '维护检查步骤、例外处理与贡献快照',
     result: '得到可复用、可停用、可独立发布的方法',
     fields: ['适用场景', '步骤与检查', '例外', '验证与贡献'],
     guardrail: '单次成功不自动成为组织制度。',
   },
-  M4: {
-    question: '过去发生了什么？',
+  M3: {
+    question: '上一次发生了什么，需要带着什么背景继续办？',
     job: '追溯事件、决定、结果与当时证据',
-    result: '得到不覆盖历史的可核验时间线',
+    result: '得到不覆盖历史的可核验背景',
     fields: ['事件时间', '参与者', '决定与结果', '证据锚点'],
-    guardrail: '补充说明通过新事件表达。',
+    guardrail: '历史经过不能替代当前核验。',
   },
-  M5: {
-    question: '下一步何时由谁做？',
-    job: '跟踪已有承诺、期限、条件和提醒',
-    result: '得到不会因时间或降温丢失的承诺视图',
-    fields: ['责任来源', '期限', '触发条件', '完成依据'],
+  M4: {
+    question: '下一步何时需要我处理？',
+    job: '维护触发条件、提醒窗口与处理状态',
+    result: '在合适节点获得下一步安排，不被重复打扰',
+    fields: ['触发条件', '提醒窗口', '处理状态', '完成依据'],
     guardrail: '系统不能替任何人新作正式承诺。',
   },
-  M6: {
-    question: '谁能看、谁来办、谁确认？',
-    job: '使用本人获准的组织经验与职责规则',
-    result: '得到符合当前权限的组织记忆',
-    fields: ['组织所有者', '适用岗位', '权限与有效期', '反馈入口'],
-    guardrail: '个人无权修改组织发布版本。',
+  M5: {
+    question: '哪些教训、红线或指导会影响这次判断？',
+    job: '核对来源、适用范围与人工判断边界',
+    result: '在关键节点得到有依据的风险权重提示',
+    fields: ['教训或红线', '产生背景', '适用范围', '判断边界'],
+    guardrail: '不把系统提示当成自动结论或正式决定。',
   },
 };

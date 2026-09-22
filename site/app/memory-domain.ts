@@ -5,11 +5,11 @@ export type MemoryKind =
   | 'episodic'
   | 'functional';
 export const kindLabels: Record<MemoryKind, string> = {
-  working: '工作记忆',
+  working: '任务上下文',
   semantic: '语义记忆',
   procedural: '程序记忆',
   episodic: '情景记忆',
-  functional: '职能记忆',
+  functional: '职责依据',
 };
 export type MemoryStatus =
   | 'candidate'

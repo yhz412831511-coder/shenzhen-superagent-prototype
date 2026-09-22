@@ -131,7 +131,7 @@ const products: {
   },
   {
     id: 'memory-system',
-    name: '记忆管理系统',
+    name: '记忆管理引擎',
     description: '记忆、证据与生命周期',
     icon: BrainCircuit,
   },

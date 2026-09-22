@@ -15,9 +15,7 @@ import {
   ArrowUpRight,
   Ban,
   BookOpenText,
-  Boxes,
   BrainCircuit,
-  BriefcaseBusiness,
   Check,
   CheckCircle2,
   ChevronRight,
@@ -87,14 +85,13 @@ const navigation: { label: string; items: NavItem[] }[] = [
     items: [{ id: 'overview', label: '我的记忆总览', icon: Activity }],
   },
   {
-    label: '六类记忆治理',
+    label: '五类记忆',
     items: [
-      { id: 'M1', label: '工作记忆', icon: BriefcaseBusiness },
-      { id: 'M2', label: '语义记忆', icon: BookOpenText },
-      { id: 'M3', label: '程序记忆', icon: ListChecks },
-      { id: 'M4', label: '情景记忆', icon: History },
-      { id: 'M5', label: '前瞻记忆', icon: AlarmClock },
-      { id: 'M6', label: '组织记忆', icon: Boxes },
+      { id: 'M1', label: '语义记忆', icon: BookOpenText },
+      { id: 'M2', label: '程序记忆', icon: ListChecks },
+      { id: 'M3', label: '情景记忆', icon: History },
+      { id: 'M4', label: '前瞻记忆', icon: AlarmClock },
+      { id: 'M5', label: '情感记忆', icon: MessageSquareWarning },
     ],
   },
   {
@@ -290,7 +287,7 @@ function Overview({
     (memory) => !['已替代', '已停用', '已归档'].includes(memory.state),
   );
   const commitments = state.memories.filter(
-    (memory) => memory.kind === 'M5' && memory.state === '有效',
+    (memory) => memory.kind === 'M4' && memory.state === '有效',
   );
   const grants = state.grants.filter((grant) => grant.status === '有效');
   const needsMe = state.issues.filter(
@@ -314,7 +311,7 @@ function Overview({
           <Badge tone="success">当前视图已更新至 {CASE_AS_OF}</Badge>
           <h2>记得住，也能在来源变化后改得动</h2>
           <p>
-            当前有效视图只保留本人有权使用、来源可追溯且适用于当前任务的内容。六类记忆采用不同规则维护，不把聊天记录、工作稿和组织事实混在一起。
+            当前有效视图只保留本人有权使用、来源可追溯且适用于当前任务的内容。五类记忆各自服务于理解、办理、续接、提醒与风险判断；任务工作稿仍留在超级智能体，组织发布版本仍按权限独立维护。
           </p>
         </div>
         <div className="mem-hero-flow" aria-label="自动维护主链路">
@@ -340,11 +337,11 @@ function Overview({
           onClick={() => go('M1')}
         />
         <StatCard
-          label="未完成承诺"
+          label="待处理节点"
           value={commitments.length}
-          note="始终保持活跃，不随时间降温"
+          note="只在需要复核或继续办理时提醒"
           icon={AlarmClock}
-          onClick={() => go('M5')}
+          onClick={() => go('M4')}
         />
         <StatCard
           label="已授权AI"
@@ -366,7 +363,7 @@ function Overview({
         <section className="mem-panel">
           <div className="mem-section-head">
             <div>
-              <span>六类记忆治理</span>
+              <span>五类记忆</span>
               <h2>每类记忆回答不同问题</h2>
             </div>
             <small>点击进入专属工作台</small>
@@ -422,7 +419,7 @@ function Overview({
           <h2>个人经验与组织版本分别保留</h2>
         </div>
         <p>
-          个人记忆经本人授权后，可提交不可变快照供组织评测；组织发布版本独立维护。岗位记忆包只是组织记忆按岗位与权限的筛选，不是第三个归属域，也不会覆盖个人后续编辑。
+          个人记忆经本人授权后，可提交不可变快照供组织评测；组织发布版本独立维护。岗位记忆包只是按岗位与权限筛选的组织发布内容，不作为独立分类，也不会覆盖个人后续编辑。
         </p>
       </section>
 
@@ -484,7 +481,7 @@ function KindWorkspace({
   return (
     <>
       <PageHeading
-        eyebrow={`六类记忆治理 / ${kind}`}
+        eyebrow={`五类记忆 / ${kind}`}
         title={definition.name}
         description={definition.definition}
         actions={<Badge tone="neutral">{memories.length}条个人可见记录</Badge>}
@@ -544,13 +541,13 @@ function KindWorkspace({
             <div>
               <dt>生命周期保护</dt>
               <dd>
-                {kind === 'M1' || kind === 'M5' || kind === 'M6'
+                {kind === 'M4' || kind === 'M5'
                   ? '当前对象不会因时间或压缩自动退出有效集合'
                   : '按复用情况自动降温，仍保留来源和恢复入口'}
               </dd>
             </div>
           </dl>
-          {kind === 'M3' && (
+          {kind === 'M2' && (
             <div className="mem-contribution-list">
               <span>独立贡献快照</span>
               {state.contributions.map((snapshot) => (
@@ -712,7 +709,7 @@ function AutomationPage({
       <section className="mem-automation-map">
         {[
           ['增量采集', '复用来源权限、去重并保存证据'],
-          ['分类与关联', '自动建议M1—M6及事项关系'],
+          ['分类与关联', '自动建议M1—M5及事项关系'],
           ['质量闸门', '检查关键字段、引用、权限和版本'],
           ['当前视图', '只发布有效、可追溯、当前有权内容'],
           ['周期对账', '修复漏事件、失效依赖和作业积压'],
@@ -1138,6 +1135,8 @@ function MemoryDetail({
   onConversation: (id: string) => void;
 }) {
   const config = KIND_MANAGEMENT[memory.kind];
+  const isOrganizationVersion =
+    !memory.owner.includes('杨XX') && /岗位包|组织|业务组/.test(memory.scope + memory.owner);
   const source = state.sources.find((item) =>
     item.affected.includes(memory.id),
   );
@@ -1260,16 +1259,16 @@ function MemoryDetail({
             <span>本人可执行的管理动作</span>
             <h2>{config.job}</h2>
             <div className="mem-action-stack">
-              {memory.kind === 'M1' && (
+              {memory.kind === 'M3' && (
                 <button
                   className="mem-primary"
                   onClick={() => onConversation(memory.taskId)}
                 >
-                  恢复原工作
+                  查看关联任务
                   <ArrowUpRight size={14} />
                 </button>
               )}
-              {memory.kind !== 'M6' && (
+              {!isOrganizationVersion && (
                 <button
                   className="mem-secondary"
                   onClick={() => dispatch({ type: 'correct', id: memory.id })}
@@ -1277,7 +1276,7 @@ function MemoryDetail({
                   生成纠正版
                 </button>
               )}
-              {memory.kind === 'M3' && (
+              {memory.kind === 'M2' && (
                 <button
                   className="mem-secondary"
                   onClick={() =>
@@ -1288,7 +1287,7 @@ function MemoryDetail({
                   贡献方法快照
                 </button>
               )}
-              {memory.kind === 'M4' && (
+              {memory.kind === 'M3' && (
                 <button
                   className="mem-secondary"
                   onClick={() => dispatch({ type: 'rebuild', id: memory.id })}
@@ -1297,7 +1296,7 @@ function MemoryDetail({
                   重算关联摘要
                 </button>
               )}
-              {memory.kind === 'M5' && (
+              {memory.kind === 'M4' && (
                 <>
                   <button
                     className="mem-secondary"
@@ -1318,7 +1317,7 @@ function MemoryDetail({
                   </button>
                 </>
               )}
-              {memory.kind === 'M6' && (
+              {memory.kind === 'M5' && (
                 <button
                   className="mem-primary"
                   onClick={() => dispatch({ type: 'feedback', id: memory.id })}
@@ -1327,7 +1326,7 @@ function MemoryDetail({
                   提交纠错反馈
                 </button>
               )}
-              {memory.kind !== 'M6' && (
+              {!isOrganizationVersion && (
                 <button
                   className="mem-secondary"
                   onClick={() =>
@@ -1342,7 +1341,7 @@ function MemoryDetail({
                   {memory.state === '已停用' ? '恢复调用' : '停用记忆'}
                 </button>
               )}
-              {memory.kind !== 'M6' && memory.retention !== '撤回' && (
+              {!isOrganizationVersion && memory.retention !== '撤回' && (
                 <button
                   className="mem-secondary"
                   onClick={() => dispatch({ type: 'withdraw', id: memory.id })}
@@ -1360,7 +1359,7 @@ function MemoryDetail({
                   归档
                 </button>
               )}
-              {memory.owner === '杨XX' && memory.kind !== 'M6' && (
+              {memory.owner === '杨XX' && !isOrganizationVersion && (
                 <button
                   className="mem-danger"
                   onClick={() =>
@@ -1592,11 +1591,11 @@ export default function MemoryProduct({
             <BrainCircuit size={25} />
           </span>
           <div>
-            <strong>记忆管理</strong>
+            <strong>记忆管理引擎</strong>
             <small>我的长期记忆与控制中心</small>
           </div>
         </div>
-        <nav aria-label="个人记忆管理导航">
+        <nav aria-label="记忆管理引擎导航">
           {navigation.map((group) => (
             <section key={group.label}>
               <span>{group.label}</span>

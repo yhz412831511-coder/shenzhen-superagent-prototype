@@ -22,39 +22,33 @@ export const MEETING_13 = {
 export const MEMORY_KINDS = [
   {
     id: 'M1',
-    name: '工作记忆',
-    definition: '保留当前目标、步骤、材料、阻塞和结果，支持工作恢复。',
-    distinction: '记录正在办理的工作状态，不替代正式业务台账。',
+    name: '语义记忆',
+    definition: '保留专业领域的规则、定义、术语与对象关系，并说明适用边界。',
+    distinction: '用于准确理解专业概念，例如 CODES 的业务含义；不以单笔解释泛化为普遍规则。',
   },
   {
     id: 'M2',
-    name: '语义记忆',
-    definition: '关于事实、术语、规则解释与对象关系的有来源知识。',
-    distinction: '适用语境必须保留，单笔解释不能泛化成普遍规则。',
+    name: '程序记忆',
+    definition: '保留把任务办成的实操经验、检查顺序和例外处理。',
+    distinction: '区别于明面的制度章程；个人方法与组织发布版本保持独立。',
   },
   {
     id: 'M3',
-    name: '程序记忆',
-    definition: '经工作验证的方法、流程和检查清单。',
-    distinction: '个人方法与组织批准版本是不同所有者的对象。',
+    name: '情景记忆',
+    definition: '保留上一次发生过什么、当时如何判断及关键背景。',
+    distinction: '历史经过不等于当前结论；本次仍须核对最新依据。',
   },
   {
     id: 'M4',
-    name: '情景／上下文记忆',
-    definition: '发生过的经历、时间、参与者以及当时采用的依据。',
-    distinction: '当时如何判断与今天是否仍有效需分别说明。',
+    name: '前瞻记忆',
+    definition: '在办理节点提示下一步、复核条件与待办，而非持续制造提醒噪音。',
+    distinction: '只提示已有依据的下一步；可静默或标记已处理，不替任何人新增承诺。',
   },
   {
     id: 'M5',
-    name: '前瞻／承诺记忆',
-    definition: '已有依据的责任、约定、期限与跟踪条件。',
-    distinction: '只记录已确认约定，不能替任何人新作承诺。',
-  },
-  {
-    id: 'M6',
-    name: '组织记忆',
-    definition: '本人获准使用的组织经验、规则与共识。',
-    distinction: '由组织流程确认和发布，不由个人记忆自动升级。',
+    name: '情感记忆',
+    definition: '保留影响判断方向的关键教训、红线和指导性原则。',
+    distinction: '政务场景中以风险权重表达，不拟人化；必须有来源、适用范围和人工判断边界。',
   },
 ] as const;
 export type MemoryKind = (typeof MEMORY_KINDS)[number]['id'];
@@ -79,7 +73,7 @@ export type MemoryCase = {
 export const memoryCases: MemoryCase[] = [
   {
     id: 'm13-working',
-    kind: 'M1',
+    kind: 'M3',
     title: '第13次会议：仍待补齐的验收材料',
     content: MEETING_13.open,
     owner: '杨XX',
@@ -110,7 +104,7 @@ export const memoryCases: MemoryCase[] = [
   },
   {
     id: 'm13-correction',
-    kind: 'M2',
+    kind: 'M5',
     title: '技术验收不等于手续材料齐套',
     content:
       '本次会议语境下，“技术验收完成”只说明技术环节，不能推导整体办结或正式归档。',
@@ -142,7 +136,7 @@ export const memoryCases: MemoryCase[] = [
   },
   {
     id: 'm13-method',
-    kind: 'M3',
+    kind: 'M2',
     title: '会议落实情况的证据核对方法',
     content: MEETING_13.method,
     owner: '杨XX',
@@ -167,7 +161,7 @@ export const memoryCases: MemoryCase[] = [
   },
   {
     id: 'm13-episode',
-    kind: 'M4',
+    kind: 'M3',
     title: '第13次会议材料审阅经过',
     content:
       '会前审阅发现“状态完成”与附件不齐并存，承办人要求单列缺件，会议决定继续跟踪，不以系统标签代替证据。',
@@ -193,7 +187,7 @@ export const memoryCases: MemoryCase[] = [
   },
   {
     id: 'm13-commitment',
-    kind: 'M5',
+    kind: 'M4',
     title: '基础设施处补报验收支撑材料',
     content: MEETING_13.open,
     owner: '杨XX的跟踪视图',
@@ -218,7 +212,7 @@ export const memoryCases: MemoryCase[] = [
   },
   {
     id: 'fiscal-term',
-    kind: 'M2',
+    kind: 'M1',
     title: '支付备注中的“绩效分析”',
     content:
       'ERS电子资源利用绩效分析平台数据库费中的“绩效分析”属于产品名称，应结合合同标的、服务内容、支付对象及依据核对，不仅凭关键词认定为人员绩效奖励。',
@@ -244,7 +238,7 @@ export const memoryCases: MemoryCase[] = [
   },
   {
     id: 'fiscal-personal',
-    kind: 'M3',
+    kind: 'M2',
     title: '支付用途备注核对与补充说明方法',
     content:
       '先读用途与合同材料；确认资金性质；核对支付对象与适用依据；对缺口形成补充说明请求。关键词仅作线索，不直接裁决。',
@@ -277,7 +271,7 @@ export const memoryCases: MemoryCase[] = [
   },
   {
     id: 'fiscal-org',
-    kind: 'M6',
+    kind: 'M2',
     title: '支付用途备注核对与补充说明方法',
     content:
       '组织采用脱敏方法快照，供财政资金监管岗位咨询使用。适用条件、检查步骤、例外和来源齐全；不包含个人原始单据。',
@@ -304,7 +298,7 @@ export const memoryCases: MemoryCase[] = [
   },
   {
     id: 'ops-working',
-    kind: 'M1',
+    kind: 'M3',
     title: '2027年运维申报的材料版本与反馈',
     content:
       '运维项目已形成申报材料；提交来源为本人告知，未取得真实源系统回执。继续核对审核反馈与材料版本。',
@@ -337,7 +331,7 @@ export const memoryCases: MemoryCase[] = [
   },
   {
     id: 'ops-method',
-    kind: 'M3',
+    kind: 'M2',
     title: '运维项目申报材料检查清单',
     content:
       '先确定运维边界与既有资产，核对服务期、费用口径、必要附件和版本，再交本人到业务平台确认提交。',
@@ -363,7 +357,7 @@ export const memoryCases: MemoryCase[] = [
   },
   {
     id: 'ops-commitment',
-    kind: 'M5',
+    kind: 'M4',
     title: '跟踪运维项目审核反馈',
     content:
       '本人已要求持续关注该申报的反馈；出现退补材料时回到原对话，核对原因并形成修订清单。',
@@ -389,7 +383,7 @@ export const memoryCases: MemoryCase[] = [
   },
   {
     id: 'role-consult',
-    kind: 'M2',
+    kind: 'M1',
     title: '岗位咨询与业务审批的职责边界',
     content:
       '财政资金监管岗位提供用途核对建议；项目统筹岗位提供运维申报指引。咨询答复不构成正式审批，也不会因一次提问启动系统提交。',
@@ -415,7 +409,7 @@ export const memoryCases: MemoryCase[] = [
   },
   {
     id: 'data-method',
-    kind: 'M3',
+    kind: 'M5',
     title: '拟外发分析结果的隐私检查方法',
     content:
       '完成授权范围内的数据汇聚后，在生成拟外发报告前检查分析推理结果。若结果可能识别个人或小群体，立即停止生成与外发，等待本人明确脱敏和删减要求；处理后重新复核结果粒度、接收方和用途。',
@@ -442,56 +436,56 @@ export const memoryCases: MemoryCase[] = [
     ],
   },
   {
-    id: 'policy-rule', kind: 'M2', title: '惠企咨询：当前适用条件（合成）',
+    id: 'policy-rule', kind: 'M1', title: '惠企咨询：当前适用条件（合成）',
     content: '仅在当前合成案例中，先核对采购路径、关联关系和支持范围；信息不全时不下资格或金额结论。',
     owner: '组织政策服务岗', scope: '惠企受理岗位包', state: '待核', tier: '热', version: '1', taskId: 'policy-consultation-history',
     source: '合成政策条件卡', evidence: '固定演示快照；不代表已核验的真实政策、条款或窗口期。', date: '2026-09-21', lastUsed: '2026-09-21', related: ['policy-case', 'policy-method'],
     history: [{ version: '1', date: '2026-09-21', reason: '演示样例建立', content: '用于解释为何不能只复述通用政策。' }],
   },
   {
-    id: 'policy-case', kind: 'M4', title: '惠企咨询：凭证不一致退回案例（合成）',
+    id: 'policy-case', kind: 'M5', title: '惠企咨询：凭证不一致退回教训（合成）',
     content: '历史样例中，材料名称相似但凭证与合同无法对应，需保留待补项而不是直接判断符合。',
     owner: '组织政策服务岗', scope: '惠企受理岗位包', state: '待核', tier: '温', version: '1', taskId: 'policy-consultation-history',
     source: '合成退回案例', evidence: '仅说明演示中的核对方向，不能泛化为真实企业记录或普遍政策。', date: '2026-09-21', lastUsed: '2026-09-21', related: ['policy-rule', 'policy-method'],
     history: [{ version: '1', date: '2026-09-21', reason: '演示样例建立', content: '帮助解释“为什么还要核对”。' }],
   },
   {
-    id: 'policy-method', kind: 'M3', title: '惠企咨询：三项初步核对法（合成）',
+    id: 'policy-method', kind: 'M2', title: '惠企咨询：三项初步核对法（合成）',
     content: '先问采购路径与关联关系，再核同类支持范围，最后核凭证、合同与节点；仅用于窗口初步辅助。',
     owner: '组织政策服务岗', scope: '惠企受理岗位包', state: '待核', tier: '热', version: '1', taskId: 'policy-consultation-history',
     source: '已审核合成岗位包', evidence: '演示用岗位经验；正式发布须另经有权人员审核。', date: '2026-09-21', lastUsed: '2026-09-21', related: ['policy-rule', 'policy-reminder'],
     history: [{ version: '1', date: '2026-09-21', reason: '演示样例建立', content: '把泛化回答转为可核对的下一步。' }],
   },
   {
-    id: 'policy-reminder', kind: 'M5', title: '惠企咨询：补件与复核提醒（合成）',
+    id: 'policy-reminder', kind: 'M4', title: '惠企咨询：补件与复核提醒（合成）',
     content: '材料补齐或窗口期临近时提醒复核；具体日期和责任人在真实办理时重新确认。',
     owner: '杨XX', scope: '本人窗口跟进授权范围', state: '待核', tier: '温', version: '1', taskId: 'policy-consultation-history',
     source: '合成办理节点', evidence: '演示提醒不构成真实时限、企业承诺或自动办理结果。', date: '2026-09-21', lastUsed: '2026-09-21', related: ['policy-method'],
     history: [{ version: '1', date: '2026-09-21', reason: '演示样例建立', content: '说明前瞻记忆只提示下一步。' }],
   },
   {
-    id: 'training-episode', kind: 'M4', title: '培训讲稿：去年案例与修改经历（合成）',
+    id: 'training-episode', kind: 'M3', title: '培训讲稿：去年案例与修改经历（合成）',
     content: '旧稿中的案例和措辞保留当时版本；本次是否更新须以新的授权依据核对，不从故事需要推定进展。',
     owner: '综合文字岗', scope: '综合文字岗位包', state: '待核', tier: '温', version: '1', taskId: 'training-speech-history',
     source: '合成历史讲稿', evidence: '固定演示快照；不代表真实局长讲稿、案例状态或组织决定。', date: '2026-09-21', lastUsed: '2026-09-21', related: ['training-rule', 'training-method'],
     history: [{ version: '1', date: '2026-09-21', reason: '演示样例建立', content: '说明旧稿如何成为本次核对起点。' }],
   },
   {
-    id: 'training-method', kind: 'M3', title: '培训讲稿：案例—做法—成效结构（合成）',
+    id: 'training-method', kind: 'M2', title: '培训讲稿：案例—做法—成效结构（合成）',
     content: '先用可核实案例进入，再说明做法，最后只使用已核实成效；适用范围限于本类培训。',
     owner: '综合文字岗', scope: '综合文字岗位包', state: '待核', tier: '热', version: '1', taskId: 'training-speech-history',
     source: '已审核合成岗位包', evidence: '演示用方法，不代表个人偏好已成为普遍规范。', date: '2026-09-21', lastUsed: '2026-09-21', related: ['training-episode', 'training-reminder'],
     history: [{ version: '1', date: '2026-09-21', reason: '演示样例建立', content: '组织90分钟讲稿的结构。' }],
   },
   {
-    id: 'training-rule', kind: 'M2', title: '培训讲稿：当前口径校验（合成）',
+    id: 'training-rule', kind: 'M1', title: '培训讲稿：当前口径校验（合成）',
     content: '当前安排与历史描述分别呈现；没有有效依据时标记待业务处室确认，不编造调整原因。',
     owner: '综合文字岗', scope: '综合文字岗位包', state: '待核', tier: '热', version: '1', taskId: 'training-speech-history',
     source: '合成有效口径卡', evidence: '真实使用时须以正式文件和来源版本重新核验。', date: '2026-09-21', lastUsed: '2026-09-21', related: ['training-episode'],
     history: [{ version: '1', date: '2026-09-21', reason: '演示样例建立', content: '防止旧提法被直接沿用。' }],
   },
   {
-    id: 'training-reminder', kind: 'M5', title: '培训讲稿：送审与补证提醒（合成）',
+    id: 'training-reminder', kind: 'M4', title: '培训讲稿：送审与补证提醒（合成）',
     content: '对尚待核实的案例设置送审前复核提醒；建议日期不自动成为其他处室承诺。',
     owner: '杨XX', scope: '本人材料准备授权范围', state: '待核', tier: '温', version: '1', taskId: 'training-speech-history',
     source: '合成工作节点', evidence: '只展示前瞻提醒机制，不代表真实日程或正式送审状态。', date: '2026-09-21', lastUsed: '2026-09-21', related: ['training-method'],
@@ -499,7 +493,7 @@ export const memoryCases: MemoryCase[] = [
   },
   {
     id: 'm13-old',
-    kind: 'M2',
+    kind: 'M1',
     title: '验收事项整体完成（旧判断）',
     content:
       '旧来源曾以技术验收状态推断整体办结。该推断已被更正，不再参与第14次工作续接。',
