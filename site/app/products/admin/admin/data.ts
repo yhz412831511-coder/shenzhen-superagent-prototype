@@ -561,31 +561,36 @@ export function initialAdminState(taskCount = 72): State {
       },
     );
   [
-    '数据访问',
-    '文件导出',
-    '系统写入',
-    '高风险确认',
-    '工具使用',
-    '沙箱访问',
-  ].forEach((n, i) =>
-    add('rules', 'RULE-' + (i + 1), n + '控制', 'all', '已生效', {
-      category: n,
-      tag: i % 2 ? '受限材料' : '全部数据',
-      action: i % 2 ? '逐项确认' : '阻断',
+    ['授权资料读取', '数据访问', '低', '允许', '全部数据', '当前授权范围'],
+    ['受限工具使用', '工具使用', '中', '限域允许', '受限材料', '当前任务范围'],
+    ['文件导出确认', '文件导出', '高', '本人确认', '受限材料', '高风险操作'],
+    ['系统写入确认', '系统写入', '高', '本人确认', '受限材料', '高风险操作'],
+    ['未授权数据访问', '数据访问', '红线', '全局阻断', '全部数据', '超出授权范围'],
+    ['跨环境访问', '沙箱访问', '红线', '全局阻断', '全部数据', '超出授权范围'],
+  ].forEach(([name, category, riskLevel, action, tag, condition], i) =>
+    add('rules', 'RULE-' + (i + 1), name, 'all', '已生效', {
+      category,
+      riskLevel,
+      tag,
+      action,
       scope: '全市单位',
       owner: '安全运营岗',
-      condition: '超出授权范围',
+      condition,
       liveVersion: '1.0',
       liveConfig: JSON.stringify({
-        tag: i % 2 ? '受限材料' : '全部数据',
-        action: i % 2 ? '逐项确认' : '阻断',
+        riskLevel,
+        tag,
+        action,
         scope: '全市单位',
-        condition: '超出授权范围',
+        condition,
       }),
       checkVersion: '',
       pilot: '',
       previous: '',
-      description: '组织授权与任务确认同时有效；未授权访问始终禁止',
+      description:
+        riskLevel === '红线'
+          ? '全局固定安全底线，命中即阻断，不接受确认、试运行或单位级例外'
+          : '组织授权、任务范围与控制等级共同生效；范围变化需重新判断',
     }),
   );
   for (const [i, n] of [
@@ -668,6 +673,7 @@ export type Filters = {
   taskType: string;
   businessScenario: string;
   routeLevel: string;
+  riskLevel: string;
 };
 export const defaultFilters = (): Filters => ({
   usageView: 'distribution',
@@ -682,6 +688,7 @@ export const defaultFilters = (): Filters => ({
   taskType: 'all',
   businessScenario: 'all',
   routeLevel: 'all',
+  riskLevel: 'all',
 });
 export function filteredCalls(s: State, f: Filters) {
   return s.calls.filter(

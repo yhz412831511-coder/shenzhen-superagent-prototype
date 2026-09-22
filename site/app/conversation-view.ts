@@ -1,5 +1,6 @@
 import type { Message, WorkTask } from './memory-domain.ts';
 import type { Artifact, Operation } from './fiscal-domain.ts';
+import { normalizeRisk, riskPolicyFor } from './shared/risk-policy.ts';
 
 export type ConversationBlock = { message: Message; operation?: Operation };
 export type OperationGroup = {
@@ -8,7 +9,7 @@ export type OperationGroup = {
   messageIds: string[];
   maxRisk: Operation['risk'];
   systems: NonNullable<Operation['system']>[];
-  authorization: '本地处理' | '鉴权通过';
+  authorization: '鉴权通过';
   statusCounts: Partial<Record<Operation['status'], number>>;
 };
 export type ConversationSegment =
@@ -29,12 +30,14 @@ const riskOrder: Record<Operation['risk'], number> = {
   低: 1,
   中: 2,
   高: 3,
+  红线: 4,
 };
 
 /** Only fully successful, non-high-risk work may recede into a compact summary. */
 export function isRoutineOperation(op: Operation) {
-  if (op.status !== '成功' || op.risk === '高') return false;
-  if (op.risk === '无') return true;
+  const risk = normalizeRisk(op.risk);
+  if (op.status !== '成功' || risk === '高' || risk === '红线') return false;
+  if (risk === '低') return true;
   return op.checks.length > 0 && op.checks.every((check) => check.passed);
 }
 
@@ -49,9 +52,11 @@ export function summarizeOperationGroup(
     ),
   ];
   const maxRisk = operations.reduce<Operation['risk']>(
-    (highest, operation) =>
-      riskOrder[operation.risk] > riskOrder[highest] ? operation.risk : highest,
-    '无',
+    (highest, operation) => {
+      const current = normalizeRisk(operation.risk);
+      return riskOrder[current] > riskOrder[highest] ? current : highest;
+    },
+    '低',
   );
   const statusCounts = operations.reduce<OperationGroup['statusCounts']>(
     (counts, operation) => ({
@@ -66,9 +71,7 @@ export function summarizeOperationGroup(
     messageIds: operations.map((operation) => operation.messageId),
     maxRisk,
     systems,
-    authorization: operations.every((operation) => operation.risk === '无')
-      ? '本地处理'
-      : '鉴权通过',
+    authorization: '鉴权通过',
     statusCounts,
   };
 }
@@ -218,9 +221,11 @@ export function confirmationResolution(op: Operation, operations: Operation[]) {
 /** Authorization precedes execution; never infer authorization from success alone. */
 export function authorizationLabel(op: Operation) {
   if (op.cmd === 'check-derived-privacy' && op.status === '已阻止')
-    return '隐私检查未通过';
-  if (op.risk === '无') return '本地处理';
+    return '命中红线规则，隐私检查未通过';
+  const policy = riskPolicyFor(op.risk);
+  if (policy.level === '红线') return policy.userHint;
   if (!op.checks.length) return '鉴权待核实';
   if (op.status === '待确认') return '待授权确认';
-  return op.checks.every((check) => check.passed) ? '鉴权通过' : '鉴权未通过';
+  if (!op.checks.every((check) => check.passed)) return '鉴权未通过';
+  return policy.userHint;
 }

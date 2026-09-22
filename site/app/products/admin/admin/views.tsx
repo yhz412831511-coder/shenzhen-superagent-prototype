@@ -150,6 +150,7 @@ const names: Record<string, string> = {
   due: '处理期限',
   alert: '关联告警',
   levelRisk: '风险等级',
+  riskLevel: '控制等级',
   evidence: '证据编号',
   result: '控制结果',
   actionType: '操作类型',

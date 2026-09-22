@@ -110,6 +110,7 @@ import {
   TokenDistribution,
 } from './token-governance-view';
 import { aiMemoryStories } from '../../shared/story-corpus';
+import { RiskPolicyPanel } from './admin/risk-policy-panel';
 const icons = [
   LayoutDashboard,
   Building2,
@@ -138,7 +139,7 @@ const columnKeys: Partial<Record<PageId, string[]>> = {
   memory: ['quota', 'used', 'authorized'],
   quotas: ['quota', 'threshold', 'requestStatus'],
   alerts: ['level', 'owner', 'due'],
-  rules: ['category', 'action', 'liveVersion'],
+  rules: ['riskLevel', 'category', 'action', 'liveVersion'],
   audit: ['actor', 'result', 'time'],
   accounts: ['account', 'contact', 'role'],
   roles: ['menus', 'permissions', 'scope'],
@@ -524,6 +525,9 @@ export default function AdminProduct({ switcher }: { switcher: ReactNode }) {
           .join(' ')
           .toLowerCase()
           .includes(f.search.toLowerCase())) &&
+      (page !== 'rules' ||
+        f.riskLevel === 'all' ||
+        r.fields.riskLevel === f.riskLevel) &&
       (!['tasks', 'evaluations', 'audit'].includes(page) ||
         !r.fields.date ||
         (r.fields.date >= f.from && r.fields.date <= f.to)),
@@ -858,6 +862,20 @@ export default function AdminProduct({ switcher }: { switcher: ReactNode }) {
                           ]}
                         />
                       )}
+                      {page === 'rules' && (
+                        <Pick
+                          label="控制等级"
+                          value={f.riskLevel}
+                          onChange={(v) => patchFilter({ riskLevel: v })}
+                          options={[
+                            { value: 'all', label: '全部等级' },
+                            '低',
+                            '中',
+                            '高',
+                            '红线',
+                          ]}
+                        />
+                      )}
                     </>
                   )}
                   {datePage && (
@@ -1124,6 +1142,13 @@ export default function AdminProduct({ switcher }: { switcher: ReactNode }) {
                         />
                       ))}
                     </div>
+                  )}
+                  {page === 'rules' && (
+                    <RiskPolicyPanel
+                      state={state}
+                      selected={f.riskLevel}
+                      onSelect={(riskLevel) => patchFilter({ riskLevel })}
+                    />
                   )}
                   <Panel
                     title={pageName(page) + '列表'}

@@ -20,7 +20,8 @@ export type SafetyCheck = {
   unit: string;
   time: string;
   action: string;
-  risk: '低风险' | '中风险' | '高风险';
+  risk: '低风险' | '中风险' | '高风险' | '红线';
+  control: '允许' | '限域允许' | '本人确认' | '全局阻断';
   outcome: '允许' | '脱敏' | '转人工确认' | '阻断';
   reason: string;
   ruleIds: string[];

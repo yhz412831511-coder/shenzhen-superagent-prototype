@@ -11,6 +11,11 @@ import {
   allUnits,
   TODAY,
 } from './data.ts';
+import {
+  publishRiskRule,
+  riskPolicyFor,
+  type RiskTier,
+} from '../../../shared/risk-policy.ts';
 export type Field = {
   key: string;
   label: string;
@@ -544,28 +549,30 @@ export function actions(s: State, r: Row): ActionSpec[] {
                 ]
               : [];
   if (r.page === 'rules') {
-    const ar = [
-      a(
-        'editRule',
-        '编辑规则草稿',
-        '修改会使旧变更检查失效；当前生效规则保持。',
-        [
-          f('tag', '数据范围', 'select', [
-            '全部数据',
-            '受限材料',
-            '个人敏感信息',
-          ]),
-          f('condition', '触发条件', 'select', [
-            '超出授权范围',
-            '高风险操作',
-            '全部操作',
-          ]),
-          f('action', '控制动作', 'select', ['阻断', '逐项确认', '脱敏']),
-          scope,
-          reason,
-        ],
-      ),
-    ];
+    const ar: ActionSpec[] = [];
+    if (r.fields.riskLevel !== '红线')
+      ar.push(
+        a(
+          'editRule',
+          '编辑规则草稿',
+          '修改会使旧变更检查失效；当前生效规则保持。',
+          [
+            f('riskLevel', '控制等级', 'select', ['低', '中', '高', '红线']),
+            f('tag', '数据范围', 'select', [
+              '全部数据',
+              '受限材料',
+              '个人敏感信息',
+            ]),
+            f('condition', '触发条件', 'select', [
+              '超出授权范围',
+              '高风险操作',
+              '全部操作',
+            ]),
+            scope,
+            reason,
+          ],
+        ),
+      );
     if (r.status === '草稿')
       ar.push(
         a(
@@ -574,7 +581,7 @@ export function actions(s: State, r: Row): ActionSpec[] {
           '按当前版本检查预置记录，核对拦截和人工处理影响。',
         ),
       );
-    if (r.status === '检查通过')
+    if (r.status === '检查通过' && r.fields.riskLevel !== '红线')
       ar.push(
         a(
           'pilotRule',
@@ -589,6 +596,16 @@ export function actions(s: State, r: Row): ActionSpec[] {
             ),
             reason,
           ],
+        ),
+      );
+    if (r.status === '检查通过' && r.fields.riskLevel === '红线')
+      ar.push(
+        a(
+          'publishRule',
+          '发布全局红线规则',
+          '红线不进入单位试运行；发布后仅能全局阻断，不能产生例外。',
+          [reason],
+          true,
         ),
       );
     if (r.status === '待发布')
@@ -1163,14 +1180,22 @@ export function settleOperation(
       detail += '；不补发、不重放原任务';
       break;
     }
-    case 'editRule':
-      Object.assign(r.fields, v);
+    case 'editRule': {
+      const riskLevel = (v.riskLevel || r.fields.riskLevel) as RiskTier;
+      if (r.fields.riskLevel === '红线' && riskLevel !== '红线')
+        throw new Error('红线规则为全局固定底线，不能降级或放宽');
+      r.fields.riskLevel = riskLevel;
+      r.fields.tag = v.tag;
+      r.fields.condition = v.condition;
+      r.fields.scope = v.scope;
+      r.fields.action = riskPolicyFor(riskLevel).control;
       delete r.fields.note;
       r.version = nextVersion(r.version);
       r.status = '草稿';
       r.fields.checkVersion = '';
       r.fields.pilot = '';
       break;
+    }
     case 'checkRule': {
       r.fields.checkVersion = r.version;
       const ops = records(s, 'audit').filter(
@@ -1190,6 +1215,7 @@ export function settleOperation(
         total: ops.length,
         matched: matched.length,
         action: r.fields.action,
+        riskLevel: r.fields.riskLevel,
         ids: matched.map((o) => o.id),
         outcomes: ops.map((o) => ({
           id: o.id,
@@ -1200,7 +1226,10 @@ export function settleOperation(
                 ? r.fields.action
                 : '允许',
         })),
-        note: '未授权访问始终阻断；其余匹配项执行当前控制动作',
+        note:
+          r.fields.riskLevel === '红线'
+            ? '命中红线即全局阻断，不提供人工确认或单位级例外'
+            : '控制动作由当前风险等级决定；范围变化后需重新检查',
       });
       r.status = '检查通过';
       break;
@@ -1212,20 +1241,29 @@ export function settleOperation(
       r.status = '待发布';
       break;
     case 'publishRule':
-      if (r.fields.checkVersion !== r.version || !r.fields.pilot)
-        throw new Error('需完成有效检查和小范围应用');
+      if (
+        r.fields.checkVersion !== r.version ||
+        (r.fields.riskLevel !== '红线' && !r.fields.pilot)
+      )
+        throw new Error(
+          r.fields.riskLevel === '红线'
+            ? '需完成当前版本影响检查'
+            : '需完成有效检查和小范围应用',
+        );
       r.fields.previous = JSON.stringify({
         version: r.fields.liveVersion,
         config: r.fields.liveConfig,
       });
       r.fields.liveVersion = r.version;
       r.fields.liveConfig = JSON.stringify({
+        riskLevel: r.fields.riskLevel,
         tag: r.fields.tag,
         action: r.fields.action,
         scope: r.fields.scope,
         condition: r.fields.condition,
       });
       r.status = '已生效';
+      publishRiskRule(r.id, r.version);
       break;
     case 'rollbackRule': {
       const prev = JSON.parse(r.fields.previous);
@@ -1236,6 +1274,7 @@ export function settleOperation(
       r.fields.checkVersion = '';
       r.fields.pilot = '';
       r.status = '已生效';
+      publishRiskRule(r.id, prev.version);
       detail += '；当前执行版本 ' + prev.version;
       break;
     }

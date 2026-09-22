@@ -95,6 +95,7 @@ import {
   partySystemTargetId,
 } from './party-domain';
 import { aiMemoryStoryForTask } from './shared/story-corpus.ts';
+import { riskPolicyFor } from './shared/risk-policy.ts';
 export type Target = WorkspaceTarget;
 
 type AgentCapabilityDetail = {
@@ -212,15 +213,14 @@ export function PlainText({ text }: { text: string }) {
   );
 }
 export function SafetyDetail({ op }: { op: Operation }) {
+  const policy = riskPolicyFor(op.risk);
   return (
     <div className="fw-safety-detail">
       <div className="fw-row">
         <Tag
-          tone={
-            op.risk === '高' ? 'amber' : op.risk === '中' ? 'blue' : 'green'
-          }
+          tone={policy.tone}
         >
-          {op.risk}风险
+          {policy.label}
         </Tag>
         <span>
           {authorizationLabel(op)} · {op.status}
@@ -228,6 +228,10 @@ export function SafetyDetail({ op }: { op: Operation }) {
       </div>
       <p>{op.scope}</p>
       <dl>
+        <dt>控制结果</dt>
+        <dd>{op.control ?? policy.control}</dd>
+        <dt>命中规则</dt>
+        <dd>{op.ruleId ?? policy.ruleIds.join('、')} · v{op.ruleVersion ?? '1.0'}</dd>
         <dt>操作身份</dt>
         <dd>{op.actor}</dd>
         <dt>操作时间</dt>
@@ -273,18 +277,22 @@ export function OperationRow({
   op: Operation;
   resolution?: Operation;
 }) {
+  const policy = riskPolicyFor(op.risk);
   const abnormal = op.status !== '成功';
-  const statusLabel = isRoutineOperation(op)
-    ? `${op.risk}风险 · ${authorizationLabel(op)} · 完成`
-    : op.status === '成功'
-      ? '高风险操作 · 已执行'
-      : op.status === '待确认'
-        ? '需要本人确认'
-        : op.status === '失败'
-          ? '执行失败'
-          : op.status === '部分成功'
-            ? '部分完成'
-            : op.status;
+  const statusLabel =
+    policy.level === '红线'
+      ? '红线 · 全局阻断'
+      : isRoutineOperation(op)
+        ? `${policy.label} · ${authorizationLabel(op)} · 完成`
+        : op.status === '成功'
+          ? `${policy.label} · 已执行`
+          : op.status === '待确认'
+            ? '需要本人确认'
+            : op.status === '失败'
+              ? '执行失败'
+              : op.status === '部分成功'
+                ? '部分完成'
+                : op.status;
   const Icon = abnormal
     ? AlertCircle
     : [
@@ -377,9 +385,7 @@ export function OperationGroupDetail({
         <ShieldCheck size={15} />
         <span>
           最高{group.maxRisk}风险 ·{' '}
-          {group.authorization === '本地处理'
-            ? '全部在本地完成'
-            : `${group.operations.length}/${group.operations.length} 项检查通过`}
+          {group.operations.length}/{group.operations.length} 项检查通过
         </span>
       </div>
       <div className="fw-operation-group-records">

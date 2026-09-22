@@ -61,8 +61,17 @@ import type {
   BrainstormEffect,
   BrainstormState,
 } from './brainstorm-types.ts';
+import {
+  controlForRisk,
+  defaultRuleForRisk,
+  normalizeRisk,
+  publishedRuleVersion,
+  type RiskControl,
+  type RiskTier,
+} from './shared/risk-policy.ts';
 
-export type Risk = '无' | '低' | '中' | '高';
+/** “无” is retained only for old fixed snapshots and displays as 低风险. */
+export type Risk = '无' | RiskTier;
 export type Command =
   | 'read-payments'
   | 'review'
@@ -115,6 +124,9 @@ export type Operation = {
   at: string;
   actor: string;
   version: number;
+  control?: RiskControl;
+  ruleId?: string;
+  ruleVersion?: string;
   capability?: { id: string; name: string; version: string };
   checks: { label: string; passed: boolean }[];
   status:
@@ -848,12 +860,16 @@ function gate(s: WorkspaceState, f: Flow, a: CommandAction) {
       label: '用户已明确指令正式提交（回写指令不包含提交）',
       passed: false,
     });
+  const risk = normalizeRisk(spec.risk);
+  const control = controlForRisk(risk);
   const needs =
-    spec.risk === '高' ||
+    risk === '高' ||
     a.cmd === 'writeback' ||
     a.cmd === 'upload-materials' ||
     taskFor(s, f.id).permissionMode === 'confirm';
-  const blocked = checks.some((c) => !c.passed),
+  if (risk === '红线')
+    checks.push({ label: '红线规则不可放行', passed: false });
+  const blocked = risk === '红线' || checks.some((c) => !c.passed),
     pending = !blocked && needs && !a.confirmed;
   if (needs)
     checks.push({ label: '本人确认当前对象与影响', passed: !!a.confirmed });
@@ -862,7 +878,7 @@ function gate(s: WorkspaceState, f: Flow, a: CommandAction) {
     messageId: '',
     cmd: a.cmd,
     system: spec.system,
-    risk: spec.risk,
+    risk,
     scope: spec.scope,
     at: iso(s.memory.now),
     actor:
@@ -870,6 +886,11 @@ function gate(s: WorkspaceState, f: Flow, a: CommandAction) {
         ? '本人 · 任务浏览器'
         : '超级智能体 · 当前经办身份',
     version: f.version,
+    control,
+    ruleId: defaultRuleForRisk(risk, spec.write ? '系统写入' : undefined),
+    ruleVersion: publishedRuleVersion(
+      defaultRuleForRisk(risk, spec.write ? '系统写入' : undefined),
+    ),
     capability: capability
       ? {
           id: capability.id,
@@ -893,7 +914,7 @@ function gate(s: WorkspaceState, f: Flow, a: CommandAction) {
     s,
     f.id,
     'assistant',
-    `${spec.risk}风险 · ${spec.scope}${blocked ? '。检查未通过，操作已停止。' : pending ? '。等待你确认。' : '。授权检查通过。'}`,
+    `${risk === '红线' ? '红线' : risk + '风险'} · ${spec.scope}${blocked ? risk === '红线' ? '。命中全局阻断规则，未执行。' : '。检查未通过，操作已停止。' : pending ? '。等待你确认。' : control === '限域允许' ? '。已在当前任务与授权范围内执行。' : '。授权检查通过。'}`,
   );
   f.operations.push(op);
   if (blocked) {
@@ -1834,6 +1855,15 @@ export function initialWorkspace(
   Object.values(s.flows).forEach((f) => (f.historical = true));
   seedStoryHistory(s);
   seedDataHistoryFlow(s);
+  Object.values(s.flows).forEach((flow) =>
+    flow.operations.forEach((operation) => {
+      const risk = normalizeRisk(operation.risk);
+      operation.risk = risk;
+      operation.control ??= controlForRisk(risk);
+      operation.ruleId ??= defaultRuleForRisk(risk);
+      operation.ruleVersion ??= publishedRuleVersion(operation.ruleId);
+    }),
+  );
   s.memory.now = now;
   s.notice = '';
   return s;
@@ -1848,11 +1878,12 @@ function seedDataHistoryFlow(s: WorkspaceState) {
     at: string,
     operation: Omit<Operation, 'id' | 'messageId' | 'at' | 'actor' | 'version'>,
   ) => {
+    const risk = normalizeRisk(operation.risk);
     const messageId = nextId(s, 'history-operation');
     const message = {
       id: messageId,
       role: 'assistant' as const,
-      text: `${operation.risk}风险 · ${operation.scope}`,
+      text: `${risk === '红线' ? '红线' : risk + '风险'} · ${operation.scope}`,
       at,
     };
     operations.push({
@@ -1862,6 +1893,10 @@ function seedDataHistoryFlow(s: WorkspaceState) {
       actor: '超级智能体 · 当前经办身份',
       version: 2,
       ...operation,
+      risk,
+      control: controlForRisk(risk),
+      ruleId: defaultRuleForRisk(risk),
+      ruleVersion: publishedRuleVersion(defaultRuleForRisk(risk)),
     });
     return message;
   };
@@ -1948,7 +1983,7 @@ function seedDataHistoryFlow(s: WorkspaceState) {
     }),
     operationEvent('2026-09-18T09:05:00+08:00', {
       cmd: 'check-derived-privacy',
-      risk: '高',
+      risk: '红线',
       scope: '检查拟外发分析结果中的个人隐私风险',
       checks: [
         { label: '接收方与用途已明确', passed: true },

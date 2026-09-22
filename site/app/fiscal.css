@@ -210,6 +210,11 @@
   color: var(--ui-warning);
   border-color: var(--ui-border);
 }
+.fw-tag.red {
+  background: #fceef0;
+  color: #b74855;
+  border-color: #f0cbd0;
+}
 .fw-success {
   color: var(--ui-success);
   font-size: var(--ui-font-meta);

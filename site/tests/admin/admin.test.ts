@@ -270,6 +270,21 @@ await test('规则发布需检查和小范围应用，回退保留历史且不�
   assert.deepEqual(records(s, 'audit'), ops);
   assert.ok(getRow(s, 'RULE-1').history.length >= 6);
 });
+await test('四级安全规则锁定控制动作，红线不提供单位级放宽入口', () => {
+  let s = initialAdminState();
+  assert.deepEqual(
+    records(s, 'rules').map((r) => r.fields.riskLevel),
+    ['低', '中', '高', '高', '红线', '红线'],
+  );
+  assert.equal(getRow(s, 'RULE-5').fields.action, '全局阻断');
+  assert.deepEqual(actions(s, getRow(s, 'RULE-5')), []);
+  s = run(s, 'RULE-1', 'editRule', { riskLevel: '高' });
+  assert.equal(getRow(s, 'RULE-1').fields.action, '本人确认');
+  assert.throws(
+    () => beginOperation(s, 'RULE-5', 'editRule', {}, getRow(s, 'RULE-5').revision),
+    /当前状态不允许此操作/,
+  );
+});
 await test('组织经验更新保留旧发布版，审核后发布，撤回停止使用', () => {
   let s = run(initialAdminState(), 'EXP-1', 'editContent', {
     content: '更新后的组织检查步骤',

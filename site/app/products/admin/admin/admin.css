@@ -775,6 +775,69 @@
   .table-scroll {
     overflow-x: auto;
   }
+  .risk-policy-intro {
+    margin: -2px 0 14px;
+    color: #73859c;
+    font-size: 13px;
+  }
+  .risk-policy-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .risk-policy-card {
+    position: relative;
+    min-height: 176px;
+    display: grid;
+    grid-template-columns: 34px 1fr auto;
+    align-content: start;
+    gap: 8px;
+    padding: 14px;
+    border: 1px solid #dce5ef;
+    border-radius: 9px;
+    text-align: left;
+    color: #39516c;
+    background: #fff;
+    transition: border-color .16s ease, box-shadow .16s ease;
+  }
+  .risk-policy-card:hover,
+  .risk-policy-card.selected {
+    border-color: #4a78b8;
+    box-shadow: 0 0 0 2px rgba(62, 113, 180, .12);
+  }
+  .risk-policy-card .risk-policy-icon {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+  }
+  .risk-policy-card.green .risk-policy-icon { color: #248a6b; background: #eaf7f1; }
+  .risk-policy-card.blue .risk-policy-icon { color: #356cae; background: #edf4fc; }
+  .risk-policy-card.amber .risk-policy-icon { color: #a87424; background: #fcf4e7; }
+  .risk-policy-card.red .risk-policy-icon { color: #b74855; background: #fceef0; }
+  .risk-policy-title { display: grid; gap: 2px; }
+  .risk-policy-title strong { font-size: 15px; color: #294867; }
+  .risk-policy-title small,
+  .risk-policy-card > b small,
+  .risk-policy-card footer { font-size: 11px; font-weight: 400; color: #7d8fa4; }
+  .risk-policy-card > b { color: #365f91; font-size: 17px; white-space: nowrap; }
+  .risk-policy-card p {
+    grid-column: 1 / -1;
+    margin: 3px 0 0;
+    min-height: 38px;
+    color: #667f99;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .risk-policy-card footer {
+    grid-column: 1 / -1;
+    padding-top: 8px;
+    border-top: 1px solid #edf1f6;
+  }
+  @media (max-width: 1080px) {
+    .risk-policy-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
   table {
     font-size: 14px !important;
   }

@@ -132,14 +132,16 @@ await test('生效规则修改影响后续判定，草稿不影响现网', () =>
   const s = createSafetyState(),
     t = latest(s),
     r = getRow(s, 'RULE-1');
-  r.fields.action = '阻断';
+  r.fields.riskLevel = '红线';
+  r.fields.action = '全局阻断';
   r.fields.condition = '全部操作';
   r.status = '草稿';
   assert.equal(evaluateTask(s, t, 'normal').outcome, '允许');
   r.fields.liveConfig = JSON.stringify({
+    riskLevel: '红线',
     tag: '全部数据',
     condition: '全部操作',
-    action: '阻断',
+    action: '全局阻断',
     scope: '全市单位',
   });
   assert.equal(evaluateTask(s, t, 'normal').outcome, '阻断');
@@ -299,7 +301,8 @@ await test('小范围规则仅作用试点单位，旧检查失效后不套用�
   r.fields.pilot = '市政务服务管理局';
   r.fields.tag = '全部数据';
   r.fields.condition = '全部操作';
-  r.fields.action = '阻断';
+  r.fields.riskLevel = '红线';
+  r.fields.action = '全局阻断';
   assert.equal(evaluateTask(s, t, 'normal').outcome, '阻断');
   r.fields.pilot = '市交通运输局';
   assert.equal(evaluateTask(s, t, 'normal').outcome, '允许');

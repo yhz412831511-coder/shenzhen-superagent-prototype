@@ -873,19 +873,19 @@ test('回写仅保存中风险草稿，缺少明确提交指令时高风险提�
   assert.equal(f.status, '已存草稿，未提交');
 });
 
-test('两条故事按读、本地处理、草稿写入和正式提交统一分级', () => {
+test('两条故事按低、中、高、红线统一分级', () => {
   const s = initial();
   const expected = {
     'read-payments': '低',
-    review: '无',
-    'save-method': '无',
+    review: '低',
+    'save-method': '低',
     'share-method': '高',
     'check-rules': '低',
-    report: '无',
+    report: '低',
     writeback: '中',
     'check-payment-submission': '高',
     'read-oa': '低',
-    'discover-capability': '无',
+    'discover-capability': '低',
     guide: '低',
     'read-project-requirements': '低',
     'create-project': '中',
@@ -894,31 +894,32 @@ test('两条故事按读、本地处理、草稿写入和正式提交统一分�
     'select-assets': '中',
     'sync-assets': '中',
     'read-knowledge-plans': '低',
-    'prepare-materials': '无',
+    'prepare-materials': '低',
     'upload-materials': '中',
     estimate: '低',
-    track: '无',
+    track: '低',
     'organization-adoption': '高',
     'read-resource-catalog': '低',
     'read-population-summary': '低',
     'read-civil-affairs-summary': '低',
     'read-service-cases': '低',
-    'harmonize-data': '无',
-    'analyse-service-gaps': '无',
-    'check-derived-privacy': '高',
-    'deidentify-results': '无',
-    'remove-sensitive-inference': '无',
-    'regenerate-aggregate-report': '无',
+    'harmonize-data': '低',
+    'analyse-service-gaps': '低',
+    'check-derived-privacy': '红线',
+    'deidentify-results': '低',
+    'remove-sensitive-inference': '低',
+    'regenerate-aggregate-report': '低',
     'recheck-derived-privacy': '中',
     'submit-sanitized-report': '高',
-    'story-intent': '无',
-    'story-plan': '无',
-    'story-execute': '无',
+    'story-intent': '低',
+    'story-plan': '低',
+    'story-execute': '低',
   };
   for (const flow of Object.values(s.flows))
     for (const op of flow.operations) {
       assert.equal(op.risk, expected[op.cmd], op.cmd);
-      if (op.risk !== '无') assert.ok(op.checks.length, op.cmd);
+      if (['中', '高', '红线'].includes(op.risk))
+        assert.ok(op.checks.length, op.cmd);
     }
   assert.equal(s.flows['maintenance-history'].submission, 'user-reported');
   assert.equal(s.flows['payment-history'].status, '已存草稿，未提交');

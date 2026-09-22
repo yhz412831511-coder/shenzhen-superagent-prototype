@@ -203,7 +203,7 @@ test('高风险、待确认、失败、取消和授权不完整的操作保持�
     operation({ cmd: 'pending', status: '待确认' }),
     operation({ cmd: 'failed', status: '失败' }),
     operation({ cmd: 'cancelled', status: '已取消' }),
-    operation({ cmd: 'unchecked', checks: [] }),
+    operation({ cmd: 'unchecked', risk: '中', checks: [] }),
   ];
   assert.ok(cases.every((candidate) => !isRoutineOperation(candidate)));
   assert.deepEqual(
@@ -217,13 +217,13 @@ test('高风险、待确认、失败、取消和授权不完整的操作保持�
     cases.map(() => 'operation'),
   );
 });
-test('全无风险操作的摘要显示本地处理', () => {
+test('旧无风险操作统一显示为低风险允许', () => {
   const group = summarizeOperationGroup([
     operation({ cmd: 'local-one', risk: '无', system: undefined, checks: [] }),
     operation({ cmd: 'local-two', risk: '无', system: undefined, checks: [] }),
   ]);
-  assert.equal(group.authorization, '本地处理');
-  assert.equal(group.maxRisk, '无');
+  assert.equal(group.authorization, '鉴权通过');
+  assert.equal(group.maxRisk, '低');
   assert.deepEqual(group.systems, []);
 });
 test('GFM 支持表格且跳过原始 HTML', () => {

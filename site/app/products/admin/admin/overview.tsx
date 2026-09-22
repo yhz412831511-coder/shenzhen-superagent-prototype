@@ -87,7 +87,7 @@ export const alertStage = (r: Row) =>
           ? '整改中'
           : '核查中';
 const color = (v: string) =>
-  /阻断|高|异常|未通过/.test(v)
+  /阻断|高|红线|异常|未通过/.test(v)
     ? 'danger'
     : /等待|确认|隔离|待|受限|中风险/.test(v)
       ? 'warn'
@@ -890,8 +890,9 @@ export function SafetyOverview({
             <div className="v3-risk-levels">
               {[
                 ['低风险', '授权资料查询'],
-                ['中风险', '受限文件导出'],
-                ['高风险', '越权系统写入'],
+                ['中风险', '受限工具调用'],
+                ['高风险', '文件导出与系统写入'],
+                ['红线', '越权访问与跨环境操作'],
               ].map(([risk, example]) => (
                 <button
                   key={risk}

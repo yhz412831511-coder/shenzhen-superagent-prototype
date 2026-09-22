@@ -477,6 +477,10 @@ html[data-theme='light'] .fw-product-portal-account {
   color: var(--ui-warning);
   background: var(--ui-warning-soft);
 }
+.fw-tag.red {
+  color: #b74855;
+  background: #fceef0;
+}
 .fw-avatar {
   background: var(--ui-brand-soft);
   color: var(--ui-brand);

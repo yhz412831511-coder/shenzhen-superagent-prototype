@@ -24,6 +24,7 @@ import type {
   SafetyCheck,
   RuntimeStage,
 } from './safety-types.ts';
+import { riskPolicyFor } from '../../../shared/risk-policy.ts';
 
 const find = (s: State, id?: string) => s.rows.find((r) => r.id === id);
 export const inScope = (s: State, scope: string, unit: string) =>
@@ -154,6 +155,7 @@ export function effectiveRule(s: State, r: Row, unit: string) {
   )
     return {
       config: {
+        riskLevel: r.fields.riskLevel,
         tag: r.fields.tag,
         condition: r.fields.condition,
         action: r.fields.action,
@@ -181,10 +183,14 @@ export function evaluateTask(
         : '数据访问';
   const risk =
     failed || intent === 'blocked'
-      ? '高风险'
+      ? '红线'
       : intent === 'confirm'
-        ? '中风险'
+        ? '高风险'
+        : intent === 'masked'
+          ? '中风险'
         : '低风险';
+  const policy = riskPolicyFor(risk === '红线' ? '红线' : risk.replace('风险', '') as '低' | '中' | '高');
+  let control = policy.control;
   let outcome: SafetyCheck['outcome'] =
     failed || intent === 'blocked'
       ? '阻断'
@@ -214,20 +220,28 @@ export function evaluateTask(
     return (
       inScope(s, config.scope, t.unit) &&
       (config.tag === '全部数据' || config.tag === tag) &&
-      (config.condition === '高风险操作'
-        ? risk === '高风险'
+      (config.riskLevel === (risk === '红线' ? '红线' : risk.replace('风险', '')) ||
+        (config.riskLevel === '红线' && config.condition === '全部操作') ||
+        (config.condition === '高风险操作'
+          ? risk === '高风险'
         : config.condition === '超出授权范围'
           ? !!failed || intent === 'blocked'
-          : true) &&
+          : true)) &&
       (r.fields.category === action ||
         (r.fields.category === '高风险确认' && risk === '高风险'))
     );
   });
   if (!failed && intent !== 'blocked' && matched.length) {
     const configs = matched.map((r) => effectiveRule(s, r, t.unit).config);
-    if (configs.some((c) => c.action === '阻断')) outcome = '阻断';
-    else if (configs.some((c) => c.action === '逐项确认'))
+    if (configs.some((c) => c.action === '全局阻断')) {
+      outcome = '阻断';
+      control = '全局阻断';
+    } else if (configs.some((c) => c.action === '本人确认')) {
       outcome = '转人工确认';
+      control = '本人确认';
+    } else if (configs.some((c) => c.action === '限域允许')) {
+      control = '限域允许';
+    }
     else if (configs.some((c) => c.action === '脱敏')) outcome = '脱敏';
     reason = `命中当前生效规则：${matched.map((r) => r.name).join('、')}；${outcome === '转人工确认' ? '等待人工确认，未执行' : outcome}`;
   }
@@ -243,6 +257,7 @@ export function evaluateTask(
     time: s.now,
     action,
     risk,
+    control,
     outcome,
     reason,
     ruleIds: rules.map((r) => r.id),
@@ -279,6 +294,7 @@ function recordCheck(s: State, check: Omit<SafetyCheck, 'id' | 'receipt'>) {
           : '已放行',
       {
         risk: check.risk,
+        control: check.control,
         result: check.outcome,
         task: check.task,
         rule: check.ruleIds.join('、'),
@@ -321,7 +337,7 @@ function alertFor(s: State, t: Row, c: SafetyCheck) {
       t.unit,
       '待处理',
       {
-        level: c.risk === '高风险' ? '高危' : '中危',
+        level: c.risk === '红线' || c.risk === '高风险' ? '高危' : '中危',
         owner: '未分派',
         task: t.id,
         sandbox: t.fields.sandbox,
@@ -461,11 +477,21 @@ export function createSafetyState(): State {
       time: t.fields.time,
       action,
       risk:
-        i === 0 || i === 2
-          ? '高风险'
+        i === 2
+          ? '红线'
           : i === 1 || i === 3
-            ? '中风险'
-            : '低风险',
+            ? '高风险'
+            : i === 0
+              ? '中风险'
+              : '低风险',
+      control:
+        i === 2
+          ? '全局阻断'
+          : i === 1 || i === 3
+            ? '本人确认'
+            : i === 0
+              ? '限域允许'
+              : '允许',
       outcome,
       reason:
         outcome === '阻断'
