@@ -80,7 +80,11 @@ export function conversationSegments(
   const segments: ConversationSegment[] = [];
   const routineOperations: Operation[] = [];
   for (const block of blocks) {
-    if (block.operation && isRoutineOperation(block.operation)) {
+    if (
+      block.operation &&
+      isRoutineOperation(block.operation) &&
+      !block.operation.cmd.startsWith('story-')
+    ) {
       if (operationDisplay === 'expanded') {
         segments.push({ kind: 'operation', block });
         continue;

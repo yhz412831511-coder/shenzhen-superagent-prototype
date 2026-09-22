@@ -4,7 +4,7 @@ import {
   initialWorkspace,
   workspaceReducer as reduce,
 } from '../app/fiscal-domain.ts';
-import { conversationTurns } from '../app/conversation-view.ts';
+import { conversationTurns, conversationSegments } from '../app/conversation-view.ts';
 import {
   aiMemoryStories,
   aiMemoryStoryForTask,
@@ -211,6 +211,10 @@ test('惠企咨询按固定多轮核对收尾，续聊不创建助手或外部�
   const turns = conversationTurns(task, s.flows['policy-consultation-history'].operations);
   assert.equal(turns[1].role, 'assistant');
   assert.match(turns[1].blocks.at(-1).message.text, /请补充三点/);
+  assert.equal(
+    conversationSegments(turns[1].blocks).filter((segment) => segment.kind === 'operation').length,
+    3,
+  );
   assert.equal(turns[2].role, 'user');
   assert.ok(
     s.flows['policy-consultation-history'].operations.every(
