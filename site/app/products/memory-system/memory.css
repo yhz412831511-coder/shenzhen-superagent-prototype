@@ -1,14 +1,14 @@
 .mem-app {
-  --mem-ink: #17283f;
-  --mem-muted: #68778b;
-  --mem-line: #dce5ed;
-  --mem-soft: #f3f7fa;
-  --mem-brand: #276a64;
-  --mem-brand-deep: #153f48;
-  --mem-brand-soft: #e5f3ef;
+  --mem-ink: #10213d;
+  --mem-muted: #51647f;
+  --mem-line: #d7e1ef;
+  --mem-soft: #edf4fd;
+  --mem-brand: #075dcc;
+  --mem-brand-deep: #073d89;
+  --mem-brand-soft: #e5efff;
   --mem-warn: #a96718;
   min-height: 100vh;
-  background: #f5f8fa;
+  background: #f6f9fe;
   color: var(--mem-ink);
   font-family: Inter, 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
 }
@@ -33,8 +33,8 @@
   width: 268px;
   flex-direction: column;
   overflow-y: auto;
-  background: linear-gradient(180deg, #123b46 0%, #0d2e3c 100%);
-  color: #eaf6f4;
+  background: linear-gradient(180deg, #103f75 0%, #08294f 100%);
+  color: #edf5ff;
 }
 .mem-brand {
   display: flex;
@@ -55,8 +55,8 @@
 .mem-brand > span {
   width: 44px;
   height: 44px;
-  background: rgba(91, 200, 179, 0.16);
-  color: #83dec9;
+  background: rgba(133, 183, 255, 0.18);
+  color: #a9d8ff;
 }
 .mem-brand strong,
 .mem-brand small {
@@ -67,7 +67,7 @@
 }
 .mem-brand small {
   margin-top: 4px;
-  color: #a9c8ca;
+  color: #c4d4e9;
   font-size: 12px;
 }
 .mem-sidebar nav {
@@ -77,7 +77,7 @@
 .mem-sidebar nav section > span {
   display: block;
   padding: 18px 12px 7px;
-  color: #82a9ae;
+  color: #8fb5df;
   font-size: 12px;
   letter-spacing: 0.08em;
 }
@@ -91,16 +91,16 @@
   border-radius: 9px;
   padding: 9px 12px;
   background: transparent;
-  color: #c6dcde;
+  color: #cfddf1;
   text-align: left;
 }
 .mem-sidebar nav button:hover,
 .mem-sidebar nav button.active {
-  background: rgba(108, 211, 190, 0.14);
+  background: rgba(133, 183, 255, 0.18);
   color: #fff;
 }
 .mem-sidebar nav button.active {
-  box-shadow: inset 3px 0 #65ceb8;
+  box-shadow: inset 3px 0 #79b2ff;
 }
 .mem-sidebar nav button i {
   margin-left: auto;
@@ -113,7 +113,7 @@
 }
 .mem-account {
   margin: 0 16px 18px;
-  border-top: 1px solid rgba(207, 235, 232, 0.16);
+  border-top: 1px solid rgba(207, 225, 249, 0.18);
   padding: 18px 10px 0;
 }
 .mem-account b,
@@ -124,7 +124,7 @@
 .mem-account span,
 .mem-account small {
   margin-top: 4px;
-  color: #9fc0c3;
+  color: #b5c6dc;
   font-size: 12px;
 }
 .mem-main {
@@ -284,7 +284,7 @@
   border: 1px solid var(--mem-line);
   border-radius: 16px;
   background: #fff;
-  box-shadow: 0 10px 28px rgba(24, 55, 75, 0.05);
+  box-shadow: 0 10px 28px rgba(19, 62, 124, 0.05);
 }
 .mem-panel {
   padding: 22px;
@@ -294,7 +294,7 @@
   grid-template-columns: minmax(0, 1.15fr) minmax(380px, 0.85fr);
   gap: 34px;
   padding: 30px;
-  background: linear-gradient(135deg, #143f48 0%, #1e5b58 100%);
+  background: linear-gradient(135deg, #0b417f 0%, #075dcc 100%);
   color: #fff;
 }
 .mem-hero h2 {
@@ -303,7 +303,7 @@
 }
 .mem-hero p {
   margin: 0;
-  color: #d0e6e3;
+  color: #dbeaff;
   line-height: 1.75;
 }
 .mem-hero-flow {
@@ -315,7 +315,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  border: 1px solid rgba(222, 247, 243, 0.2);
+  border: 1px solid rgba(219, 234, 255, 0.28);
   border-radius: 11px;
   padding: 12px;
   background: rgba(255, 255, 255, 0.07);
@@ -326,8 +326,8 @@
   height: 26px;
   place-items: center;
   border-radius: 50%;
-  background: #73d3bd;
-  color: #153f48;
+  background: #a9d8ff;
+  color: #073d89;
   font-weight: 800;
 }
 .mem-stat-grid {
@@ -429,8 +429,8 @@
 .mem-kind-grid > button:hover,
 .mem-focus-list > button:hover,
 .mem-row:hover {
-  border-color: #8cbdb5;
-  background: #f8fcfb;
+  border-color: #a9c8ec;
+  background: #f5f9ff;
 }
 .mem-kind-grid button > div,
 .mem-row-main {
@@ -729,7 +729,7 @@
 }
 .mem-rule-panel p {
   margin: 0;
-  border-left: 3px solid #9ac8be;
+  border-left: 3px solid #a9c8ec;
   padding-left: 12px;
 }
 .mem-rule-panel b,
@@ -760,7 +760,7 @@
   background: #8d69b4;
 }
 .mem-version-legend .current {
-  background: #2f8c72;
+  background: #2b73bd;
 }
 .mem-evidence-table {
   overflow-x: auto;
@@ -977,11 +977,11 @@
   background: var(--mem-soft);
 }
 .mem-detail-prose {
-  color: #33475e;
+  color: #243c60;
   line-height: 1.75;
 }
 .mem-source-code {
-  color: #315870;
+  color: #23568f;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
 }
@@ -1000,7 +1000,7 @@
   display: grid;
   place-items: center;
   padding: 20px;
-  background: rgba(8, 26, 37, 0.48);
+  background: rgba(7, 32, 70, 0.48);
 }
 .mem-modal-dismiss {
   position: absolute;
@@ -1020,7 +1020,7 @@
   border-radius: 16px;
   padding: 22px;
   background: #fff;
-  box-shadow: 0 24px 70px rgba(8, 26, 37, 0.25);
+  box-shadow: 0 24px 70px rgba(7, 32, 70, 0.25);
 }
 .mem-modal > header {
   display: flex;
@@ -1184,8 +1184,8 @@
   font-size: 9px;
 }
 .mem-propagation.active > div {
-  border-color: #a9d4c8;
-  background: #f1faf7;
+  border-color: #b3d0f5;
+  background: #f2f7ff;
 }
 .mem-propagation.active > div > span {
   background: var(--mem-brand);
@@ -1200,12 +1200,12 @@
   max-width: min(430px, calc(100vw - 40px));
   align-items: center;
   gap: 10px;
-  border: 1px solid #a9d4c8;
+  border: 1px solid #b3d0f5;
   border-radius: 12px;
   padding: 13px 15px;
-  background: #edf9f5;
-  color: #245e4f;
-  box-shadow: 0 14px 40px rgba(17, 58, 67, 0.16);
+  background: #eef5ff;
+  color: #174f94;
+  box-shadow: 0 14px 40px rgba(14, 61, 126, 0.16);
 }
 .mem-toast span {
   flex: 1;
@@ -1252,7 +1252,7 @@
     z-index: 19;
     display: block;
     border: 0;
-    background: rgba(8, 26, 37, 0.38);
+    background: rgba(7, 32, 70, 0.38);
   }
   .mem-main {
     margin-left: 0;
