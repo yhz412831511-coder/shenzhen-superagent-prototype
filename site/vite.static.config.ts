@@ -4,7 +4,7 @@ import { defineConfig } from "vite";
 import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig({
-  base: "/shenzhen-superagent-prototype/",
+  base: "/shenzhen-superagent-memory-preview/",
   root: "static",
   publicDir: "../public",
   resolve: {

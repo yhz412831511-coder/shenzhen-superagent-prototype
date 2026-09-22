@@ -11,7 +11,10 @@ export const sessionFor = (id: string) => {
 export function subscribeSandbox(fn: () => void) { listeners.add(fn); return () => { listeners.delete(fn); }; }
 export function notifySandbox() { listeners.forEach(fn => fn()); }
 let resources: Promise<Record<string, ArrayBuffer>> | undefined;
-const base = () => location.pathname.startsWith('/shenzhen-superagent-prototype') ? '/shenzhen-superagent-prototype/' : '/';
+const base = () => {
+  const [repository] = location.pathname.split('/').filter(Boolean);
+  return repository ? `/${repository}/` : '/';
+};
 function getResources() {
   return resources ||= Promise.all(['pyodide.js','pyodide.asm.js','pyodide.asm.wasm','python_stdlib.zip','pyodide-lock.json'].map(async name => {
     const response = await fetch(base() + 'sandbox/' + name);
